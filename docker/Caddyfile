@@ -1,0 +1,20 @@
+{
+    frankenphp {
+        {$FRANKENPHP_CONFIG}
+    }
+}
+
+{$SERVER_NAME::80} {
+    root * /app/apps/web/public
+    encode zstd gzip
+
+    # Static Asset Caching
+    @static {
+        file
+        path *.ico *.css *.js *.gif *.webp *.avif *.jpg *.jpeg *.png *.svg *.woff *.woff2
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    # Route dynamic requests through FrankenPHP
+    php_server
+}

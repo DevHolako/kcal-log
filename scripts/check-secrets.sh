@@ -35,6 +35,7 @@ FORBIDDEN_FILE_PATTERNS=(
 ALLOWED_FILES=(
     ".env.example"
     ".env.testing.example"
+    ".env.docker.example"
 )
 
 for file in $STAGED_FILES; do
