@@ -33,22 +33,12 @@ class ProfileController extends Controller
     /**
      * Reset all tracking data and profile for the authenticated user to start fresh.
      */
-    public function resetData(Request $request): RedirectResponse
+    public function resetData(Request $request, \App\Actions\Profile\ResetTrackingDataAction $action): RedirectResponse
     {
         /** @var \App\Models\User $user */
         $user = $request->user();
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
-            $user->diaryEntries()->delete();
-            $user->weightLogs()->delete();
-            $user->waterLogs()->delete();
-            $user->bodyMeasurements()->delete();
-            $user->exerciseLogs()->delete();
-            $user->adaptiveAdjustments()->delete();
-            $user->targetProfiles()->delete();
-            $user->reportExports()->delete();
-            $user->profile()->delete();
-        });
+        $action->execute($user);
 
         return redirect()->route('onboarding')->with('success', 'All tracking data, targets, and profile metrics have been reset. You can now set up your nutrition plan fresh.');
     }

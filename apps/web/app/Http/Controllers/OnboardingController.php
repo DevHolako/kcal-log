@@ -73,7 +73,8 @@ class OnboardingController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $action->execute($user, $request->toPayload());
+        $dto = \App\DTOs\Onboarding\OnboardingDTO::fromRequest($request);
+        $action->execute($user, $dto);
 
         return redirect()->route('dashboard')->with('success', 'Your personalized nutrition targets have been calibrated and applied to your diary!');
     }

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Food\CreateCustomFoodAction;
+use App\Actions\Food\DeleteCustomFoodAction;
+use App\DTOs\Food\CreateCustomFoodDTO;
 use App\Http\Requests\Food\StoreCustomFoodRequest;
 use App\Models\Food;
 use App\Models\User;
@@ -15,6 +18,8 @@ class FoodController extends Controller
 {
     public function __construct(
         protected FoodService $foodService,
+        protected CreateCustomFoodAction $createCustomFoodAction,
+        protected DeleteCustomFoodAction $deleteCustomFoodAction,
     ) {}
 
     /**
@@ -80,7 +85,8 @@ class FoodController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->foodService->createCustomFood($user, $request->validated());
+        $dto = CreateCustomFoodDTO::fromRequest($request);
+        $this->createCustomFoodAction->execute($user, $dto);
 
         return back()->with('status', 'Custom food created successfully.');
     }
@@ -93,7 +99,7 @@ class FoodController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->foodService->deleteCustomFood($user, $food);
+        $this->deleteCustomFoodAction->execute($user, $food);
 
         return back()->with('status', 'Custom food removed successfully.');
     }

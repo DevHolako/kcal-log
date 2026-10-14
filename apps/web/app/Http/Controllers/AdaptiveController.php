@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Adaptive\ApplyAdaptiveAdjustmentAction;
+use App\Actions\Adaptive\CalculateAdaptiveAdjustmentAction;
+use App\Actions\Adaptive\RejectAdaptiveAdjustmentAction;
 use App\Models\AdaptiveAdjustment;
 use App\Models\User;
 use App\Models\WeightLog;
@@ -15,7 +18,10 @@ use InvalidArgumentException;
 class AdaptiveController extends Controller
 {
     public function __construct(
-        protected AdaptiveAdjustmentService $adaptiveService
+        protected AdaptiveAdjustmentService $adaptiveService,
+        protected ApplyAdaptiveAdjustmentAction $applyAction,
+        protected RejectAdaptiveAdjustmentAction $rejectAction,
+        protected CalculateAdaptiveAdjustmentAction $calculateAction,
     ) {}
 
     /**
@@ -58,7 +64,7 @@ class AdaptiveController extends Controller
                 'weight_kg' => (float) $log->weight_kg,
                 'ewma_kg' => $ewmaSeries[$date] ?? (float) $log->weight_kg,
             ];
-        })->values();
+        });
 
         return Inertia::render('strategy/index', [
             'pendingAdjustment' => $pending,
@@ -77,12 +83,8 @@ class AdaptiveController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if ($adjustment->user_id !== $user->id) {
-            abort(403, 'Unauthorized adjustment access.');
-        }
-
         try {
-            $this->adaptiveService->acceptAdjustment($user, $adjustment);
+            $this->applyAction->execute($user, $adjustment);
 
             return redirect()->back()->with('success', 'Adaptive target plan accepted and activated!');
         } catch (InvalidArgumentException $e) {
@@ -98,12 +100,8 @@ class AdaptiveController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if ($adjustment->user_id !== $user->id) {
-            abort(403, 'Unauthorized adjustment access.');
-        }
-
         try {
-            $this->adaptiveService->rejectAdjustment($user, $adjustment);
+            $this->rejectAction->execute($user, $adjustment);
 
             return redirect()->back()->with('info', 'Adjustment proposal rejected. Your current targets remain unchanged.');
         } catch (InvalidArgumentException $e) {
@@ -119,7 +117,7 @@ class AdaptiveController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $adj = $this->adaptiveService->calculateWeeklyAdjustment($user);
+        $adj = $this->calculateAction->execute($user);
 
         if (! $adj) {
             return redirect()->back()->with('error', 'Not enough weight data to calculate an adaptive trend. Please log your weight first.');

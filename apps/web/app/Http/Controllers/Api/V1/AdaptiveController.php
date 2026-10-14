@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Adaptive\ApplyAdaptiveAdjustmentAction;
+use App\Actions\Adaptive\CalculateAdaptiveAdjustmentAction;
+use App\Actions\Adaptive\RejectAdaptiveAdjustmentAction;
 use App\Http\Controllers\Controller;
 use App\Models\AdaptiveAdjustment;
 use App\Models\User;
@@ -13,7 +16,10 @@ use InvalidArgumentException;
 class AdaptiveController extends Controller
 {
     public function __construct(
-        protected AdaptiveAdjustmentService $adaptiveService
+        protected AdaptiveAdjustmentService $adaptiveService,
+        protected ApplyAdaptiveAdjustmentAction $applyAction,
+        protected RejectAdaptiveAdjustmentAction $rejectAction,
+        protected CalculateAdaptiveAdjustmentAction $calculateAction,
     ) {}
 
     /**
@@ -66,12 +72,8 @@ class AdaptiveController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if ($adjustment->user_id !== $user->id) {
-            abort(403, 'Unauthorized adjustment access.');
-        }
-
         try {
-            $newTarget = $this->adaptiveService->acceptAdjustment($user, $adjustment);
+            $newTarget = $this->applyAction->execute($user, $adjustment);
 
             return response()->json([
                 'message' => 'Adaptive adjustment accepted and activated.',
@@ -91,12 +93,8 @@ class AdaptiveController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if ($adjustment->user_id !== $user->id) {
-            abort(403, 'Unauthorized adjustment access.');
-        }
-
         try {
-            $updated = $this->adaptiveService->rejectAdjustment($user, $adjustment);
+            $updated = $this->rejectAction->execute($user, $adjustment);
 
             return response()->json([
                 'message' => 'Adaptive adjustment rejected.',
@@ -115,7 +113,7 @@ class AdaptiveController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $adjustment = $this->adaptiveService->calculateWeeklyAdjustment($user);
+        $adjustment = $this->calculateAction->execute($user);
 
         if (! $adjustment) {
             return response()->json([

@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Export\CreateExportAction;
+use App\DTOs\Export\CreateExportDTO;
 use App\Http\Requests\Reports\StoreExportRequest;
 use App\Models\ReportExport;
 use App\Models\User;
-use App\Services\ExportService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +17,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class ExportController extends Controller
 {
     public function __construct(
-        protected ExportService $exportService,
+        protected CreateExportAction $createExportAction,
     ) {}
 
     /**
@@ -44,13 +45,8 @@ class ExportController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->exportService->requestExport(
-            $user,
-            (string) $request->input('type'),
-            (string) $request->input('date_from'),
-            (string) $request->input('date_to'),
-            async: ! app()->environment('testing', 'local') && config('queue.default') !== 'sync'
-        );
+        $dto = CreateExportDTO::fromRequest($request);
+        $this->createExportAction->execute($user, $dto);
 
         return back()->with('status', 'Report generated successfully.');
     }

@@ -18,7 +18,8 @@ class OnboardingController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $result = $action->execute($user, $request->toPayload());
+        $dto = \App\DTOs\Onboarding\OnboardingDTO::fromRequest($request);
+        $result = $action->execute($user, $dto);
 
         return response()->json([
             'message' => 'Onboarding completed successfully.',

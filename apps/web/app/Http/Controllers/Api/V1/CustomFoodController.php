@@ -2,19 +2,25 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Food\CreateCustomFoodAction;
+use App\Actions\Food\DeleteCustomFoodAction;
+use App\Actions\Food\UpdateCustomFoodAction;
+use App\DTOs\Food\CreateCustomFoodDTO;
+use App\DTOs\Food\UpdateCustomFoodDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Food\StoreCustomFoodRequest;
 use App\Http\Requests\Food\UpdateCustomFoodRequest;
 use App\Models\Food;
 use App\Models\User;
-use App\Services\FoodService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CustomFoodController extends Controller
 {
     public function __construct(
-        protected FoodService $foodService,
+        protected CreateCustomFoodAction $createCustomFoodAction,
+        protected UpdateCustomFoodAction $updateCustomFoodAction,
+        protected DeleteCustomFoodAction $deleteCustomFoodAction,
     ) {}
 
     /**
@@ -42,7 +48,8 @@ class CustomFoodController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $food = $this->foodService->createCustomFood($user, $request->validated());
+        $dto = CreateCustomFoodDTO::fromRequest($request);
+        $food = $this->createCustomFoodAction->execute($user, $dto);
 
         return response()->json([
             'message' => 'Custom food created successfully.',
@@ -77,7 +84,8 @@ class CustomFoodController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $updatedFood = $this->foodService->updateCustomFood($user, $food, $request->validated());
+        $dto = UpdateCustomFoodDTO::fromRequest($request);
+        $updatedFood = $this->updateCustomFoodAction->execute($user, $food, $dto);
 
         return response()->json([
             'message' => 'Custom food updated successfully.',
@@ -93,7 +101,7 @@ class CustomFoodController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->foodService->deleteCustomFood($user, $food);
+        $this->deleteCustomFoodAction->execute($user, $food);
 
         return response()->json([
             'message' => 'Custom food deleted successfully.',

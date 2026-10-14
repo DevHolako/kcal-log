@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\DTOs\Onboarding\OnboardingDTO;
 use App\Models\Profile;
 use App\Models\TargetProfile;
 use App\Models\User;
@@ -19,21 +20,21 @@ class CompleteOnboardingAction
     /**
      * Execute the onboarding completion transaction.
      *
-     * @param  array{
+     * @param  OnboardingDTO|array{
      *     date_of_birth: string,
      *     sex: string,
-     *     height_cm: float,
-     *     current_weight_kg: float,
+     *     height_cm: float|int|string,
+     *     current_weight_kg: float|int|string,
      *     activity_level: string,
      *     goal_type: string,
-     *     weekly_rate_kg?: float,
-     *     diet_type?: string,
-     *     custom_percentages?: array{protein?: float, carbs?: float, fat?: float},
-     *     timezone?: string,
-     *     locale?: string,
-     *     unit_preference?: string,
-     *     theme_preference?: string
-     * }  $data
+     *     weekly_rate_kg?: float|int|string|null,
+     *     diet_type?: ?string,
+     *     custom_percentages?: array{protein?: float, carbs?: float, fat?: float}|null,
+     *     timezone?: ?string,
+     *     locale?: ?string,
+     *     unit_preference?: ?string,
+     *     theme_preference?: ?string
+     * }  $input
      * @return array{
      *     user: User,
      *     profile: Profile,
@@ -41,25 +42,23 @@ class CompleteOnboardingAction
      *     weight_log: WeightLog
      * }
      */
-    public function execute(User $user, array $data): array
+    public function execute(User $user, OnboardingDTO|array $input): array
     {
-        return DB::transaction(function () use ($user, $data) {
-            $weeklyRateKg = (float) ($data['weekly_rate_kg'] ?? 0.0);
-            if ($data['goal_type'] === 'maintain') {
-                $weeklyRateKg = 0.0;
-            }
+        $dto = $input instanceof OnboardingDTO ? $input : OnboardingDTO::fromArray($input);
 
-            $dietType = $data['diet_type'] ?? 'balanced';
-            $customPercentages = $data['custom_percentages'] ?? [];
+        return DB::transaction(function () use ($user, $dto) {
+            $weeklyRateKg = $dto->weeklyRateKg;
+            $dietType = $dto->dietType;
+            $customPercentages = $dto->customPercentages;
 
             // 1. Calculate nutrition targets
             $plan = $this->calculator->calculatePlan(
-                birthDate: $data['date_of_birth'],
-                sex: $data['sex'],
-                heightCm: (float) $data['height_cm'],
-                weightKg: (float) $data['current_weight_kg'],
-                activityLevel: $data['activity_level'],
-                goalType: $data['goal_type'],
+                birthDate: $dto->dateOfBirth,
+                sex: $dto->sex,
+                heightCm: $dto->heightCm,
+                weightKg: $dto->currentWeightKg,
+                activityLevel: $dto->activityLevel,
+                goalType: $dto->goalType,
                 weeklyRateKg: $weeklyRateKg,
                 dietType: $dietType,
                 customPercentages: $customPercentages
@@ -70,14 +69,14 @@ class CompleteOnboardingAction
             $profile = Profile::updateOrCreate(
                 ['user_id' => $user->id],
                 [
-                    'date_of_birth' => $data['date_of_birth'],
-                    'sex' => $data['sex'],
-                    'height_cm' => $data['height_cm'],
-                    'activity_level' => $data['activity_level'],
-                    'timezone' => $data['timezone'] ?? 'UTC',
-                    'locale' => $data['locale'] ?? 'en',
-                    'unit_preference' => $data['unit_preference'] ?? 'metric',
-                    'theme_preference' => $data['theme_preference'] ?? 'system',
+                    'date_of_birth' => $dto->dateOfBirth,
+                    'sex' => $dto->sex,
+                    'height_cm' => $dto->heightCm,
+                    'activity_level' => $dto->activityLevel,
+                    'timezone' => $dto->timezone ?? 'UTC',
+                    'locale' => $dto->locale ?? 'en',
+                    'unit_preference' => $dto->unitPreference ?? 'metric',
+                    'theme_preference' => $dto->themePreference ?? 'system',
                 ]
             );
 
@@ -90,7 +89,7 @@ class CompleteOnboardingAction
                     'date' => $today,
                 ],
                 [
-                    'weight_kg' => $data['current_weight_kg'],
+                    'weight_kg' => $dto->currentWeightKg,
                     'source' => 'manual',
                     'note' => 'Initial weight recorded during onboarding',
                 ]
@@ -112,18 +111,18 @@ class CompleteOnboardingAction
                 'water_ml' => $plan['water_ml'],
                 'bmr' => $plan['bmr'],
                 'tdee' => $plan['tdee'],
-                'goal_type' => $data['goal_type'],
+                'goal_type' => $dto->goalType,
                 'weekly_rate_kg' => $weeklyRateKg,
                 'diet_type' => $dietType,
                 'formula_inputs' => [
                     'formula' => 'mifflin_st_jeor',
-                    'birth_date' => $data['date_of_birth'],
+                    'birth_date' => $dto->dateOfBirth,
                     'calculated_age' => $plan['age'],
-                    'sex' => $data['sex'],
-                    'height_cm' => $data['height_cm'],
-                    'weight_kg' => $data['current_weight_kg'],
-                    'activity_level' => $data['activity_level'],
-                    'goal_type' => $data['goal_type'],
+                    'sex' => $dto->sex,
+                    'height_cm' => $dto->heightCm,
+                    'weight_kg' => $dto->currentWeightKg,
+                    'activity_level' => $dto->activityLevel,
+                    'goal_type' => $dto->goalType,
                     'weekly_rate_kg' => $weeklyRateKg,
                     'diet_type' => $dietType,
                     'macro_percentages' => $plan['percentages'],

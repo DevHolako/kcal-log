@@ -2,6 +2,16 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Diary\DeleteFoodLogAction;
+use App\Actions\Diary\DeleteWaterLogAction;
+use App\Actions\Diary\LogFoodAction;
+use App\Actions\Diary\LogWaterAction;
+use App\Actions\Diary\QuickAddCaloriesAction;
+use App\Actions\Diary\UpdateFoodLogAction;
+use App\DTOs\Diary\LogFoodDTO;
+use App\DTOs\Diary\LogWaterDTO;
+use App\DTOs\Diary\QuickAddDTO;
+use App\DTOs\Diary\UpdateFoodLogDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Diary\QuickAddRequest;
 use App\Http\Requests\Diary\StoreDiaryEntryRequest;
@@ -18,6 +28,12 @@ class DiaryController extends Controller
 {
     public function __construct(
         protected DiaryService $diaryService,
+        protected LogFoodAction $logFoodAction,
+        protected UpdateFoodLogAction $updateFoodLogAction,
+        protected DeleteFoodLogAction $deleteFoodLogAction,
+        protected QuickAddCaloriesAction $quickAddAction,
+        protected LogWaterAction $logWaterAction,
+        protected DeleteWaterLogAction $deleteWaterLogAction,
     ) {}
 
     /**
@@ -43,7 +59,8 @@ class DiaryController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $entry = $this->diaryService->addEntry($user, $request->validated());
+        $dto = LogFoodDTO::fromRequest($request);
+        $entry = $this->logFoodAction->execute($user, $dto);
 
         return response()->json([
             'message' => 'Diary entry logged successfully.',
@@ -59,11 +76,12 @@ class DiaryController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $updated = $this->diaryService->updateEntry($user, $entry, $request->validated());
+        $dto = UpdateFoodLogDTO::fromRequest($request);
+        $updatedEntry = $this->updateFoodLogAction->execute($user, $entry, $dto);
 
         return response()->json([
             'message' => 'Diary entry updated successfully.',
-            'data' => $updated,
+            'data' => $updatedEntry,
         ]);
     }
 
@@ -75,31 +93,26 @@ class DiaryController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->diaryService->deleteEntry($user, $entry);
+        $this->deleteFoodLogAction->execute($user, $entry);
 
         return response()->json([
-            'message' => 'Diary entry removed successfully.',
+            'message' => 'Diary entry deleted successfully.',
         ]);
     }
 
     /**
-     * Quick add calories directly to a meal slot.
+     * Quick add raw calories directly to a meal slot.
      */
     public function quickAdd(QuickAddRequest $request): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
 
-        $entry = $this->diaryService->quickAdd(
-            $user,
-            (string) $request->input('date'),
-            (string) $request->input('meal_slot'),
-            (float) $request->input('calories'),
-            $request->input('description')
-        );
+        $dto = QuickAddDTO::fromRequest($request);
+        $entry = $this->quickAddAction->execute($user, $dto);
 
         return response()->json([
-            'message' => 'Calories quick added successfully.',
+            'message' => 'Calories logged successfully.',
             'data' => $entry,
         ], 201);
     }
@@ -112,30 +125,27 @@ class DiaryController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $log = $this->diaryService->logWater(
-            $user,
-            (string) $request->input('date'),
-            (int) $request->input('amount_ml')
-        );
+        $dto = LogWaterDTO::fromRequest($request);
+        $log = $this->logWaterAction->execute($user, $dto);
 
         return response()->json([
-            'message' => 'Water logged successfully.',
+            'message' => 'Water intake logged successfully.',
             'data' => $log,
         ], 201);
     }
 
     /**
-     * Delete a water log entry.
+     * Delete water log.
      */
     public function destroyWater(WaterLog $waterLog, Request $request): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
 
-        $this->diaryService->deleteWaterLog($user, $waterLog);
+        $this->deleteWaterLogAction->execute($user, $waterLog);
 
         return response()->json([
-            'message' => 'Water log removed successfully.',
+            'message' => 'Water log deleted successfully.',
         ]);
     }
 }

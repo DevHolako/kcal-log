@@ -2,6 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Diary\DeleteFoodLogAction;
+use App\Actions\Diary\DeleteWaterLogAction;
+use App\Actions\Diary\LogFoodAction;
+use App\Actions\Diary\LogWaterAction;
+use App\Actions\Diary\QuickAddCaloriesAction;
+use App\Actions\Diary\UpdateFoodLogAction;
+use App\DTOs\Diary\LogFoodDTO;
+use App\DTOs\Diary\LogWaterDTO;
+use App\DTOs\Diary\QuickAddDTO;
+use App\DTOs\Diary\UpdateFoodLogDTO;
 use App\Http\Requests\Diary\QuickAddRequest;
 use App\Http\Requests\Diary\StoreDiaryEntryRequest;
 use App\Http\Requests\Diary\StoreWaterLogRequest;
@@ -20,6 +30,12 @@ class DiaryController extends Controller
 {
     public function __construct(
         protected DiaryService $diaryService,
+        protected LogFoodAction $logFoodAction,
+        protected UpdateFoodLogAction $updateFoodLogAction,
+        protected DeleteFoodLogAction $deleteFoodLogAction,
+        protected QuickAddCaloriesAction $quickAddAction,
+        protected LogWaterAction $logWaterAction,
+        protected DeleteWaterLogAction $deleteWaterLogAction,
     ) {}
 
     /**
@@ -55,7 +71,8 @@ class DiaryController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->diaryService->addEntry($user, $request->validated());
+        $dto = LogFoodDTO::fromRequest($request);
+        $this->logFoodAction->execute($user, $dto);
 
         return back()->with('status', 'Food logged to diary.');
     }
@@ -68,41 +85,37 @@ class DiaryController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->diaryService->updateEntry($user, $entry, $request->validated());
+        $dto = UpdateFoodLogDTO::fromRequest($request);
+        $this->updateFoodLogAction->execute($user, $entry, $dto);
 
         return back()->with('status', 'Diary entry updated.');
     }
 
     /**
-     * Delete a diary entry.
+     * Remove a food entry from diary.
      */
     public function destroy(DiaryEntry $entry, Request $request): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
 
-        $this->diaryService->deleteEntry($user, $entry);
+        $this->deleteFoodLogAction->execute($user, $entry);
 
-        return back()->with('status', 'Entry removed from diary.');
+        return back()->with('status', 'Diary entry removed.');
     }
 
     /**
-     * Quick add calories directly to a meal slot.
+     * Quick add raw calories directly to a meal slot.
      */
     public function quickAdd(QuickAddRequest $request): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
 
-        $this->diaryService->quickAdd(
-            $user,
-            (string) $request->input('date'),
-            (string) $request->input('meal_slot'),
-            (float) $request->input('calories'),
-            $request->input('description')
-        );
+        $dto = QuickAddDTO::fromRequest($request);
+        $this->quickAddAction->execute($user, $dto);
 
-        return back()->with('status', 'Calories added to meal slot.');
+        return back()->with('status', 'Calories quick added.');
     }
 
     /**
@@ -113,11 +126,8 @@ class DiaryController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->diaryService->logWater(
-            $user,
-            (string) $request->input('date'),
-            (int) $request->input('amount_ml')
-        );
+        $dto = LogWaterDTO::fromRequest($request);
+        $this->logWaterAction->execute($user, $dto);
 
         return back()->with('status', 'Water intake logged.');
     }
@@ -130,7 +140,7 @@ class DiaryController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $this->diaryService->deleteWaterLog($user, $waterLog);
+        $this->deleteWaterLogAction->execute($user, $waterLog);
 
         return back()->with('status', 'Water log removed.');
     }
