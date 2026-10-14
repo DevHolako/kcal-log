@@ -34,8 +34,12 @@ This journal tracks all significant architectural, tooling, and design decisions
 
 ## 4. Open Food Facts & Resilience (Phase 4)
 - **Credential Storage**: Isolated in `user_off_connections` table, protected by Laravel's `encrypted` cast, hidden from serialization, never exposed via API.
-- **Fallback Chain**: 3-tier lookup: (1) Authenticated OFF -> (2) Anonymous OFF -> (3) Local PostgreSQL cache. Degraded mode explicitly communicated to the user.
-- **API Courtesy**: Identifiable User-Agent (`kcal-log/1.0 (https://github.com/DevHolako/kcal-log)`), client-side rate-limit backoff handling.
+- **Fallback Chain**: 3-tier lookup: (1) Authenticated OFF -> (2) Anonymous OFF -> (3) Local MariaDB/SQLite cache. Degraded mode explicitly communicated to the user with `is_degraded: true` flag and UI alert badges.
+- **API Courtesy**: Identifiable User-Agent (`kcal-log/1.0 (https://github.com/DevHolako/kcal-log)`), 3s network timeout with non-blocking graceful fallback.
+- **Auto-caching & Normalization**: Seamlessly persists discovered OFF foods and standard portions (`100g` default + extracted serving package) into `foods` and `food_servings` tables.
+- **Custom Food Management**: Full CRUD for private user custom foods (`is_custom = true`, `user_id = {id}`) with multi-serving support and strict ownership isolation (403 Forbidden on foreign access).
+- **Portion Nutrition Calculator**: High-precision formula calculating exact scaled calories, macros (protein, carbs, fat), fiber, sugar, and sodium for any serving multiplier.
+- **Web UI & Settings**: Inertia pages for live food search and portion calculation (`/foods`) and Open Food Facts account management (`/settings/open-food-facts`).
 
 ---
 

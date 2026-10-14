@@ -7,6 +7,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $username
+ * @property string|null $password
+ * @property string|null $auth_token
+ * @property bool $is_connected
+ * @property \Illuminate\Support\Carbon|null $last_synced_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User $user
+ */
 class UserOffConnection extends Model
 {
     /** @use HasFactory<UserOffConnectionFactory> */

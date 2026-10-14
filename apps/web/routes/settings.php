@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\OffSettingsController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use Illuminate\Auth\Middleware\RequirePassword;
@@ -24,6 +25,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('user-password.update');
 
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
+
+    // Open Food Facts Integration Settings
+    Route::get('settings/open-food-facts', [OffSettingsController::class, 'edit'])->name('settings.off.edit');
+    Route::post('settings/open-food-facts/connect', [OffSettingsController::class, 'connect'])->name('settings.off.connect');
+    Route::post('settings/open-food-facts/disconnect', [OffSettingsController::class, 'disconnect'])->name('settings.off.disconnect');
 });
 
 Route::get('.well-known/passkey-endpoints', function () {

@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'open_food_facts' => [
+        'base_url' => env('OPEN_FOOD_FACTS_BASE_URL', 'https://world.openfoodfacts.org'),
+        'user_agent' => env('OPEN_FOOD_FACTS_USER_AGENT', 'kcal-log/1.0 (https://github.com/DevHolako/kcal-log)'),
+        'timeout' => (int) env('OPEN_FOOD_FACTS_TIMEOUT', 3),
+    ],
+
 ];
