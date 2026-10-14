@@ -21,10 +21,17 @@ class OnboardingController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        // If user already has both a profile and an active target, redirect to dashboard
-        if ($user->profile()->exists() && $user->targetProfiles()->where('is_active', true)->exists()) {
+        $isRecalibrating = $request->boolean('recalibrate') || $request->has('recalibrate');
+
+        // If user already has both a profile and an active target, redirect to dashboard unless recalibrating
+        if (! $isRecalibrating && $user->profile()->exists() && $user->targetProfiles()->where('is_active', true)->exists()) {
             return redirect()->route('dashboard');
         }
+
+        $profile = $user->profile;
+        /** @var \App\Models\TargetProfile|null $activeTarget */
+        $activeTarget = $user->activeTargetProfile;
+        $latestWeight = $user->weightLogs()->latest('date')->first();
 
         return Inertia::render('onboarding', [
             'activityLevels' => [
@@ -36,6 +43,25 @@ class OnboardingController extends Controller
             ],
             'dietPresets' => NutritionCalculator::DIET_PRESETS,
             'calorieFloors' => NutritionCalculator::CALORIE_FLOORS,
+            'initialData' => $profile ? [
+                'date_of_birth' => $profile->date_of_birth->format('Y-m-d'),
+                'sex' => (string) $profile->sex,
+                'height_cm' => (float) $profile->height_cm,
+                'current_weight_kg' => (float) ($latestWeight->weight_kg ?? 75),
+                'activity_level' => (string) $profile->activity_level,
+                'goal_type' => (string) ($activeTarget->goal_type ?? 'lose'),
+                'weekly_rate_kg' => (float) ($activeTarget->weekly_rate_kg ?? -0.5),
+                'diet_type' => (string) ($activeTarget->diet_type ?? 'balanced'),
+                'custom_percentages' => is_array($activeTarget?->formula_inputs) && isset($activeTarget->formula_inputs['macro_percentages'])
+                    ? $activeTarget->formula_inputs['macro_percentages']
+                    : [
+                        'protein' => 0.3,
+                        'carbs' => 0.4,
+                        'fat' => 0.3,
+                    ],
+                'unit_preference' => (string) ($profile->unit_preference ?? 'metric'),
+            ] : null,
+            'isRecalibrating' => $isRecalibrating,
         ]);
     }
 
@@ -49,6 +75,6 @@ class OnboardingController extends Controller
 
         $action->execute($user, $request->toPayload());
 
-        return redirect()->route('dashboard')->with('success', 'Welcome to kcal-log! Your personalized plan is ready.');
+        return redirect()->route('dashboard')->with('success', 'Your personalized nutrition targets have been calibrated and applied to your diary!');
     }
 }

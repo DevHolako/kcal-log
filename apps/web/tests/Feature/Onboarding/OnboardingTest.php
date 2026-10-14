@@ -135,3 +135,46 @@ it('rejects invalid custom macro percentages that do not sum to 100%', function 
 
     $response->assertSessionHasErrors(['custom_percentages']);
 });
+
+it('redirects an onboarded user away from onboarding unless recalibrate flag is provided', function () {
+    $user = User::factory()->create();
+    Profile::factory()->create(['user_id' => $user->id]);
+    TargetProfile::factory()->create(['user_id' => $user->id, 'is_active' => true]);
+
+    $response = $this->actingAs($user)->get(route('onboarding'));
+
+    $response->assertRedirect(route('dashboard'));
+});
+
+it('allows an onboarded user to access onboarding when recalibrate flag is present', function () {
+    $user = User::factory()->create();
+    $profile = Profile::factory()->create([
+        'user_id' => $user->id,
+        'sex' => 'female',
+        'height_cm' => 168.0,
+        'activity_level' => 'moderately_active',
+    ]);
+    TargetProfile::factory()->create([
+        'user_id' => $user->id,
+        'is_active' => true,
+        'goal_type' => 'lose',
+        'diet_type' => 'balanced',
+    ]);
+    WeightLog::factory()->create([
+        'user_id' => $user->id,
+        'weight_kg' => 64.5,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('onboarding', ['recalibrate' => 1]));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('onboarding')
+        ->where('isRecalibrating', true)
+        ->where('initialData.sex', 'female')
+        ->where('initialData.height_cm', 168)
+        ->where('initialData.current_weight_kg', 64.5)
+        ->where('initialData.activity_level', 'moderately_active')
+    );
+});
+

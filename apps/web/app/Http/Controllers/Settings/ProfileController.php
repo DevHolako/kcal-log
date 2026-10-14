@@ -19,10 +19,38 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'activeTarget' => $user->activeTargetProfile,
+            'userProfile' => $user->profile,
         ]);
+    }
+
+    /**
+     * Reset all tracking data and profile for the authenticated user to start fresh.
+     */
+    public function resetData(Request $request): RedirectResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
+            $user->diaryEntries()->delete();
+            $user->weightLogs()->delete();
+            $user->waterLogs()->delete();
+            $user->bodyMeasurements()->delete();
+            $user->exerciseLogs()->delete();
+            $user->adaptiveAdjustments()->delete();
+            $user->targetProfiles()->delete();
+            $user->reportExports()->delete();
+            $user->profile()->delete();
+        });
+
+        return redirect()->route('onboarding')->with('success', 'All tracking data, targets, and profile metrics have been reset. You can now set up your nutrition plan fresh.');
     }
 
     /**

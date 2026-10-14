@@ -1,6 +1,10 @@
 <?php
 
+use App\Models\DiaryEntry;
+use App\Models\Profile;
+use App\Models\TargetProfile;
 use App\Models\User;
+use App\Models\WeightLog;
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();
@@ -83,3 +87,25 @@ test('correct password must be provided to delete account', function () {
 
     expect($user->fresh())->not->toBeNull();
 });
+
+test('user can reset all tracking data and profile to start fresh', function () {
+    $user = User::factory()->create();
+    Profile::factory()->create(['user_id' => $user->id]);
+    TargetProfile::factory()->create(['user_id' => $user->id, 'is_active' => true]);
+    WeightLog::factory()->create(['user_id' => $user->id, 'weight_kg' => 75]);
+    DiaryEntry::factory()->create(['user_id' => $user->id]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('profile.reset-data'));
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('onboarding'));
+
+    expect($user->fresh()->profile)->toBeNull();
+    expect($user->targetProfiles()->count())->toBe(0);
+    expect($user->weightLogs()->count())->toBe(0);
+    expect($user->diaryEntries()->count())->toBe(0);
+});
+

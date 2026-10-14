@@ -14,6 +14,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('settings/profile/reset-data', [ProfileController::class, 'resetData'])->name('profile.reset-data');
     Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('settings/security', [SecurityController::class, 'edit'])

@@ -4,6 +4,8 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import NutritionSettings, { type TargetProfileSummary, type UserProfileSummary } from '@/components/nutrition-settings';
+import ResetTrackingData from '@/components/reset-tracking-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,9 +20,13 @@ type PageProps = {
 export default function Profile({
     mustVerifyEmail,
     status,
+    activeTarget,
+    userProfile,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
+    activeTarget?: TargetProfileSummary | null;
+    userProfile?: UserProfileSummary | null;
 }) {
     const { auth } = usePage<PageProps>().props;
 
@@ -30,7 +36,15 @@ export default function Profile({
 
             <h1 className="sr-only">Profile settings</h1>
 
-            <div className="space-y-6">
+            {status && (
+                <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                    {status}
+                </div>
+            )}
+
+            <NutritionSettings activeTarget={activeTarget} userProfile={userProfile} />
+
+            <div className="space-y-6 pt-4 border-t border-border">
                 <Heading
                     variant="small"
                     title="Profile"
@@ -123,7 +137,13 @@ export default function Profile({
                 </Form>
             </div>
 
-            <DeleteUser />
+            <div className="pt-4 border-t border-border">
+                <ResetTrackingData />
+            </div>
+
+            <div className="pt-4 border-t border-border">
+                <DeleteUser />
+            </div>
         </>
     );
 }

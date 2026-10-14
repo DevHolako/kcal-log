@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import {
     calculateBMR,
     calculateTDEE,
@@ -15,6 +15,7 @@ import {
     Check,
     CheckCircle2,
     Flame,
+    Loader2,
     Scale,
     ShieldAlert,
     Sparkles,
@@ -46,37 +47,65 @@ interface OnboardingProps {
         { protein: number; carbs: number; fat: number }
     >;
     calorieFloors: Record<string, number>;
+    initialData?: {
+        date_of_birth: string;
+        sex: Sex;
+        height_cm: number;
+        current_weight_kg: number;
+        activity_level: ActivityLevel;
+        goal_type: GoalType;
+        weekly_rate_kg: number;
+        diet_type: string;
+        custom_percentages: {
+            protein: number;
+            carbs: number;
+            fat: number;
+        };
+        unit_preference: string;
+    } | null;
+    isRecalibrating?: boolean;
 }
 
 export default function Onboarding({
     activityLevels,
     dietPresets,
     calorieFloors,
+    initialData,
+    isRecalibrating = false,
 }: OnboardingProps) {
+    const initialUnit = (initialData?.unit_preference as 'metric' | 'imperial') || 'metric';
     const [step, setStep] = useState<number>(1);
-    const [weightUnit, setWeightUnit] = useState<'metric' | 'imperial'>(
-        'metric',
+    const [weightUnit, setWeightUnit] = useState<'metric' | 'imperial'>(initialUnit);
+
+    const initialWeight = initialData?.current_weight_kg ?? 75;
+    const initialHeight = initialData?.height_cm ?? 175;
+
+    const [displayWeight, setDisplayWeight] = useState<string>(
+        initialUnit === 'imperial'
+            ? kgToLbs(initialWeight).toString()
+            : initialWeight.toString()
     );
-    const [displayWeight, setDisplayWeight] = useState<string>('75');
-    const [displayHeight, setDisplayHeight] = useState<string>('175');
+    const [displayHeight, setDisplayHeight] = useState<string>(
+        initialHeight.toString()
+    );
 
     const { data, setData, post, processing, errors } = useForm({
-        date_of_birth: '1998-05-15',
-        sex: 'male' as Sex,
-        height_cm: 175,
-        current_weight_kg: 75,
-        activity_level: 'moderately_active' as ActivityLevel,
-        goal_type: 'lose' as GoalType,
-        weekly_rate_kg: -0.5,
-        diet_type: 'balanced',
-        custom_percentages: {
+        date_of_birth: initialData?.date_of_birth || '1998-05-15',
+        sex: (initialData?.sex || 'male') as Sex,
+        height_cm: initialHeight,
+        current_weight_kg: initialWeight,
+        activity_level: (initialData?.activity_level || 'moderately_active') as ActivityLevel,
+        goal_type: (initialData?.goal_type || 'lose') as GoalType,
+        weekly_rate_kg: initialData?.weekly_rate_kg ?? -0.5,
+        diet_type: initialData?.diet_type || 'balanced',
+        custom_percentages: initialData?.custom_percentages || {
             protein: 0.3,
             carbs: 0.4,
             fat: 0.3,
         },
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
         locale: navigator.language?.startsWith('fr') ? 'fr' : 'en',
-        unit_preference: 'metric',
+        unit_preference: initialUnit,
         theme_preference: 'system',
     });
 
@@ -179,6 +208,10 @@ export default function Onboarding({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (step < 5) {
+            setStep((s) => Math.min(5, s + 1));
+            return;
+        }
         post('/onboarding');
     };
 
@@ -192,13 +225,30 @@ export default function Onboarding({
                     <div className="mb-2 inline-flex items-center justify-center rounded-2xl bg-emerald-500/10 p-3 text-emerald-600 dark:text-emerald-400">
                         <Flame className="h-8 w-8" />
                     </div>
+                    {isRecalibrating && (
+                        <div>
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                                <Sparkles className="h-3.5 w-3.5" />
+                                Recalibrating Nutrition Plan
+                            </span>
+                        </div>
+                    )}
                     <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                        Let's build your personalized nutrition blueprint
+                        {isRecalibrating
+                            ? 'Update your personalized nutrition targets'
+                            : "Let's build your personalized nutrition blueprint"}
                     </h1>
                     <p className="mx-auto max-w-md text-sm text-slate-600 dark:text-slate-400">
                         Precision targets tailored to your metabolism, body
                         composition, and goals.
                     </p>
+                    {isRecalibrating && (
+                        <p className="pt-1 text-xs">
+                            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground underline">
+                                Cancel and return to dashboard
+                            </Link>
+                        </p>
+                    )}
                 </div>
 
                 {/* Step Progress Tracker */}
@@ -835,66 +885,77 @@ export default function Onboarding({
                                                 </span>
                                             </div>
                                             <p className="mt-1 text-xs text-emerald-100">
-                                                TDEE {liveStats.tdee} kcal ·
-                                                Goal: {data.goal_type} (
-                                                {data.weekly_rate_kg} kg/wk)
+                                                TDEE {liveStats.tdee} kcal &bull; Goal: {data.goal_type} ({data.weekly_rate_kg > 0 ? '+' : ''}{data.weekly_rate_kg} kg/wk)
                                             </p>
                                         </div>
 
-                                        <div className="grid grid-cols-4 gap-2 border-t border-white/20 pt-2">
+                                        <div className="grid grid-cols-4 gap-2 border-t border-white/20 pt-3">
                                             <div>
-                                                <div className="text-[10px] text-emerald-100">
-                                                    Protein
-                                                </div>
-                                                <div className="text-lg font-bold">
-                                                    {liveStats.macros.proteinG}
-                                                    g
-                                                </div>
+                                                <div className="text-[10px] text-emerald-100">Protein</div>
+                                                <div className="text-lg font-bold">{liveStats.macros.proteinG}g</div>
+                                                <div className="text-[10px] text-emerald-200">{Math.round(liveStats.percentages.protein * 100)}%</div>
                                             </div>
                                             <div>
-                                                <div className="text-[10px] text-emerald-100">
-                                                    Carbs
-                                                </div>
-                                                <div className="text-lg font-bold">
-                                                    {liveStats.macros.carbsG}g
-                                                </div>
+                                                <div className="text-[10px] text-emerald-100">Carbs</div>
+                                                <div className="text-lg font-bold">{liveStats.macros.carbsG}g</div>
+                                                <div className="text-[10px] text-emerald-200">{Math.round(liveStats.percentages.carbs * 100)}%</div>
                                             </div>
                                             <div>
-                                                <div className="text-[10px] text-emerald-100">
-                                                    Fat
-                                                </div>
-                                                <div className="text-lg font-bold">
-                                                    {liveStats.macros.fatG}g
-                                                </div>
+                                                <div className="text-[10px] text-emerald-100">Fat</div>
+                                                <div className="text-lg font-bold">{liveStats.macros.fatG}g</div>
+                                                <div className="text-[10px] text-emerald-200">{Math.round(liveStats.percentages.fat * 100)}%</div>
                                             </div>
                                             <div>
-                                                <div className="text-[10px] text-emerald-100">
-                                                    Water
-                                                </div>
-                                                <div className="text-lg font-bold">
-                                                    {liveStats.waterMl}ml
-                                                </div>
+                                                <div className="text-[10px] text-emerald-100">Water</div>
+                                                <div className="text-lg font-bold">{liveStats.waterMl}ml</div>
+                                                <div className="text-[10px] text-emerald-200">Daily</div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2 text-xs text-slate-500">
+                                    {/* Metabolic & Goal Analysis Breakdown */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-900/50">
+                                            <div className="text-xs text-slate-500 font-medium">Basal Metabolic Rate (BMR)</div>
+                                            <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
+                                                {Math.round(liveStats.bmr)} <span className="text-xs font-normal text-slate-500">kcal/day</span>
+                                            </div>
+                                            <div className="text-[11px] text-slate-500 mt-0.5">Energy burned at complete rest</div>
+                                        </div>
+
+                                        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-900/50">
+                                            <div className="text-xs text-slate-500 font-medium">Total Daily Expenditure (TDEE)</div>
+                                            <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
+                                                {Math.round(liveStats.tdee)} <span className="text-xs font-normal text-slate-500">kcal/day</span>
+                                            </div>
+                                            <div className="text-[11px] text-slate-500 mt-0.5">Energy expenditure with activity</div>
+                                        </div>
+
+                                        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-900/50">
+                                            <div className="text-xs text-slate-500 font-medium">Net Caloric Shift</div>
+                                            <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
+                                                {liveStats.targetCalories - Math.round(liveStats.tdee) > 0 ? '+' : ''}
+                                                {liveStats.targetCalories - Math.round(liveStats.tdee)}{' '}
+                                                <span className="text-xs font-normal text-slate-500">kcal/day</span>
+                                            </div>
+                                            <div className="text-[11px] text-slate-500 mt-0.5">
+                                                {data.goal_type === 'lose' ? 'Calorie deficit for fat loss' : data.goal_type === 'gain' ? 'Calorie surplus for muscle gain' : 'Maintenance caloric balance'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2 rounded-xl bg-slate-100/70 p-4 text-xs text-slate-600 dark:bg-slate-800/60 dark:text-slate-400">
                                         <div className="flex items-center gap-2">
-                                            <Check className="h-4 w-4 text-emerald-600" />
-                                            <span>
-                                                Initial weigh-in (
-                                                {data.current_weight_kg} kg)
-                                                logged in your progress
-                                                timeline.
-                                            </span>
+                                            <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                                            <span>Initial weigh-in ({data.current_weight_kg} kg) recorded to your progress timeline.</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Check className="h-4 w-4 text-emerald-600" />
-                                            <span>
-                                                Targets automatically configure
-                                                your breakfast, lunch, dinner,
-                                                and snack diary slots.
-                                            </span>
+                                            <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                                            <span>Breakfast, lunch, dinner, and snack slots in your food diary will use these targets.</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                                            <span>You can recalibrate these targets or reset your tracking data anytime in <strong>Profile Settings</strong>.</span>
                                         </div>
                                     </div>
                                 </div>
@@ -925,7 +986,7 @@ export default function Onboarding({
                                         }
                                         className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700"
                                     >
-                                        Continue{' '}
+                                        {step === 4 ? 'Calculate & Review Plan' : 'Continue'}{' '}
                                         <ArrowRight className="h-4 w-4" />
                                     </Button>
                                 ) : (
@@ -934,10 +995,17 @@ export default function Onboarding({
                                         disabled={processing}
                                         className="gap-2 bg-emerald-600 px-6 font-bold text-white shadow-md hover:bg-emerald-700"
                                     >
-                                        {processing
-                                            ? 'Setting up...'
-                                            : 'Start Logging Food'}
-                                        <Check className="h-4 w-4" />
+                                        {processing ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                Setting up...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Start Logging Food
+                                                <Check className="h-4 w-4" />
+                                            </>
+                                        )}
                                     </Button>
                                 )}
                             </div>

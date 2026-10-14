@@ -3,6 +3,7 @@ import { execSync } from 'child_process';
 
 test.describe('End-to-End User Experience', () => {
     test('complete user journey: register, onboarding, diary logging, custom food, strategy, and reports', async ({ page }) => {
+        test.setTimeout(120000);
         const uniqueId = Date.now();
         const testEmail = `user_${uniqueId}@example.com`;
         const testName = `Alex Carter ${uniqueId}`;
@@ -48,7 +49,7 @@ test.describe('End-to-End User Experience', () => {
         await expect(page.getByText(/Macronutrient Strategy/i)).toBeVisible({ timeout: 5000 });
 
         // Step 4 -> Step 5
-        await page.getByRole('button', { name: /continue/i }).click();
+        await page.getByRole('button', { name: /calculate|continue/i }).click();
         await expect(page.getByText(/Review Your Calibrated Targets/i)).toBeVisible({ timeout: 5000 });
         await page.screenshot({ path: 'test-results/screenshots/02-onboarding-step5.png' });
 
@@ -175,5 +176,31 @@ test.describe('End-to-End User Experience', () => {
         await expect(page.getByText(/CSV Report/i).first()).toBeVisible({ timeout: 15000 });
         await expect(page.getByRole('link', { name: /download/i }).first()).toBeVisible();
         await page.screenshot({ path: 'test-results/screenshots/07-reports-and-exports.png' });
+
+        // 9. Profile Settings: Recalibrate Targets & Reset Tracking Data
+        await page.goto('/settings/profile');
+        await page.waitForURL('**/settings/profile', { timeout: 10000 });
+        await expect(page.getByText(/Nutrition Setup & Targets/i)).toBeVisible();
+        await expect(page.getByText(/Reset Tracking Data/i).first()).toBeVisible();
+
+        // Check Recalibrate button navigation
+        await page.getByRole('link', { name: /recalibrate nutrition targets/i }).click();
+        await page.waitForURL('**/onboarding?recalibrate=1', { timeout: 10000 });
+        await expect(page.getByText(/Recalibrating Nutrition Plan/i)).toBeVisible();
+        await page.screenshot({ path: 'test-results/screenshots/08-onboarding-recalibrating.png' });
+
+        // Navigate back to profile settings and execute Reset Tracking Data
+        await page.goto('/settings/profile');
+        await page.waitForURL('**/settings/profile', { timeout: 10000 });
+        await page.getByRole('button', { name: /reset all tracking data/i }).click();
+
+        // Confirm in dialog
+        await expect(page.getByText(/Reset All Tracking Data & Start Fresh\?/i)).toBeVisible();
+        await page.getByRole('button', { name: /confirm reset & restart setup/i }).click();
+
+        // Should be redirected to onboarding fresh
+        await page.waitForURL('**/onboarding', { timeout: 10000 });
+        await expect(page.getByText(/Body Metrics & Demographics/i)).toBeVisible();
+        await page.screenshot({ path: 'test-results/screenshots/09-reset-complete-fresh-onboarding.png' });
     });
 });
