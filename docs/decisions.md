@@ -43,9 +43,12 @@ This journal tracks all significant architectural, tooling, and design decisions
 
 ---
 
-## 5. Reporting & Exports (Phase 5)
-- **PDF Generation**: `barryvdh/laravel-dompdf` selected for pure-PHP server-side generation, avoiding Chromium/Puppeteer overhead in container environments.
-- **Data Portability**: Full CSV and JSON exports excluding all sensitive connection tokens.
+## 5. Daily Diary, Reporting & Exports (Phase 5)
+- **Diary Engine & Nutrition Aggregation**: Multi-slot meal structure (`breakfast`, `lunch`, `dinner`, `snack`) with frozen nutritional snapshot (`calories`, `protein_g`, `carbs_g`, `fat_g`, `fiber_g`) saved on `diary_entries` at logging time. Daily totals, targets, and remaining allowances computed in O(1) time without joins.
+- **Quick-Add & Water Tracking**: Support for raw calorie quick-adds with arbitrary notes, plus millilitre-based water intake tracking (`water_logs`) with daily totals.
+- **PDF Generation**: `barryvdh/laravel-dompdf` selected for pure-PHP server-side generation, avoiding Chromium/Puppeteer overhead in container environments. Generates clean nutrition summaries with KPI summary cards, SVG visual meters, and itemized daily tables.
+- **Data Portability**: Full multi-table CSV (daily totals, entries, weights) and structured JSON exports excluding all sensitive connection tokens. Secured in private storage (`storage/app/private/exports/...`) and delivered via signed/authenticated streaming downloads.
+- **Interactive UI**: Responsive Inertia Diary page (`/diary` & `/dashboard`) with date navigator (Yesterday/Today/Tomorrow), progress meters, Add Food search/portion modal, Quick-Add dialog, and Reports download manager (`/reports`).
 
 ---
 

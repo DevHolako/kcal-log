@@ -6,7 +6,21 @@ use Database\Factories\WeightLogFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property Carbon $date
+ * @property float|string $weight_kg
+ * @property float|string|null $body_fat_pct
+ * @property string|null $photo_path
+ * @property string|null $note
+ * @property string $source
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $user
+ */
 class WeightLog extends Model
 {
     /** @use HasFactory<WeightLogFactory> */

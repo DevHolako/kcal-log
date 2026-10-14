@@ -1,0 +1,351 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\DiaryEntry;
+use App\Models\ReportExport;
+use App\Models\TargetProfile;
+use App\Models\User;
+use App\Models\WaterLog;
+use App\Models\WeightLog;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\CarbonPeriod;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+
+class ExportService
+{
+    /**
+     * Request an export job and run generation.
+     */
+    public function requestExport(User $user, string $type, string $dateFrom, string $dateTo): ReportExport
+    {
+        /** @var ReportExport $export */
+        $export = ReportExport::create([
+            'user_id' => $user->id,
+            'type' => $type,
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+            'status' => 'pending',
+        ]);
+
+        $this->generate($export);
+
+        return $export;
+    }
+
+    /**
+     * Generate export file and save to secure local storage.
+     */
+    public function generate(ReportExport $export): void
+    {
+        $export->update(['status' => 'processing']);
+
+        try {
+            $user = $export->user;
+            $dateFrom = $export->date_from->format('Y-m-d');
+            $dateTo = $export->date_to->format('Y-m-d');
+
+            $data = $this->gatherExportData($user, $dateFrom, $dateTo);
+
+            $filename = sprintf('exports/%s-%d-%d.%s', $export->type, $user->id, $export->id, $export->type);
+
+            switch ($export->type) {
+                case 'pdf':
+                    $pdf = Pdf::loadView('reports.nutrition-report', $data)
+                        ->setPaper('a4', 'portrait');
+                    Storage::disk('local')->put($filename, $pdf->output());
+                    break;
+
+                case 'csv':
+                    $csvContent = $this->generateCsvContent($data);
+                    Storage::disk('local')->put($filename, $csvContent);
+                    break;
+
+                case 'json':
+                    $jsonContent = json_encode($this->generateJsonPayload($data), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                    Storage::disk('local')->put($filename, (string) $jsonContent);
+                    break;
+
+                default:
+                    throw new \InvalidArgumentException("Unsupported export type: {$export->type}");
+            }
+
+            $export->update([
+                'status' => 'completed',
+                'file_path' => $filename,
+                'expires_at' => now()->addHours(24),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Export generation failed', [
+                'export_id' => $export->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            $export->update([
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Gather comprehensive nutrition and tracking data for export period.
+     *
+     * @return array<string, mixed>
+     */
+    public function gatherExportData(User $user, string $dateFrom, string $dateTo): array
+    {
+        $startDate = Carbon::parse($dateFrom)->startOfDay();
+        $endDate = Carbon::parse($dateTo)->endOfDay();
+
+        /** @var Collection<int, DiaryEntry> $entries */
+        $entries = DiaryEntry::where('user_id', $user->id)
+            ->where(function ($q) use ($dateFrom, $dateTo, $startDate, $endDate) {
+                $q->whereBetween('date', [$startDate, $endDate])
+                    ->orWhereBetween('date', [$dateFrom, $dateTo]);
+            })
+            ->with(['food', 'serving'])
+            ->orderBy('date')
+            ->get();
+
+        /** @var Collection<int, WaterLog> $waterLogs */
+        $waterLogs = WaterLog::where('user_id', $user->id)
+            ->where(function ($q) use ($dateFrom, $dateTo, $startDate, $endDate) {
+                $q->whereBetween('date', [$startDate, $endDate])
+                    ->orWhereBetween('date', [$dateFrom, $dateTo]);
+            })
+            ->get();
+
+        /** @var Collection<int, WeightLog> $weightLogs */
+        $weightLogs = WeightLog::where('user_id', $user->id)
+            ->where(function ($q) use ($dateFrom, $dateTo, $startDate, $endDate) {
+                $q->whereBetween('date', [$startDate, $endDate])
+                    ->orWhereBetween('date', [$dateFrom, $dateTo]);
+            })
+            ->orderBy('date')
+            ->get();
+
+        /** @var TargetProfile|null $target */
+        $target = TargetProfile::where('user_id', $user->id)
+            ->where('is_active', true)
+            ->latest('id')
+            ->first();
+
+        $targetCalories = $target ? (float) $target->calories : 2000.0;
+
+        $period = CarbonPeriod::create($dateFrom, $dateTo);
+        $dailyRows = [];
+
+        $totalCalories = 0.0;
+        $totalProtein = 0.0;
+        $totalCarbs = 0.0;
+        $totalFat = 0.0;
+        $totalDaysWithEntries = 0;
+
+        foreach ($period as $dateObj) {
+            $dateStr = $dateObj->format('Y-m-d');
+            $dayEntries = $entries->filter(fn (DiaryEntry $e) => $e->date->format('Y-m-d') === $dateStr);
+
+            $dayCalories = (float) $dayEntries->sum('calories');
+            $dayProtein = (float) $dayEntries->sum('protein');
+            $dayCarbs = (float) $dayEntries->sum('carbs');
+            $dayFat = (float) $dayEntries->sum('fat');
+            $dayFiber = $dayEntries->isNotEmpty() ? (float) $dayEntries->sum('fiber') : null;
+
+            $dayWater = (int) $waterLogs->filter(fn (WaterLog $w) => $w->date->format('Y-m-d') === $dateStr)->sum('amount_ml');
+            $dayWeight = $weightLogs->first(fn (WeightLog $w) => $w->date->format('Y-m-d') === $dateStr);
+
+            if ($dayEntries->isNotEmpty()) {
+                $totalDaysWithEntries++;
+                $totalCalories += $dayCalories;
+                $totalProtein += $dayProtein;
+                $totalCarbs += $dayCarbs;
+                $totalFat += $dayFat;
+            }
+
+            $dailyRows[] = [
+                'date' => $dateStr,
+                'calories' => $dayCalories,
+                'target_calories' => $targetCalories,
+                'variance' => $dayCalories - $targetCalories,
+                'protein' => $dayProtein,
+                'carbs' => $dayCarbs,
+                'fat' => $dayFat,
+                'fiber' => $dayFiber,
+                'water_ml' => $dayWater,
+                'weight_kg' => $dayWeight ? (float) $dayWeight->weight_kg : null,
+            ];
+        }
+
+        $divisor = max(1, $totalDaysWithEntries);
+
+        // Calculate most frequent foods
+        $foodCounts = [];
+        foreach ($entries as $entry) {
+            $foodName = $entry->food->name;
+            $brand = $entry->food->brand;
+            $key = $foodName.'_'.($brand ?? '');
+            if (! isset($foodCounts[$key])) {
+                $foodCounts[$key] = [
+                    'name' => $foodName,
+                    'brand' => $brand,
+                    'count' => 0,
+                    'total_calories' => 0.0,
+                ];
+            }
+            $foodCounts[$key]['count']++;
+            $foodCounts[$key]['total_calories'] += (float) $entry->calories;
+        }
+
+        uasort($foodCounts, fn ($a, $b) => $b['count'] <=> $a['count']);
+        $recentItems = array_slice(array_values($foodCounts), 0, 8);
+
+        return [
+            'user' => $user,
+            'target' => $target,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'avgCalories' => $totalCalories / $divisor,
+            'avgProtein' => $totalProtein / $divisor,
+            'avgCarbs' => $totalCarbs / $divisor,
+            'avgFat' => $totalFat / $divisor,
+            'dailyRows' => $dailyRows,
+            'entries' => $entries,
+            'waterLogs' => $waterLogs,
+            'weightLogs' => $weightLogs,
+            'recentItems' => $recentItems,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function generateCsvContent(array $data): string
+    {
+        $handle = fopen('php://memory', 'r+');
+        if (! $handle) {
+            return '';
+        }
+
+        // Section 1: Summary Info
+        fputcsv($handle, ['# KCAL-LOG DATA EXPORT']);
+        fputcsv($handle, ['User', $data['user']->name, 'Email', $data['user']->email]);
+        fputcsv($handle, ['Period', $data['dateFrom'], 'to', $data['dateTo']]);
+        fputcsv($handle, ['Avg Daily Calories', round((float) $data['avgCalories'])]);
+        fputcsv($handle, []);
+
+        // Section 2: Daily Totals
+        fputcsv($handle, ['# DAILY TOTALS']);
+        fputcsv($handle, ['Date', 'Calories', 'Target Calories', 'Deficit/Surplus', 'Protein (g)', 'Carbs (g)', 'Fat (g)', 'Fiber (g)', 'Water (ml)', 'Weight (kg)']);
+        foreach ($data['dailyRows'] as $row) {
+            fputcsv($handle, [
+                $row['date'],
+                round($row['calories'], 2),
+                round($row['target_calories'], 2),
+                round($row['variance'], 2),
+                round($row['protein'], 2),
+                round($row['carbs'], 2),
+                round($row['fat'], 2),
+                $row['fiber'] !== null ? round($row['fiber'], 2) : '',
+                $row['water_ml'],
+                $row['weight_kg'] ?? '',
+            ]);
+        }
+        fputcsv($handle, []);
+
+        // Section 3: Diary Entries
+        fputcsv($handle, ['# DIARY ENTRIES']);
+        fputcsv($handle, ['Date', 'Meal Slot', 'Food Item', 'Brand', 'Quantity', 'Unit', 'Grams', 'Calories', 'Protein (g)', 'Carbs (g)', 'Fat (g)', 'Fiber (g)']);
+        foreach ($data['entries'] as $entry) {
+            fputcsv($handle, [
+                $entry->date->format('Y-m-d'),
+                $entry->meal_slot,
+                $entry->food->name,
+                $entry->food->brand ?? '',
+                (float) $entry->quantity,
+                $entry->unit,
+                (float) $entry->grams,
+                (float) $entry->calories,
+                (float) $entry->protein,
+                (float) $entry->carbs,
+                (float) $entry->fat,
+                $entry->fiber !== null ? (float) $entry->fiber : '',
+            ]);
+        }
+
+        rewind($handle);
+        $content = stream_get_contents($handle);
+        fclose($handle);
+
+        return (string) $content;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function generateJsonPayload(array $data): array
+    {
+        $user = $data['user'];
+
+        return [
+            'meta' => [
+                'generator' => 'kcal-log',
+                'repository' => 'https://github.com/DevHolako/kcal-log',
+                'exported_at' => now()->toIso8601String(),
+                'date_from' => $data['dateFrom'],
+                'date_to' => $data['dateTo'],
+            ],
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'profile' => $user->profile ? [
+                    'date_of_birth' => $user->profile->date_of_birth?->format('Y-m-d'),
+                    'sex' => $user->profile->sex,
+                    'height_cm' => (float) $user->profile->height_cm,
+                    'activity_level' => $user->profile->activity_level,
+                    'unit_preference' => $user->profile->unit_preference,
+                ] : null,
+            ],
+            'target_profile' => $data['target'] ? [
+                'target_calories' => (float) $data['target']->calories,
+                'target_protein_g' => (float) $data['target']->protein_g,
+                'target_carbs_g' => (float) $data['target']->carbs_g,
+                'target_fat_g' => (float) $data['target']->fat_g,
+                'target_water_ml' => (int) $data['target']->water_ml,
+            ] : null,
+            'daily_summaries' => $data['dailyRows'],
+            'diary_entries' => $data['entries']->map(fn (DiaryEntry $entry) => [
+                'id' => $entry->id,
+                'date' => $entry->date->format('Y-m-d'),
+                'meal_slot' => $entry->meal_slot,
+                'food' => [
+                    'name' => $entry->food->name,
+                    'brand' => $entry->food->brand,
+                    'barcode' => $entry->food->barcode,
+                    'is_custom' => (bool) $entry->food->is_custom,
+                ],
+                'quantity' => (float) $entry->quantity,
+                'unit' => $entry->unit,
+                'grams' => (float) $entry->grams,
+                'calories' => (float) $entry->calories,
+                'protein' => (float) $entry->protein,
+                'carbs' => (float) $entry->carbs,
+                'fat' => (float) $entry->fat,
+                'fiber' => $entry->fiber !== null ? (float) $entry->fiber : null,
+            ])->values(),
+            'water_logs' => $data['waterLogs']->map(fn (WaterLog $log) => [
+                'date' => $log->date->format('Y-m-d'),
+                'amount_ml' => (int) $log->amount_ml,
+            ])->values(),
+            'weight_logs' => $data['weightLogs']->map(fn (WeightLog $log) => [
+                'date' => $log->date->format('Y-m-d'),
+                'weight_kg' => (float) $log->weight_kg,
+            ])->values(),
+        ];
+    }
+}

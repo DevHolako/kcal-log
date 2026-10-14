@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CustomFoodController;
+use App\Http\Controllers\Api\V1\DiaryController;
+use App\Http\Controllers\Api\V1\ExportController;
 use App\Http\Controllers\Api\V1\FoodController;
 use App\Http\Controllers\Api\V1\OffConnectionController;
 use App\Http\Controllers\Api\V1\OnboardingController;
@@ -51,5 +53,20 @@ Route::prefix('v1')->group(function () {
         Route::get('settings/off/status', [OffConnectionController::class, 'status'])->name('api.v1.settings.off.status');
         Route::post('settings/off/connect', [OffConnectionController::class, 'connect'])->name('api.v1.settings.off.connect');
         Route::post('settings/off/disconnect', [OffConnectionController::class, 'disconnect'])->name('api.v1.settings.off.disconnect');
+
+        // Daily Nutrition Diary & Meal Logging
+        Route::get('diary', [DiaryController::class, 'index'])->name('api.v1.diary.index');
+        Route::post('diary', [DiaryController::class, 'store'])->name('api.v1.diary.store');
+        Route::put('diary/{entry}', [DiaryController::class, 'update'])->name('api.v1.diary.update');
+        Route::delete('diary/{entry}', [DiaryController::class, 'destroy'])->name('api.v1.diary.destroy');
+        Route::post('diary/quick-add', [DiaryController::class, 'quickAdd'])->name('api.v1.diary.quick-add');
+        Route::post('diary/water', [DiaryController::class, 'storeWater'])->name('api.v1.diary.water.store');
+        Route::delete('diary/water/{waterLog}', [DiaryController::class, 'destroyWater'])->name('api.v1.diary.water.destroy');
+
+        // Reports & Data Exports
+        Route::get('reports/exports', [ExportController::class, 'index'])->name('api.v1.reports.exports.index');
+        Route::post('reports/exports', [ExportController::class, 'store'])->name('api.v1.reports.exports.store');
+        Route::get('reports/exports/{export}', [ExportController::class, 'show'])->name('api.v1.reports.exports.show');
+        Route::get('reports/exports/{export}/download', [ExportController::class, 'download'])->name('api.v1.reports.exports.download');
     });
 });

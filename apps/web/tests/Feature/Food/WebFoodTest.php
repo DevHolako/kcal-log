@@ -4,7 +4,6 @@ use App\Models\Food;
 use App\Models\Profile;
 use App\Models\TargetProfile;
 use App\Models\User;
-use App\Models\UserOffConnection;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {

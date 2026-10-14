@@ -7,7 +7,29 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $food_id
+ * @property int|null $food_serving_id
+ * @property Carbon $date
+ * @property string $meal_slot
+ * @property float|string $quantity
+ * @property string $unit
+ * @property float|string $grams
+ * @property float|string $calories
+ * @property float|string $protein
+ * @property float|string $carbs
+ * @property float|string $fat
+ * @property float|string|null $fiber
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $user
+ * @property-read Food $food
+ * @property-read FoodServing|null $serving
+ */
 class DiaryEntry extends Model
 {
     /** @use HasFactory<DiaryEntryFactory> */

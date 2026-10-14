@@ -6,7 +6,22 @@ use Database\Factories\ReportExportFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $type
+ * @property Carbon $date_from
+ * @property Carbon $date_to
+ * @property string $status
+ * @property string|null $file_path
+ * @property Carbon|null $expires_at
+ * @property string|null $error_message
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $user
+ */
 class ReportExport extends Model
 {
     /** @use HasFactory<ReportExportFactory> */
