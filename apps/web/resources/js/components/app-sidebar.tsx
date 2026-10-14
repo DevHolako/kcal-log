@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import { BookOpen, CalendarDays, FileText, FolderGit2, LayoutGrid, TrendingUp, UtensilsCrossed } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';

@@ -305,6 +305,10 @@ export default function ReportsIndex({ exports, status }: Props) {
                                                         <Badge variant="outline" className="text-[10px] border-blue-500/40 text-blue-600 dark:text-blue-400 bg-blue-500/10">
                                                             Processing
                                                         </Badge>
+                                                    ) : item.status === 'pending' ? (
+                                                        <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10">
+                                                            Queued
+                                                        </Badge>
                                                     ) : (
                                                         <Badge variant="destructive" className="text-[10px]">
                                                             Failed

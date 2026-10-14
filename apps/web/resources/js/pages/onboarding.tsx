@@ -138,12 +138,28 @@ export default function Onboarding({
             targetCalories <= floor &&
             tdee + Math.round((data.weekly_rate_kg * 7700) / 7) < floor;
 
-        const percentages =
+        const rawPreset =
             data.diet_type === 'custom'
                 ? data.custom_percentages
                 : (dietPresets[data.diet_type] ?? dietPresets['balanced']);
 
-        const macros = calculateMacroGrams(targetCalories, percentages);
+        const toPercent = (val: number | undefined, defaultVal: number) => {
+            if (val === undefined || isNaN(val)) return defaultVal;
+            return val <= 1.0 ? Math.round(val * 100) : val;
+        };
+
+        const split: MacroSplit = {
+            proteinPercent: toPercent((rawPreset as any)?.protein ?? (rawPreset as any)?.proteinPercent, 30),
+            carbsPercent: toPercent((rawPreset as any)?.carbs ?? (rawPreset as any)?.carbsPercent, 40),
+            fatPercent: toPercent((rawPreset as any)?.fat ?? (rawPreset as any)?.fatPercent, 30),
+        };
+
+        const macros = calculateMacroGrams(targetCalories, split);
+        const percentages = {
+            protein: split.proteinPercent / 100,
+            carbs: split.carbsPercent / 100,
+            fat: split.fatPercent / 100,
+        };
         const waterMl = Math.max(
             2000,
             Math.min(4000, Math.round(data.current_weight_kg * 35)),
@@ -741,7 +757,7 @@ export default function Onboarding({
                                                     Protein (4 kcal/g)
                                                 </div>
                                                 <div className="mt-1 text-xl font-bold text-blue-950 dark:text-blue-100">
-                                                    {liveStats.macros.protein_g}
+                                                    {liveStats.macros.proteinG}
                                                     g
                                                 </div>
                                                 <div className="text-[10px] text-blue-500">
@@ -758,7 +774,7 @@ export default function Onboarding({
                                                     Carbs (4 kcal/g)
                                                 </div>
                                                 <div className="mt-1 text-xl font-bold text-amber-950 dark:text-amber-100">
-                                                    {liveStats.macros.carbs_g}g
+                                                    {liveStats.macros.carbsG}g
                                                 </div>
                                                 <div className="text-[10px] text-amber-500">
                                                     {Math.round(
@@ -774,7 +790,7 @@ export default function Onboarding({
                                                     Fat (9 kcal/g)
                                                 </div>
                                                 <div className="mt-1 text-xl font-bold text-rose-950 dark:text-rose-100">
-                                                    {liveStats.macros.fat_g}g
+                                                    {liveStats.macros.fatG}g
                                                 </div>
                                                 <div className="text-[10px] text-rose-500">
                                                     {Math.round(
@@ -789,7 +805,7 @@ export default function Onboarding({
                                         <div className="flex items-center justify-between pt-1 text-xs text-slate-500">
                                             <span>
                                                 Daily Dietary Fiber: ~
-                                                {liveStats.macros.fiber_g}g
+                                                {liveStats.macros.fiberG}g
                                             </span>
                                             <span>
                                                 Daily Hydration: ~
@@ -831,7 +847,7 @@ export default function Onboarding({
                                                     Protein
                                                 </div>
                                                 <div className="text-lg font-bold">
-                                                    {liveStats.macros.protein_g}
+                                                    {liveStats.macros.proteinG}
                                                     g
                                                 </div>
                                             </div>
@@ -840,7 +856,7 @@ export default function Onboarding({
                                                     Carbs
                                                 </div>
                                                 <div className="text-lg font-bold">
-                                                    {liveStats.macros.carbs_g}g
+                                                    {liveStats.macros.carbsG}g
                                                 </div>
                                             </div>
                                             <div>
@@ -848,7 +864,7 @@ export default function Onboarding({
                                                     Fat
                                                 </div>
                                                 <div className="text-lg font-bold">
-                                                    {liveStats.macros.fat_g}g
+                                                    {liveStats.macros.fatG}g
                                                 </div>
                                             </div>
                                             <div>

@@ -48,7 +48,8 @@ class ExportController extends Controller
             $user,
             (string) $request->input('type'),
             (string) $request->input('date_from'),
-            (string) $request->input('date_to')
+            (string) $request->input('date_to'),
+            async: ! app()->environment('testing', 'local') && config('queue.default') !== 'sync'
         );
 
         return back()->with('status', 'Report generated successfully.');
