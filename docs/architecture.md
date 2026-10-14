@@ -47,7 +47,7 @@ This value is defined canonically in `@kcal-log/types` and referenced by both mo
 ### Backend & API
 - **Framework**: Laravel 12 (latest stable).
 - **Authentication**: Laravel Sanctum (session-based cookies for `/apps/web`, Bearer tokens for `/apps/mobile`).
-- **Database**: PostgreSQL 16+ for local dev and production; SQLite in-memory for automated tests.
+- **Database**: MariaDB 10.11+ for local dev and production; SQLite in-memory for automated tests.
 - **Queues**: Laravel Horizon backed by Redis.
 - **Realtime / WebSockets**: Laravel Reverb + Laravel Echo on private channels (`private-user.{id}`).
 - **PDF Generation**: `barryvdh/laravel-dompdf` (Dompdf, pure PHP, no Chromium dependency).

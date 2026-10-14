@@ -15,7 +15,8 @@ This journal tracks all significant architectural, tooling, and design decisions
 
 ## 2. Domain & Data Precision (Phase 2)
 - **Domain Modeling**: Standardized vocabulary documented in `GLOSSARY.md` (`Food`, `DiaryEntry`, `MealSlot`, `Serving`, `TargetProfile`, `DailySummary`, `OFFConnection`, `AdaptiveAdjustment`, `WeightLog`, `CustomFood`, `FoodServing`).
-- **Precision Storage**: PostgreSQL `decimal` fields throughout schema (`decimal(8,2)` for calories/nutrients, `decimal(5,2)` for weights and circumferences) to prevent IEEE-754 floating-point drift.
+- **Database Engine**: MariaDB 10.11+ selected for local dev and production deployments (with in-memory SQLite for automated tests).
+- **Precision Storage**: Fixed-point `decimal` fields throughout schema (`decimal(8,2)` for calories/nutrients, `decimal(5,2)` for weights and circumferences) to prevent IEEE-754 floating-point drift.
 - **Food Data Schema**: Unified `foods` and `food_servings` tables supporting both global cached Open Food Facts items and private user custom foods.
 
 ---

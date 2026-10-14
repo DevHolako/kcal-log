@@ -1,0 +1,21 @@
+{
+  "name": "@kcal-log/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "lint": "vp lint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@kcal-log/api-client": "workspace:*",
+    "@kcal-log/nutrition": "workspace:*",
+    "@kcal-log/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
