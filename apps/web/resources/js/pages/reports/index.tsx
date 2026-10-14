@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
     Calendar,
     Download,
@@ -10,13 +10,14 @@ import {
     Loader2,
     ShieldCheck,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { getEcho } from '@/echo';
 
 interface ReportExportItem {
     id: number;
@@ -41,8 +42,26 @@ interface Props {
 }
 
 export default function ReportsIndex({ exports, status }: Props) {
+    const { auth } = usePage().props as any;
     const today = new Date().toISOString().split('T')[0];
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    useEffect(() => {
+        const userId = auth?.user?.id;
+        if (!userId) return;
+
+        const echo = getEcho();
+        if (!echo) return;
+
+        const channel = echo.private(`user.${userId}`);
+        channel.listen('.ExportReady', () => {
+            router.reload({ only: ['exports'] });
+        });
+
+        return () => {
+            channel.stopListening('.ExportReady');
+        };
+    }, [auth?.user?.id]);
 
     const form = useForm({
         type: 'pdf' as 'pdf' | 'csv' | 'json',

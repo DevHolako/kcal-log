@@ -68,5 +68,12 @@ Route::prefix('v1')->group(function () {
         Route::post('reports/exports', [ExportController::class, 'store'])->name('api.v1.reports.exports.store');
         Route::get('reports/exports/{export}', [ExportController::class, 'show'])->name('api.v1.reports.exports.show');
         Route::get('reports/exports/{export}/download', [ExportController::class, 'download'])->name('api.v1.reports.exports.download');
+
+        // Adaptive Nutrition Adjustment System
+        Route::get('adaptive/current', [\App\Http\Controllers\Api\V1\AdaptiveController::class, 'current'])->name('api.v1.adaptive.current');
+        Route::get('adaptive/history', [\App\Http\Controllers\Api\V1\AdaptiveController::class, 'history'])->name('api.v1.adaptive.history');
+        Route::post('adaptive/{adjustment}/accept', [\App\Http\Controllers\Api\V1\AdaptiveController::class, 'accept'])->name('api.v1.adaptive.accept');
+        Route::post('adaptive/{adjustment}/reject', [\App\Http\Controllers\Api\V1\AdaptiveController::class, 'reject'])->name('api.v1.adaptive.reject');
+        Route::post('adaptive/trigger', [\App\Http\Controllers\Api\V1\AdaptiveController::class, 'trigger'])->name('api.v1.adaptive.trigger');
     });
 });

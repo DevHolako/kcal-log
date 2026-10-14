@@ -6,7 +6,32 @@ use Database\Factories\AdaptiveAdjustmentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property Carbon $review_date
+ * @property Carbon $period_start
+ * @property Carbon $period_end
+ * @property float $starting_weight_kg
+ * @property float $ending_weight_kg
+ * @property float $ewma_weight_change_kg
+ * @property float $average_daily_calories
+ * @property float $calculated_tdee
+ * @property int $current_target_calories
+ * @property int $proposed_target_calories
+ * @property float $proposed_protein_g
+ * @property float $proposed_carbs_g
+ * @property float $proposed_fat_g
+ * @property string $status
+ * @property Carbon|null $user_decision_at
+ * @property int|null $applied_target_profile_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $user
+ * @property-read TargetProfile|null $appliedTargetProfile
+ */
 class AdaptiveAdjustment extends Model
 {
     /** @use HasFactory<AdaptiveAdjustmentFactory> */

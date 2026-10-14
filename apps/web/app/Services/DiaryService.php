@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\DiaryUpdated;
 use App\Models\DiaryEntry;
 use App\Models\Food;
 use App\Models\FoodServing;
@@ -155,6 +156,12 @@ class DiaryService
 
         $entry->load(['food.servings', 'serving']);
 
+        DiaryUpdated::dispatch($user->id, (string) $data['date'], 'added', [
+            'entry_id' => $entry->id,
+            'meal_slot' => $entry->meal_slot,
+            'calories' => $entry->calories,
+        ]);
+
         return $entry;
     }
 
@@ -200,6 +207,12 @@ class DiaryService
 
         $entry->load(['food.servings', 'serving']);
 
+        DiaryUpdated::dispatch($user->id, $entry->date->format('Y-m-d'), 'updated', [
+            'entry_id' => $entry->id,
+            'meal_slot' => $entry->meal_slot,
+            'calories' => $entry->calories,
+        ]);
+
         return $entry;
     }
 
@@ -212,7 +225,20 @@ class DiaryService
             abort(403, 'Unauthorized action on diary entry.');
         }
 
-        return (bool) $entry->delete();
+        $date = $entry->date->format('Y-m-d');
+        $mealSlot = $entry->meal_slot;
+        $entryId = $entry->id;
+
+        $deleted = (bool) $entry->delete();
+
+        if ($deleted) {
+            DiaryUpdated::dispatch($user->id, $date, 'deleted', [
+                'entry_id' => $entryId,
+                'meal_slot' => $mealSlot,
+            ]);
+        }
+
+        return $deleted;
     }
 
     /**
@@ -253,6 +279,12 @@ class DiaryService
                 'fat' => 0.0,
             ]);
 
+            DiaryUpdated::dispatch($user->id, $date, 'quick_add', [
+                'entry_id' => $entry->id,
+                'meal_slot' => $mealSlot,
+                'calories' => $calories,
+            ]);
+
             return $entry;
         });
     }
@@ -269,6 +301,11 @@ class DiaryService
             'amount_ml' => $amountMl,
         ]);
 
+        DiaryUpdated::dispatch($user->id, $date, 'water_logged', [
+            'water_log_id' => $log->id,
+            'amount_ml' => $amountMl,
+        ]);
+
         return $log;
     }
 
@@ -281,7 +318,18 @@ class DiaryService
             abort(403, 'Unauthorized action on water log.');
         }
 
-        return (bool) $waterLog->delete();
+        $date = $waterLog->date->format('Y-m-d');
+        $waterLogId = $waterLog->id;
+
+        $deleted = (bool) $waterLog->delete();
+
+        if ($deleted) {
+            DiaryUpdated::dispatch($user->id, $date, 'water_deleted', [
+                'water_log_id' => $waterLogId,
+            ]);
+        }
+
+        return $deleted;
     }
 
     /**

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Events\ExportReady;
+use App\Jobs\ProcessReportExportJob;
 use App\Models\DiaryEntry;
 use App\Models\ReportExport;
 use App\Models\TargetProfile;
@@ -18,9 +20,9 @@ use Illuminate\Support\Facades\Storage;
 class ExportService
 {
     /**
-     * Request an export job and run generation.
+     * Request an export job and dispatch async or run immediately.
      */
-    public function requestExport(User $user, string $type, string $dateFrom, string $dateTo): ReportExport
+    public function requestExport(User $user, string $type, string $dateFrom, string $dateTo, bool $async = true): ReportExport
     {
         /** @var ReportExport $export */
         $export = ReportExport::create([
@@ -31,7 +33,11 @@ class ExportService
             'status' => 'pending',
         ]);
 
-        $this->generate($export);
+        if ($async && config('queue.default') !== 'sync') {
+            ProcessReportExportJob::dispatch($export);
+        } else {
+            $this->generate($export);
+        }
 
         return $export;
     }
@@ -78,6 +84,11 @@ class ExportService
                 'file_path' => $filename,
                 'expires_at' => now()->addHours(24),
             ]);
+
+            $fileSize = Storage::disk('local')->exists($filename) ? Storage::disk('local')->size($filename) : null;
+            $downloadUrl = route('reports.download', $export->id);
+
+            ExportReady::dispatch($user->id, $export->id, $export->type, 'completed', $downloadUrl, $fileSize);
         } catch (\Throwable $e) {
             Log::error('Export generation failed', [
                 'export_id' => $export->id,
@@ -88,6 +99,8 @@ class ExportService
                 'status' => 'failed',
                 'error_message' => $e->getMessage(),
             ]);
+
+            ExportReady::dispatch($export->user_id, $export->id, $export->type, 'failed', null, null, $e->getMessage());
         }
     }
 

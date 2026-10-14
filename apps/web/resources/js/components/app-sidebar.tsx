@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, FileText, FolderGit2, LayoutGrid, UtensilsCrossed } from 'lucide-react';
+import { BookOpen, CalendarDays, FileText, FolderGit2, LayoutGrid, TrendingUp, UtensilsCrossed } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -20,6 +20,11 @@ const mainNavItems: NavItem[] = [
         title: 'Daily Diary',
         href: '/diary',
         icon: CalendarDays,
+    },
+    {
+        title: 'Adaptive Strategy',
+        href: '/strategy',
+        icon: TrendingUp,
     },
     {
         title: 'Foods & Search',

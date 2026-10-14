@@ -11,6 +11,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
 });
 
+use App\Http\Controllers\AdaptiveController as WebAdaptiveController;
 use App\Http\Controllers\DiaryController as WebDiaryController;
 use App\Http\Controllers\ExportController as WebExportController;
 use App\Http\Controllers\FoodController as WebFoodController;
@@ -36,6 +37,12 @@ Route::middleware(['auth', 'verified', EnsureOnboardingIsComplete::class])->grou
     Route::get('reports', [WebExportController::class, 'index'])->name('reports.index');
     Route::post('reports/exports', [WebExportController::class, 'store'])->name('reports.store');
     Route::get('reports/exports/{export}/download', [WebExportController::class, 'download'])->name('reports.download');
+
+    // Adaptive Strategy & Checkpoint
+    Route::get('strategy', [WebAdaptiveController::class, 'index'])->name('strategy.index');
+    Route::post('strategy/{adjustment}/accept', [WebAdaptiveController::class, 'accept'])->name('strategy.accept');
+    Route::post('strategy/{adjustment}/reject', [WebAdaptiveController::class, 'reject'])->name('strategy.reject');
+    Route::post('strategy/trigger', [WebAdaptiveController::class, 'trigger'])->name('strategy.trigger');
 });
 
 require __DIR__.'/settings.php';

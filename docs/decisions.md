@@ -53,9 +53,12 @@ This journal tracks all significant architectural, tooling, and design decisions
 ---
 
 ## 6. Realtime, Queues & Adaptive System (Phase 6)
-- **Queues**: Laravel Horizon managing Redis queues for async exports, OFF sync, and notifications.
-- **Realtime**: Laravel Reverb + Echo with private user channels (`private-user.{id}`) for `DiaryUpdated` and `ExportReady` events.
-- **Adaptive Adjustment Checkpoint**: Weekly automated EWMA trend calculation with an explicit user confirmation checkpoint brief (push-right design). Proposals logged in `adaptive_adjustments`.
+- **Queues & Horizon**: `laravel/horizon` managing Redis queues with supervisor configurations across `default`, `reports`, and `sync` queues. Asynchronous `ProcessReportExportJob` offloading CPU-intensive PDF/CSV/JSON report generation.
+- **Realtime WebSockets (Reverb)**: `laravel/reverb` WebSocket server configured on port `9080` (maintaining the 9000-range port discipline alongside backend 9000 and Vite 9173). Private user channels (`user.{id}`) authorized in `routes/channels.php`.
+- **Event Broadcasting**: `DiaryUpdated`, `ExportReady`, and `AdaptiveAdjustmentProposed` events broadcast over private channels. Frontend `echo.ts` client wired with automatic reactive reload in Diary, Reports, and Strategy views.
+- **Adaptive Adjustment Engine**: `AdaptiveAdjustmentService` implementing Exponentially Weighted Moving Average (EWMA, $\alpha = 0.25$) bodyweight smoothing to isolate real fat/tissue changes from water fluctuations. Computes realized metabolic TDEE via energy balance equation (`average_daily_calories - (ewma_weight_change * 7700 / 7)`), applying caloric safety floors (1200 kcal female, 1500 kcal male).
+- **Weekly Checkpoint Decision Brief**: Interactive Inertia `/strategy` dashboard and REST API (`/api/v1/adaptive/*`) featuring push-right comparative plan analysis (Current vs Proposed), EWMA trend visualization, and one-click acceptance/rejection with target profile activation.
+- **Automated Scheduling**: Artisan command `adaptive:calculate` and `CalculateAdaptiveAdjustmentsJob` scheduled weekly for batch processing.
 
 ---
 

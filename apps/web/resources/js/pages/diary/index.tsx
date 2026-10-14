@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
     ChevronLeft,
     ChevronRight,
@@ -12,7 +12,8 @@ import {
     Utensils,
     Zap,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getEcho } from '@/echo';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,7 +82,25 @@ interface Props {
 }
 
 export default function DiaryIndex({ diary, selectedDate, recentFoods, status }: Props) {
+    const { auth } = usePage().props as any;
     const { summary, slots } = diary;
+
+    useEffect(() => {
+        const userId = auth?.user?.id;
+        if (!userId) return;
+
+        const echo = getEcho();
+        if (!echo) return;
+
+        const channel = echo.private(`user.${userId}`);
+        channel.listen('.DiaryUpdated', () => {
+            router.reload({ only: ['diary'] });
+        });
+
+        return () => {
+            channel.stopListening('.DiaryUpdated');
+        };
+    }, [auth?.user?.id]);
 
     // Add Food Dialog state
     const [isAddFoodOpen, setIsAddFoodOpen] = useState(false);

@@ -37,6 +37,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read Collection<int, WaterLog> $waterLogs
  * @property-read Collection<int, WeightLog> $weightLogs
  * @property-read Collection<int, ReportExport> $reportExports
+ * @property-read Collection<int, AdaptiveAdjustment> $adaptiveAdjustments
  */
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]

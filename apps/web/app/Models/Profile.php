@@ -6,7 +6,23 @@ use Database\Factories\ProfileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property Carbon $date_of_birth
+ * @property string $sex
+ * @property float $height_cm
+ * @property string|null $activity_level
+ * @property string|null $timezone
+ * @property string|null $locale
+ * @property string|null $unit_preference
+ * @property string|null $theme_preference
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $user
+ */
 class Profile extends Model
 {
     /** @use HasFactory<ProfileFactory> */
