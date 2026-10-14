@@ -22,7 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { getEcho } from '@/echo';
-import AppLayout from '@/layouts/app-layout';
+import { formatDate } from '@/lib/utils';
 
 interface TargetProfile {
     id: number;
@@ -139,12 +139,7 @@ export default function StrategyIndex({
     };
 
     return (
-        <AppLayout
-            breadcrumbs={[
-                { title: 'Dashboard', href: '/dashboard' },
-                { title: 'Adaptive Strategy', href: '/strategy' },
-            ]}
-        >
+        <>
             <Head title="Adaptive Strategy & Checkpoints" />
 
             <div className="flex flex-col gap-6 p-4 md:p-6 max-w-6xl mx-auto w-full">
@@ -230,8 +225,8 @@ export default function StrategyIndex({
                                     </Badge>
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                    Review Window: <span className="font-semibold text-foreground">{pendingAdjustment.period_start}</span> to{' '}
-                                    <span className="font-semibold text-foreground">{pendingAdjustment.period_end}</span>
+                                    Review Window: <span className="font-semibold text-foreground">{formatDate(pendingAdjustment.period_start)}</span> to{' '}
+                                    <span className="font-semibold text-foreground">{formatDate(pendingAdjustment.period_end)}</span>
                                 </div>
                             </div>
                             <CardDescription>
@@ -304,7 +299,7 @@ export default function StrategyIndex({
                             </div>
 
                             {/* Push-Right Comparative Plan Delta Table */}
-                            <div className="rounded-xl border border-border/60 overflow-hidden bg-background/60">
+                            <div data-testid="plan-comparison" className="rounded-xl border border-border/60 overflow-hidden bg-background/60">
                                 <div className="px-4 py-2.5 bg-muted/40 font-semibold text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-between">
                                     <span>Plan Comparison</span>
                                     <span>Current &rarr; Proposed</span>
@@ -325,6 +320,14 @@ export default function StrategyIndex({
                                     <div className="flex items-center justify-between px-4 py-3">
                                         <span className="font-medium text-foreground">Protein Target</span>
                                         <div className="flex items-center gap-3 font-semibold">
+                                            {activeTarget && (
+                                                <>
+                                                    <span className="text-muted-foreground line-through">
+                                                        {Math.round(activeTarget.protein_g)} g
+                                                    </span>
+                                                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                                </>
+                                            )}
                                             <span className="text-emerald-600 dark:text-emerald-400 font-bold">
                                                 {Math.round(pendingAdjustment.proposed_protein_g)} g
                                             </span>
@@ -333,6 +336,14 @@ export default function StrategyIndex({
                                     <div className="flex items-center justify-between px-4 py-3">
                                         <span className="font-medium text-foreground">Carbs Target</span>
                                         <div className="flex items-center gap-3 font-semibold">
+                                            {activeTarget && (
+                                                <>
+                                                    <span className="text-muted-foreground line-through">
+                                                        {Math.round(activeTarget.carbs_g)} g
+                                                    </span>
+                                                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                                </>
+                                            )}
                                             <span className="text-amber-600 dark:text-amber-400 font-bold">
                                                 {Math.round(pendingAdjustment.proposed_carbs_g)} g
                                             </span>
@@ -341,6 +352,14 @@ export default function StrategyIndex({
                                     <div className="flex items-center justify-between px-4 py-3">
                                         <span className="font-medium text-foreground">Fat Target</span>
                                         <div className="flex items-center gap-3 font-semibold">
+                                            {activeTarget && (
+                                                <>
+                                                    <span className="text-muted-foreground line-through">
+                                                        {Math.round(activeTarget.fat_g)} g
+                                                    </span>
+                                                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                                </>
+                                            )}
                                             <span className="text-sky-600 dark:text-sky-400 font-bold">
                                                 {Math.round(pendingAdjustment.proposed_fat_g)} g
                                             </span>
@@ -411,7 +430,7 @@ export default function StrategyIndex({
                                                 const noise = point.weight_kg - point.ewma_kg;
                                                 return (
                                                     <tr key={point.date} className="hover:bg-muted/30">
-                                                        <td className="py-2.5 font-medium">{point.date}</td>
+                                                        <td className="py-2.5 font-medium">{formatDate(point.date)}</td>
                                                         <td className="py-2.5 text-right font-semibold">{point.weight_kg.toFixed(2)} kg</td>
                                                         <td className="py-2.5 text-right text-primary font-bold">{point.ewma_kg.toFixed(2)} kg</td>
                                                         <td className="py-2.5 text-right text-xs">
@@ -469,9 +488,9 @@ export default function StrategyIndex({
                                     <tbody className="divide-y divide-border/50">
                                         {history.map((item) => (
                                             <tr key={item.id} className="hover:bg-muted/30">
-                                                <td className="py-2.5 font-medium">{item.review_date}</td>
+                                                <td className="py-2.5 font-medium">{formatDate(item.review_date)}</td>
                                                 <td className="py-2.5 text-xs text-muted-foreground">
-                                                    {item.period_start} &rarr; {item.period_end}
+                                                    {formatDate(item.period_start)} &rarr; {formatDate(item.period_end)}
                                                 </td>
                                                 <td className="py-2.5 text-right font-semibold">
                                                     {item.ewma_weight_change_kg > 0 ? '+' : ''}
@@ -512,6 +531,19 @@ export default function StrategyIndex({
                     </CardContent>
                 </Card>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+StrategyIndex.layout = {
+    breadcrumbs: [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+        },
+        {
+            title: 'Adaptive Strategy',
+            href: '/strategy',
+        },
+    ],
+};

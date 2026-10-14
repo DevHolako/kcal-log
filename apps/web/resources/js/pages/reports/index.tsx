@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getEcho } from '@/echo';
+import { formatDate } from '@/lib/utils';
 
 interface ReportExportItem {
     id: number;
@@ -317,7 +318,7 @@ export default function ReportsIndex({ exports, status }: Props) {
                                                 </div>
 
                                                 <div className="text-xs text-muted-foreground">
-                                                    Period: {item.date_from} to {item.date_to} &bull; Created {new Date(item.created_at).toLocaleDateString()}
+                                                    Period: {formatDate(item.date_from)} to {formatDate(item.date_to)} &bull; Created {formatDate(item.created_at)}
                                                 </div>
                                             </div>
                                         </div>
@@ -333,11 +334,24 @@ export default function ReportsIndex({ exports, status }: Props) {
                                         )}
                                     </div>
                                 ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-    );
+                             </div>
+                         )}
+                     </CardContent>
+                 </Card>
+             </div>
+         </div>
+     );
 }
+
+ReportsIndex.layout = {
+    breadcrumbs: [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+        },
+        {
+            title: 'Reports & Exports',
+            href: '/reports',
+        },
+    ],
+};

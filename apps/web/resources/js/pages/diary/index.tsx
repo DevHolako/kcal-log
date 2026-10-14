@@ -679,3 +679,16 @@ export default function DiaryIndex({ diary, selectedDate, recentFoods, status }:
         </div>
     );
 }
+
+DiaryIndex.layout = {
+    breadcrumbs: [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+        },
+        {
+            title: 'Food Diary',
+            href: '/diary',
+        },
+    ],
+};

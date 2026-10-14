@@ -765,3 +765,16 @@ export default function FoodsIndex({
         </div>
     );
 }
+
+FoodsIndex.layout = {
+    breadcrumbs: [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+        },
+        {
+            title: 'Food Database',
+            href: '/foods',
+        },
+    ],
+};
