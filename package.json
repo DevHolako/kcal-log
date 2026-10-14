@@ -8,7 +8,10 @@
     "node": "24.21.0"
   },
   "scripts": {
-    "dev": "pnpm --filter @kcal-log/web dev",
+    "dev": "concurrently -k -c \"blue.bold,magenta.bold,yellow.bold\" -n \"backend,frontend,queue\" \"cd apps/web && php artisan serve --port=9000\" \"cd apps/web && pnpm dev\" \"cd apps/web && php artisan queue:listen\"",
+    "dev:artisan": "cd apps/web && php artisan dev",
+    "dev:backend": "cd apps/web && php artisan serve --port=9000",
+    "dev:frontend": "pnpm --filter @kcal-log/web dev",
     "build": "pnpm --filter @kcal-log/web build",
     "test": "pnpm --filter @kcal-log/nutrition test",
     "test:php": "cd apps/web && php artisan test",
@@ -17,6 +20,7 @@
     "check": "pnpm --filter @kcal-log/web check"
   },
   "devDependencies": {
-    "vite-plus": "^1.1.0"
+    "concurrently": "^10.0.3",
+    "vite-plus": "^1.2.0"
   }
 }

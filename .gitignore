@@ -35,6 +35,7 @@ public/build/
 public/hot
 .vite/
 .vite-plus/
+.vitest/
 .tsdown/
 coverage/
 *.tsbuildinfo

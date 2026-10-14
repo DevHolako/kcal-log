@@ -29,6 +29,8 @@ export default defineConfig({
         }),
     ]),
     server: {
+        port: 9173,
+        strictPort: true,
         watch: {
             ignored: [
                 '**/.agents/**',
