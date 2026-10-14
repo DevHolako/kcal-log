@@ -15,9 +15,12 @@ This journal tracks all significant architectural, tooling, and design decisions
 
 ## 2. Domain & Data Precision (Phase 2)
 - **Domain Modeling**: Standardized vocabulary documented in `GLOSSARY.md` (`Food`, `DiaryEntry`, `MealSlot`, `Serving`, `TargetProfile`, `DailySummary`, `OFFConnection`, `AdaptiveAdjustment`, `WeightLog`, `CustomFood`, `FoodServing`).
-- **Database Engine**: MariaDB 10.11+ selected for local dev and production deployments (with in-memory SQLite for automated tests).
-- **Precision Storage**: Fixed-point `decimal` fields throughout schema (`decimal(8,2)` for calories/nutrients, `decimal(5,2)` for weights and circumferences) to prevent IEEE-754 floating-point drift.
-- **Food Data Schema**: Unified `foods` and `food_servings` tables supporting both global cached Open Food Facts items and private user custom foods.
+- **Database Engine**: MariaDB 10.11+ configured with `utf8mb4_unicode_ci` for local dev and production deployments (with in-memory SQLite for high-speed automated tests).
+- **Precision Storage**: Fixed-point `decimal` fields throughout MariaDB schema (`decimal(8,2)` for calories/nutrients, `decimal(5,2)` for weights and circumferences, `decimal(4,2)` for body fat and weekly rates) to prevent IEEE-754 floating-point drift.
+- **Food Data Schema**: Unified `foods` and `food_servings` tables supporting both global cached Open Food Facts items (`is_custom = false`, `user_id = null`) and private user custom foods (`is_custom = true`, `user_id = {id}`).
+- **Open Food Facts Security**: Credentials stored in `user_off_connections` using Laravel's `encrypted` attribute casting and hidden from JSON serialization.
+- **Denormalized Daily Diary**: `diary_entries` stores calculated macro/calorie snapshots at logging time to enable O(1) daily totals without per-item joins.
+- **Static Analysis Compliance**: All Eloquent models, relations, factories, and seeders strictly typed and validated against Larastan / PHPStan Level 5+ checks.
 
 ---
 
