@@ -24,6 +24,9 @@ use Illuminate\Support\Carbon;
  * @property float|string $carbs
  * @property float|string $fat
  * @property float|string|null $fiber
+ * @property float|string|null $sugar
+ * @property float|string|null $saturated_fat
+ * @property float|string|null $sodium
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
@@ -49,6 +52,9 @@ class DiaryEntry extends Model
         'carbs',
         'fat',
         'fiber',
+        'sugar',
+        'saturated_fat',
+        'sodium',
     ];
 
     /**
@@ -65,6 +71,9 @@ class DiaryEntry extends Model
             'carbs' => 'decimal:2',
             'fat' => 'decimal:2',
             'fiber' => 'decimal:2',
+            'sugar' => 'decimal:2',
+            'saturated_fat' => 'decimal:2',
+            'sodium' => 'decimal:4',
         ];
     }
 

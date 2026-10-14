@@ -87,6 +87,31 @@ test.describe('End-to-End User Experience', () => {
         await expect(page.getByText('250 /')).toBeVisible({ timeout: 10000 });
         await page.screenshot({ path: 'test-results/screenshots/04-diary-with-logged-entries.png' });
 
+        // 5b. Detailed Micronutrients Modal in Diary
+        const microBtn = page.getByRole('button', { name: /detailed micronutrients/i });
+        await expect(microBtn).toBeVisible();
+        await microBtn.click();
+        await expect(page.getByText(/Daily Micronutrient Breakdown/i)).toBeVisible({ timeout: 5000 });
+        await expect(page.getByText('Net Carbs').first()).toBeVisible();
+        await expect(page.getByText('Sugars').first()).toBeVisible();
+        await expect(page.getByText('Saturated Fat').first()).toBeVisible();
+        await expect(page.getByText('Sodium Intake').first()).toBeVisible();
+        await page.keyboard.press('Escape');
+
+        // 5c. Web Barcode Scanner Modal in Diary
+        const addFoodBtn = page.getByRole('button', { name: /add food/i }).first();
+        await addFoodBtn.click();
+        const scanBarcodeBtn = page.getByRole('button', { name: /^scan$/i });
+        await expect(scanBarcodeBtn).toBeVisible();
+        await scanBarcodeBtn.click();
+        await expect(page.getByRole('heading', { name: /scan food barcode/i })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByPlaceholder(/5449000000996/i)).toBeVisible();
+        // Close scanner modal and add food dialog with Escape
+        await page.keyboard.press('Escape');
+        await expect(page.getByRole('heading', { name: /scan food barcode/i })).toBeHidden({ timeout: 5000 });
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(300);
+
         // 6. Food Catalog & Custom Food Creation
         await page.locator('a[href="/foods"]').first().click({ force: true });
         await page.waitForURL('**/foods', { timeout: 10000 });
@@ -109,6 +134,32 @@ test.describe('End-to-End User Experience', () => {
         await expect(page.getByText('310').first()).toBeVisible();
         await expect(page.locator('#custom-name')).toBeHidden({ timeout: 5000 });
         await page.screenshot({ path: 'test-results/screenshots/05-custom-food-created.png' });
+
+        // 6b. Recipes & Multi-Ingredient Meals
+        await page.locator('a[href="/recipes"]').first().click({ force: true });
+        await page.waitForURL('**/recipes', { timeout: 10000 });
+        await expect(page.getByRole('heading', { name: /^recipes & meals$/i })).toBeVisible();
+
+        // Create recipe
+        await page.getByRole('button', { name: /create recipe/i }).first().click();
+        await expect(page.getByText(/Create New Recipe/i)).toBeVisible();
+        await page.fill('#recipe-name', 'Power Yogurt Bowl');
+        await page.fill('#recipe-servings', '2');
+
+        // Search and pick the custom food we created as ingredient
+        const searchIngredientInput = page.getByPlaceholder(/type food name to search/i);
+        await searchIngredientInput.fill('Greek Yogurt');
+        const foodResult = page.locator('button', { hasText: /Greek Yogurt & Honey Bowl/i }).first();
+        await expect(foodResult).toBeVisible({ timeout: 5000 });
+        await foodResult.click();
+
+        // Add ingredient to recipe
+        await page.getByRole('button', { name: /add this ingredient/i }).click();
+        await expect(page.getByText(/Greek Yogurt & Honey Bowl/i).first()).toBeVisible();
+
+        // Save recipe
+        await page.getByRole('button', { name: /save recipe/i }).click();
+        await expect(page.getByText('Power Yogurt Bowl').first()).toBeVisible({ timeout: 10000 });
 
         // 7. Adaptive Nutrition Strategy & Checkpoint Brief
         // Seed a pending adjustment with raw ISO timestamps to rigorously test UX formatting & layout

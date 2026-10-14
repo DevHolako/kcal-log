@@ -117,6 +117,14 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
+     * @return HasMany<MealRecipe, $this>
+     */
+    public function recipes(): HasMany
+    {
+        return $this->hasMany(MealRecipe::class)->where('is_recipe', true);
+    }
+
+    /**
      * @return HasMany<WaterLog, $this>
      */
     public function waterLogs(): HasMany

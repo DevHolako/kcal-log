@@ -15,6 +15,7 @@ use App\Http\Controllers\AdaptiveController as WebAdaptiveController;
 use App\Http\Controllers\DiaryController as WebDiaryController;
 use App\Http\Controllers\ExportController as WebExportController;
 use App\Http\Controllers\FoodController as WebFoodController;
+use App\Http\Controllers\RecipeController as WebRecipeController;
 
 Route::middleware(['auth', 'verified', EnsureOnboardingIsComplete::class])->group(function () {
     Route::get('dashboard', [WebDiaryController::class, 'index'])->name('dashboard');
@@ -32,6 +33,13 @@ Route::middleware(['auth', 'verified', EnsureOnboardingIsComplete::class])->grou
     Route::get('foods', [WebFoodController::class, 'index'])->name('foods.index');
     Route::post('foods/custom', [WebFoodController::class, 'storeCustom'])->name('foods.custom.store');
     Route::delete('foods/custom/{food}', [WebFoodController::class, 'destroyCustom'])->name('foods.custom.destroy');
+
+    // Recipes & Multi-Ingredient Meals
+    Route::get('recipes', [WebRecipeController::class, 'index'])->name('recipes.index');
+    Route::post('recipes', [WebRecipeController::class, 'store'])->name('recipes.store');
+    Route::put('recipes/{recipe}', [WebRecipeController::class, 'update'])->name('recipes.update');
+    Route::delete('recipes/{recipe}', [WebRecipeController::class, 'destroy'])->name('recipes.destroy');
+    Route::post('recipes/{recipe}/log', [WebRecipeController::class, 'log'])->name('recipes.log');
 
     // Reports & Exports
     Route::get('reports', [WebExportController::class, 'index'])->name('reports.index');

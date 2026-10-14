@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, CalendarDays, FileText, FolderGit2, LayoutGrid, TrendingUp, UtensilsCrossed } from 'lucide-react';
+import { BookOpen, CalendarDays, ChefHat, FileText, FolderGit2, LayoutGrid, TrendingUp, UtensilsCrossed } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -31,6 +31,11 @@ const mainNavItems: NavItem[] = [
         title: 'Foods & Search',
         href: '/foods',
         icon: UtensilsCrossed,
+    },
+    {
+        title: 'Recipes & Meals',
+        href: '/recipes',
+        icon: ChefHat,
     },
     {
         title: 'Reports & Exports',

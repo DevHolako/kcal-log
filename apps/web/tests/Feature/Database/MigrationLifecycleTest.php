@@ -4,8 +4,8 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 
 it('runs migrations, rolls back, and re-runs cleanly', function () {
-    // 1. Rollback all Phase 2 migrations
-    $rollbackExit = Artisan::call('migrate:rollback', ['--step' => 10]);
+    // 1. Rollback all custom application migrations
+    $rollbackExit = Artisan::call('migrate:rollback', ['--step' => 15]);
     expect($rollbackExit)->toBe(0);
 
     // Verify Phase 2 tables were dropped

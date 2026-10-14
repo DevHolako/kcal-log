@@ -4,6 +4,7 @@ import {
     Apple,
     Barcode,
     Calculator,
+    Camera,
     Check,
     Database,
     Globe,
@@ -15,6 +16,7 @@ import {
     X,
 } from 'lucide-react';
 import { useId, useState } from 'react';
+import BarcodeScannerModal from '@/components/barcode-scanner-modal';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -97,6 +99,7 @@ export default function FoodsIndex({
 
     // Create Custom Food Dialog State
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [scannerOpen, setScannerOpen] = useState(false);
 
     const customFoodForm = useForm({
         name: '',
@@ -224,26 +227,39 @@ export default function FoodsIndex({
             {/* Search Bar & Mode Toggle */}
             <Card className="border-border/60 shadow-xs">
                 <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                            <Button
+                                type="button"
+                                variant={searchMode === 'text' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setSearchMode('text')}
+                                className="gap-2"
+                            >
+                                <Search className="h-4 w-4" />
+                                Text Search
+                            </Button>
+                            <Button
+                                type="button"
+                                variant={searchMode === 'barcode' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setSearchMode('barcode')}
+                                className="gap-2"
+                            >
+                                <Barcode className="h-4 w-4" />
+                                Barcode Lookup
+                            </Button>
+                        </div>
+
                         <Button
                             type="button"
-                            variant={searchMode === 'text' ? 'default' : 'outline'}
+                            variant="outline"
                             size="sm"
-                            onClick={() => setSearchMode('text')}
-                            className="gap-2"
+                            onClick={() => setScannerOpen(true)}
+                            className="gap-2 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
                         >
-                            <Search className="h-4 w-4" />
-                            Text Search
-                        </Button>
-                        <Button
-                            type="button"
-                            variant={searchMode === 'barcode' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setSearchMode('barcode')}
-                            className="gap-2"
-                        >
-                            <Barcode className="h-4 w-4" />
-                            Barcode Scanner / Lookup
+                            <Camera className="h-4 w-4 text-emerald-600" />
+                            Scan with Camera
                         </Button>
                     </div>
 
@@ -762,6 +778,13 @@ export default function FoodsIndex({
                     </form>
                 </DialogContent>
             </Dialog>
+
+            {/* Live Camera Barcode Scanner Modal */}
+            <BarcodeScannerModal
+                open={scannerOpen}
+                onOpenChange={setScannerOpen}
+                onFoodFound={(food) => handleOpenCalculator(food)}
+            />
         </div>
     );
 }

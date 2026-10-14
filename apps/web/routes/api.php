@@ -63,6 +63,14 @@ Route::prefix('v1')->group(function () {
         Route::post('diary/water', [DiaryController::class, 'storeWater'])->name('api.v1.diary.water.store');
         Route::delete('diary/water/{waterLog}', [DiaryController::class, 'destroyWater'])->name('api.v1.diary.water.destroy');
 
+        // Recipes & Multi-Ingredient Meals
+        Route::get('recipes', [\App\Http\Controllers\Api\V1\RecipeController::class, 'index'])->name('api.v1.recipes.index');
+        Route::post('recipes', [\App\Http\Controllers\Api\V1\RecipeController::class, 'store'])->name('api.v1.recipes.store');
+        Route::get('recipes/{recipe}', [\App\Http\Controllers\Api\V1\RecipeController::class, 'show'])->name('api.v1.recipes.show');
+        Route::put('recipes/{recipe}', [\App\Http\Controllers\Api\V1\RecipeController::class, 'update'])->name('api.v1.recipes.update');
+        Route::delete('recipes/{recipe}', [\App\Http\Controllers\Api\V1\RecipeController::class, 'destroy'])->name('api.v1.recipes.destroy');
+        Route::post('recipes/{recipe}/log', [\App\Http\Controllers\Api\V1\RecipeController::class, 'log'])->name('api.v1.recipes.log');
+
         // Reports & Data Exports
         Route::get('reports/exports', [ExportController::class, 'index'])->name('api.v1.reports.exports.index');
         Route::post('reports/exports', [ExportController::class, 'store'])->name('api.v1.reports.exports.store');

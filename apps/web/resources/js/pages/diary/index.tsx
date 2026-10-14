@@ -1,19 +1,24 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
+    Camera,
     ChevronLeft,
     ChevronRight,
     Coffee,
     Cookie,
     Droplet,
+    Heart,
+    Info,
     Moon,
     Plus,
+    ShieldCheck,
+    Sparkles,
     Sun,
     Trash2,
     Utensils,
     Zap,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { getEcho } from '@/echo';
+import BarcodeScannerModal from '@/components/barcode-scanner-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +32,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { getEcho } from '@/echo';
 import type { FoodItem, FoodServingData } from '@/pages/foods';
 
 interface DiaryEntryData {
@@ -44,6 +50,9 @@ interface DiaryEntryData {
     carbs: number | string;
     fat: number | string;
     fiber: number | string | null;
+    sugar?: number | string | null;
+    saturated_fat?: number | string | null;
+    sodium?: number | string | null;
     food?: FoodItem;
     serving?: FoodServingData;
 }
@@ -60,6 +69,10 @@ interface DiarySummary {
     target_fat: number;
     total_fiber: number;
     target_fiber: number;
+    total_sugar?: number;
+    total_saturated_fat?: number;
+    total_sodium?: number;
+    total_sodium_mg?: number;
     water_ml: number;
     target_water_ml: number;
     weight_kg: number | null;
@@ -113,6 +126,10 @@ export default function DiaryIndex({ diary, selectedDate, recentFoods, status }:
     // Quick Add Dialog state
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const [quickAddSlot, setQuickAddSlot] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('breakfast');
+
+    // Barcode scanner & Micronutrient Dialog state
+    const [scannerOpen, setScannerOpen] = useState(false);
+    const [microModalOpen, setMicroModalOpen] = useState(false);
 
     const addFoodForm = useForm({
         food_id: 0,
@@ -360,6 +377,25 @@ export default function DiaryIndex({ diary, selectedDate, recentFoods, status }:
                             </div>
                         </div>
                     </div>
+
+                    {/* Micronutrient Summary Quick-Bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border/50 text-xs text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-4">
+                            <span>Fiber: <strong className="text-foreground">{Math.round(summary.total_fiber || 0)}g</strong> / {Math.round(summary.target_fiber || 30)}g</span>
+                            <span>Net Carbs: <strong className="text-foreground">{Math.max(0, Math.round((summary.total_carbs || 0) - (summary.total_fiber || 0)))}g</strong></span>
+                            <span>Sodium: <strong className="text-foreground">{summary.total_sodium_mg ?? Math.round((summary.total_sodium || 0) * 1000)} mg</strong></span>
+                        </div>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setMicroModalOpen(true)}
+                            className="h-7 text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 gap-1.5 px-2 font-medium"
+                        >
+                            <Sparkles className="h-3.5 w-3.5" />
+                            Detailed Micronutrients
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -515,11 +551,23 @@ export default function DiaryIndex({ diary, selectedDate, recentFoods, status }:
 
                     {!selectedFood ? (
                         <div className="space-y-3 py-2">
-                            <Input
-                                placeholder="Filter recent items or search..."
-                                value={foodFilter}
-                                onChange={(e) => setFoodFilter(e.target.value)}
-                            />
+                            <div className="flex gap-2">
+                                <Input
+                                    placeholder="Filter recent items or search..."
+                                    value={foodFilter}
+                                    onChange={(e) => setFoodFilter(e.target.value)}
+                                    className="flex-1"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setScannerOpen(true)}
+                                    className="gap-1.5 shrink-0 text-xs border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
+                                >
+                                    <Camera className="h-3.5 w-3.5 text-emerald-600" />
+                                    Scan
+                                </Button>
+                            </div>
 
                             <div className="space-y-1.5 max-h-60 overflow-y-auto divide-y divide-border/40">
                                 {recentFoods
@@ -676,6 +724,134 @@ export default function DiaryIndex({ diary, selectedDate, recentFoods, status }:
                     </form>
                 </DialogContent>
             </Dialog>
+
+            {/* Detailed Micronutrient Breakdown Dialog */}
+            <Dialog open={microModalOpen} onOpenChange={setMicroModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Sparkles className="h-5 w-5 text-amber-500" />
+                            Daily Micronutrient Breakdown
+                        </DialogTitle>
+                        <DialogDescription>
+                            Detailed micronutrients and health indicators logged for {selectedDate}.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-2">
+                        {/* Fiber & Net Carbs */}
+                        <div className="space-y-2 rounded-xl border border-border p-3.5 bg-muted/20">
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="font-semibold text-foreground">Dietary Fiber</span>
+                                <span className="font-bold text-foreground">
+                                    {Math.round(summary.total_fiber || 0)}g / {Math.round(summary.target_fiber || 30)}g
+                                </span>
+                            </div>
+                            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-emerald-500 rounded-full"
+                                    style={{
+                                        width: `${Math.min(100, Math.round(((summary.total_fiber || 0) / (summary.target_fiber || 30)) * 100))}%`,
+                                    }}
+                                />
+                            </div>
+                            <div className="flex justify-between items-center pt-1 text-[11px] text-muted-foreground">
+                                <span>Net Carbohydrates</span>
+                                <strong className="text-foreground">
+                                    {Math.max(0, Math.round((summary.total_carbs || 0) - (summary.total_fiber || 0)))}g
+                                </strong>
+                            </div>
+                        </div>
+
+                        {/* Sugar & Saturated Fat */}
+                        <div className="grid grid-cols-2 gap-3 text-xs">
+                            <div className="rounded-xl border border-border p-3 bg-muted/20 space-y-1">
+                                <span className="text-muted-foreground font-medium text-[11px]">Total Sugars</span>
+                                <p className="text-lg font-bold text-foreground">
+                                    {Math.round(summary.total_sugar || 0)}g
+                                </p>
+                                <span className="text-[10px] text-muted-foreground">From natural & added sources</span>
+                            </div>
+
+                            <div className="rounded-xl border border-border p-3 bg-muted/20 space-y-1">
+                                <span className="text-muted-foreground font-medium text-[11px]">Saturated Fat</span>
+                                <p className="text-lg font-bold text-foreground">
+                                    {Math.round(summary.total_saturated_fat || 0)}g
+                                </p>
+                                <span className="text-[10px] text-muted-foreground">Recommended limit &lt; 20g/day</span>
+                            </div>
+                        </div>
+
+                        {/* Sodium Benchmark */}
+                        {(() => {
+                            const sodiumMg = summary.total_sodium_mg ?? Math.round((summary.total_sodium || 0) * 1000);
+                            const isOptimal = sodiumMg <= 1500;
+                            const isModerate = sodiumMg <= 2300;
+                            return (
+                                <div className="rounded-xl border border-border p-3.5 bg-muted/20 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-semibold text-foreground">Sodium Intake</span>
+                                        <Badge
+                                            variant="outline"
+                                            className={
+                                                isOptimal
+                                                    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                    : isModerate
+                                                    ? 'border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                                                    : 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                            }
+                                        >
+                                            {isOptimal ? 'Optimal' : isModerate ? 'Moderate' : 'Elevated'}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex items-baseline justify-between text-xs">
+                                        <span className="text-xl font-black text-foreground">{sodiumMg} mg</span>
+                                        <span className="text-muted-foreground text-[11px]">Daily Guideline: 2,300 mg</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full transition-all ${
+                                                sodiumMg > 2300 ? 'bg-amber-500' : 'bg-emerald-500'
+                                            }`}
+                                            style={{ width: `${Math.min(100, Math.round((sodiumMg / 2300) * 100))}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {/* Hydration */}
+                        <div className="rounded-xl border border-border p-3.5 bg-muted/20 flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2.5">
+                                <Droplet className="h-4 w-4 text-sky-500" />
+                                <div>
+                                    <p className="font-semibold text-foreground">Daily Hydration</p>
+                                    <p className="text-[11px] text-muted-foreground">{summary.water_ml} / {summary.target_water_ml} ml logged</p>
+                                </div>
+                            </div>
+                            <span className="text-sm font-bold text-sky-600 dark:text-sky-400">
+                                {Math.min(100, Math.round((summary.water_ml / (summary.target_water_ml || 2000)) * 100))}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setMicroModalOpen(false)}>
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Live Camera Barcode Scanner Modal */}
+            <BarcodeScannerModal
+                open={scannerOpen}
+                onOpenChange={setScannerOpen}
+                onFoodFound={(food) => {
+                    handleSelectFood(food);
+                    setIsAddFoodOpen(true);
+                }}
+            />
         </div>
     );
 }
