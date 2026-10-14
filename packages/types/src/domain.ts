@@ -11,7 +11,8 @@ export type ActivityLevel =
   | 'lightly_active'   // 1.375
   | 'moderately_active'// 1.55
   | 'very_active'      // 1.725
-  | 'extra_active';    // 1.9
+  | 'extra_active'     // 1.9
+  | 'extremely_active';// 1.9
 
 export type GoalType = 'lose' | 'maintain' | 'gain';
 

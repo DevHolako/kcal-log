@@ -6,6 +6,7 @@ export const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   moderately_active: 1.55, // Moderate exercise 3-5 days/week
   very_active: 1.725,      // Hard exercise 6-7 days/week
   extra_active: 1.9,       // Very hard exercise, physical job or 2x/day training
+  extremely_active: 1.9,   // Alias for extra_active
 };
 
 /**
