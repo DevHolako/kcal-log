@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { Check } from 'lucide-react';
+import { Check, Globe } from 'lucide-react';
 import AppearanceTabs from '@/components/appearance-tabs';
 import Heading from '@/components/heading';
 import { PaletteSelector } from '@/components/palette-selector';
@@ -8,6 +8,7 @@ import {
     type NavigationLayoutMode,
     useNavigationLayout,
 } from '@/hooks/use-navigation-layout';
+import { useTranslation } from '@/lib/i18n';
 import { usePalette } from '@/lib/theme-palettes';
 import { cn } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
@@ -100,6 +101,7 @@ function LayoutWireframe({
 }
 
 export default function Appearance() {
+    const { t, locale, setLocale } = useTranslation();
     const { palette, presets, setPalette } = usePalette();
     const { resolvedAppearance } = useAppearance();
     const { layout, setLayout, options: layoutOptions } = useNavigationLayout();
@@ -107,16 +109,16 @@ export default function Appearance() {
 
     return (
         <>
-            <Head title="Appearance settings" />
+            <Head title={t('settings.appearance_title')} />
 
-            <h1 className="sr-only">Appearance settings</h1>
+            <h1 className="sr-only">{t('settings.appearance_title')}</h1>
 
             <div className="space-y-8">
                 {/* Theme Mode */}
                 <div className="space-y-4">
                     <Heading
                         variant="small"
-                        title="Theme Mode"
+                        title={t('settings.theme')}
                         description="Switch between light, dark, or system preference"
                     />
                     <AppearanceTabs />
@@ -126,7 +128,7 @@ export default function Appearance() {
                 <div className="space-y-4 border-t border-border/60 pt-6">
                     <Heading
                         variant="small"
-                        title="Navigation Layout"
+                        title={t('settings.layout_mode')}
                         description="Select where navigation bars and drawers appear across your screen"
                     />
 
@@ -338,6 +340,43 @@ export default function Appearance() {
                                 </button>
                             );
                         })}
+                    </div>
+                </div>
+
+                {/* Interface Language */}
+                <div className="space-y-4 border-t border-border/60 pt-6">
+                    <Heading
+                        variant="small"
+                        title={t('settings.language')}
+                        description="Select your preferred display language (English / Français)"
+                    />
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setLocale('en')}
+                            className={cn(
+                                'flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-semibold transition-all',
+                                locale === 'en'
+                                    ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/30'
+                                    : 'border-border/70 bg-card hover:border-border',
+                            )}
+                        >
+                            <Globe className="h-4 w-4" />
+                            English (EN)
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setLocale('fr')}
+                            className={cn(
+                                'flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-semibold transition-all',
+                                locale === 'fr'
+                                    ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/30'
+                                    : 'border-border/70 bg-card hover:border-border',
+                            )}
+                        >
+                            <Globe className="h-4 w-4" />
+                            Français (FR)
+                        </button>
                     </div>
                 </div>
             </div>

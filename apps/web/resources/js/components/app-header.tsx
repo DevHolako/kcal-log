@@ -43,6 +43,7 @@ import {
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
+import { useTranslation } from '@/lib/i18n';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, NavItem, User } from '@/types';
@@ -51,55 +52,56 @@ type Props = {
     breadcrumbs?: BreadcrumbItem[];
 };
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Daily Diary',
-        href: '/diary',
-        icon: CalendarDays,
-    },
-    {
-        title: 'Adaptive Strategy',
-        href: '/strategy',
-        icon: TrendingUp,
-    },
-    {
-        title: 'Foods & Search',
-        href: '/foods',
-        icon: UtensilsCrossed,
-    },
-    {
-        title: 'Recipes & Meals',
-        href: '/recipes',
-        icon: ChefHat,
-    },
-    {
-        title: 'Reports & Exports',
-        href: '/reports',
-        icon: FileText,
-    },
-];
-
-const rightNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/DevHolako/kcal-log',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
-
 const activeItemStyles =
     'text-primary font-semibold bg-primary/10 dark:bg-primary/20 dark:text-primary';
 
 export function AppHeader({ breadcrumbs = [] }: Props) {
+    const { t } = useTranslation();
     const page = usePage();
     const auth = (page.props as { auth?: { user?: User | null } })?.auth;
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: t('nav.diary'),
+            href: '/diary',
+            icon: CalendarDays,
+        },
+        {
+            title: t('nav.strategy'),
+            href: '/strategy',
+            icon: TrendingUp,
+        },
+        {
+            title: t('nav.foods'),
+            href: '/foods',
+            icon: UtensilsCrossed,
+        },
+        {
+            title: t('nav.recipes'),
+            href: '/recipes',
+            icon: ChefHat,
+        },
+        {
+            title: t('nav.reports'),
+            href: '/reports',
+            icon: FileText,
+        },
+    ];
+
+    const rightNavItems: NavItem[] = [
+        {
+            title: t('nav.repository'),
+            href: 'https://github.com/DevHolako/kcal-log',
+            icon: FolderGit2,
+        },
+        {
+            title: t('nav.documentation'),
+            href: 'https://laravel.com/docs/starter-kits#react',
+            icon: BookOpen,
+        },
+    ];
 
     return (
         <>

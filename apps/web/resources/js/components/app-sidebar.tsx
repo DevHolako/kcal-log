@@ -21,51 +21,53 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useTranslation } from '@/lib/i18n';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Daily Diary',
-        href: '/diary',
-        icon: CalendarDays,
-    },
-    {
-        title: 'Adaptive Strategy',
-        href: '/strategy',
-        icon: TrendingUp,
-    },
-    {
-        title: 'Foods & Search',
-        href: '/foods',
-        icon: UtensilsCrossed,
-    },
-    {
-        title: 'Recipes & Meals',
-        href: '/recipes',
-        icon: ChefHat,
-    },
-    {
-        title: 'Reports & Exports',
-        href: '/reports',
-        icon: FileText,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/DevHolako/kcal-log',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
-
 export function AppSidebar({ side = 'left' }: { side?: 'left' | 'right' }) {
+    const { t } = useTranslation();
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: t('nav.diary'),
+            href: '/diary',
+            icon: CalendarDays,
+        },
+        {
+            title: t('nav.strategy'),
+            href: '/strategy',
+            icon: TrendingUp,
+        },
+        {
+            title: t('nav.foods'),
+            href: '/foods',
+            icon: UtensilsCrossed,
+        },
+        {
+            title: t('nav.recipes'),
+            href: '/recipes',
+            icon: ChefHat,
+        },
+        {
+            title: t('nav.reports'),
+            href: '/reports',
+            icon: FileText,
+        },
+    ];
+
+    const footerNavItems: NavItem[] = [
+        {
+            title: t('nav.repository'),
+            href: 'https://github.com/DevHolako/kcal-log',
+            icon: FolderGit2,
+        },
+        {
+            title: t('nav.documentation'),
+            href: 'https://laravel.com/docs/starter-kits#react',
+            icon: BookOpen,
+        },
+    ];
     return (
         <Sidebar collapsible="icon" variant="sidebar" side={side}>
             <SidebarHeader>

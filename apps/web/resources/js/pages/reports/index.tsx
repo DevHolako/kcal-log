@@ -28,6 +28,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getEcho } from '@/echo';
+import { useTranslation } from '@/lib/i18n';
 import { formatDate } from '@/lib/utils';
 
 export interface UserStats {
@@ -72,6 +73,7 @@ interface Props {
 }
 
 export default function ReportsIndex({ exports, userStats, status }: Props) {
+    const { t } = useTranslation();
     const { auth } = usePage().props as any;
     const today = new Date().toISOString().split('T')[0];
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
@@ -127,17 +129,16 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
 
     return (
         <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
-            <Head title="Reports & Data Exports" />
+            <Head title={t('reports.title')} />
 
             {/* Header */}
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                        Reports & Data Exports
+                        {t('reports.title')}
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        Generate downloadable PDF summary reports, spreadsheet
-                        CSVs, or raw JSON data archives.
+                        {t('reports.subtitle')}
                     </p>
                 </div>
             </div>
@@ -153,7 +154,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
                         <h2 className="text-sm font-semibold tracking-wide text-foreground uppercase">
-                            Executive 30-Day Nutrition Summary
+                            {t('reports.exec_summary_title')}
                         </h2>
                         <span className="text-xs text-muted-foreground">
                             {userStats.totalDaysLogged} of {userStats.periodDays} days recorded ({userStats.loggingRate}%)
@@ -165,7 +166,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                         <Card className="border-border/60 bg-card/60 backdrop-blur-sm">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-xs font-medium text-muted-foreground">
-                                    Avg Daily Calories
+                                    {t('reports.avg_daily_calories')}
                                 </CardTitle>
                                 <Flame className="h-4 w-4 text-emerald-500" />
                             </CardHeader>
@@ -177,7 +178,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                    <span>Target: {userStats.targetCalories} kcal</span>
+                                    <span>{t('reports.target')}: {userStats.targetCalories} kcal</span>
                                     <span
                                         className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
                                             Math.abs(userStats.calorieVariance) <= 150
@@ -198,7 +199,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                         <Card className="border-border/60 bg-card/60 backdrop-blur-sm">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-xs font-medium text-muted-foreground">
-                                    Target Adherence
+                                    {t('reports.target_adherence')}
                                 </CardTitle>
                                 <CalendarCheck className="h-4 w-4 text-blue-500" />
                             </CardHeader>
@@ -216,7 +217,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                         <Card className="border-border/60 bg-card/60 backdrop-blur-sm">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-xs font-medium text-muted-foreground">
-                                    Avg Macronutrients
+                                    {t('reports.avg_macronutrients')}
                                 </CardTitle>
                                 <Activity className="h-4 w-4 text-purple-500" />
                             </CardHeader>
@@ -304,7 +305,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                 <Card className="h-fit border-border/70 lg:col-span-1">
                     <CardHeader>
                         <CardTitle className="text-base font-semibold">
-                            Generate Export
+                            {t('reports.request_export')}
                         </CardTitle>
                         <CardDescription className="text-xs">
                             Select output format and timeframe.
@@ -316,7 +317,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                             {/* Format Selector */}
                             <div className="space-y-2">
                                 <Label className="text-xs font-semibold">
-                                    Export Format
+                                    {t('reports.export_format')}
                                 </Label>
                                 <div className="grid grid-cols-3 gap-2">
                                     <button
@@ -369,7 +370,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                             {/* Preset Buttons */}
                             <div className="space-y-1.5">
                                 <Label className="text-xs font-semibold">
-                                    Quick Range
+                                    {t('reports.date_range')}
                                 </Label>
                                 <div className="flex gap-1.5">
                                     <Button
@@ -379,7 +380,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                                         onClick={() => setPreset(7)}
                                         className="flex-1 text-xs"
                                     >
-                                        7 Days
+                                        {t('reports.preset_7d')}
                                     </Button>
                                     <Button
                                         type="button"
@@ -388,7 +389,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                                         onClick={() => setPreset(30)}
                                         className="flex-1 text-xs"
                                     >
-                                        30 Days
+                                        {t('reports.preset_30d')}
                                     </Button>
                                     <Button
                                         type="button"
@@ -397,7 +398,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                                         onClick={() => setPreset(90)}
                                         className="flex-1 text-xs"
                                     >
-                                        90 Days
+                                        {t('reports.preset_90d')}
                                     </Button>
                                 </div>
                             </div>
@@ -409,7 +410,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                                         htmlFor="date_from"
                                         className="text-xs"
                                     >
-                                        Start Date
+                                        {t('reports.from')}
                                     </Label>
                                     <Input
                                         id="date_from"
@@ -430,7 +431,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                                         htmlFor="date_to"
                                         className="text-xs"
                                     >
-                                        End Date
+                                        {t('reports.to')}
                                     </Label>
                                     <Input
                                         id="date_to"
@@ -457,13 +458,14 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                                 {form.processing ? (
                                     <>
                                         <Loader2 className="h-4 w-4 animate-spin" />
-                                        Generating...
+                                        {t('reports.generating')}
                                     </>
                                 ) : (
                                     <>
                                         <Download className="h-4 w-4" />
-                                        Generate {form.data.type.toUpperCase()}{' '}
-                                        Export
+                                        {t('reports.generate_export', {
+                                            type: form.data.type.toUpperCase(),
+                                        })}
                                     </>
                                 )}
                             </Button>
@@ -563,7 +565,7 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                                                 className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                                             >
                                                 <Download className="h-3.5 w-3.5" />
-                                                Download
+                                                {t('action.download')}
                                             </a>
                                         )}
                                     </div>

@@ -24,15 +24,9 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import WeightTrendChart from '@/components/weight-trend-chart';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { getEcho } from '@/echo';
+import { useTranslation } from '@/lib/i18n';
 import { formatDate } from '@/lib/utils';
 
 interface TargetProfile {
@@ -91,6 +85,7 @@ export default function StrategyIndex({
     history,
     weightTrends,
 }: Props) {
+    const { t } = useTranslation();
     const { auth } = usePage().props as any;
     const [isTriggering, setIsTriggering] = useState(false);
     const [isDeciding, setIsDeciding] = useState(false);
@@ -159,7 +154,7 @@ export default function StrategyIndex({
 
     return (
         <>
-            <Head title="Adaptive Strategy & Checkpoints" />
+            <Head title={`${t('strategy.title')} - kcal-log`} />
 
             <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 md:p-6">
                 {/* Header */}
@@ -167,8 +162,8 @@ export default function StrategyIndex({
                     <div>
                         <div className="flex items-center gap-2">
                             <Heading
-                                title="Adaptive Nutrition Strategy"
-                                description="Automated weekly EWMA weight smoothing, metabolic energy expenditure derivation, and personalized checkpoint briefs."
+                                title={t('strategy.title')}
+                                description={t('strategy.subtitle')}
                             />
                         </div>
                     </div>
@@ -179,7 +174,7 @@ export default function StrategyIndex({
                             className="gap-2 text-xs"
                         >
                             <Brain className="h-4 w-4 text-emerald-600" />
-                            {showMathExplainer ? 'Hide Logic' : 'How the Engine Works'}
+                            {showMathExplainer ? t('strategy.hide_logic') : t('strategy.how_it_works')}
                             {showMathExplainer ? (
                                 <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
                             ) : (
@@ -196,7 +191,7 @@ export default function StrategyIndex({
                             <RefreshCw
                                 className={`h-4 w-4 ${isTriggering ? 'animate-spin' : ''}`}
                             />
-                            {isTriggering ? 'Calculating...' : 'Recalculate Trend'}
+                            {isTriggering ? t('action.calculating') : t('action.recalculate')}
                         </Button>
                     </div>
                 </div>
@@ -364,10 +359,10 @@ export default function StrategyIndex({
                                 <div className="flex items-center gap-2">
                                     <Flame className="h-5 w-5 animate-pulse text-amber-500" />
                                     <CardTitle className="text-lg font-bold">
-                                        Weekly Checkpoint Brief
+                                        {t('strategy.weekly_brief_title')}
                                     </CardTitle>
                                     <Badge className="border-amber-500/30 bg-amber-500/20 text-amber-700 dark:text-amber-300">
-                                        Decision Required
+                                        {t('status.decision_required')}
                                     </Badge>
                                 </div>
                                 <div className="text-xs text-muted-foreground">
@@ -604,7 +599,7 @@ export default function StrategyIndex({
                                 className="w-full gap-2 sm:w-auto"
                             >
                                 <XCircle className="h-4 w-4 text-muted-foreground" />
-                                Reject & Keep Current Targets
+                                {t('action.reject_plan')}
                             </Button>
                             <Button
                                 onClick={() =>
@@ -614,7 +609,7 @@ export default function StrategyIndex({
                                 className="w-full gap-2 bg-emerald-600 text-white hover:bg-emerald-700 sm:w-auto"
                             >
                                 <CheckCircle2 className="h-4 w-4" />
-                                Accept & Activate Plan
+                                {t('action.accept_plan')}
                             </Button>
                         </CardFooter>
                     </Card>
@@ -627,7 +622,7 @@ export default function StrategyIndex({
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="h-5 w-5 text-primary" />
                                 <CardTitle className="text-base font-semibold">
-                                    EWMA Weight Smoothing Trend
+                                    {t('strategy.ewma_chart_title')}
                                 </CardTitle>
                             </div>
                             <span className="text-xs text-muted-foreground">

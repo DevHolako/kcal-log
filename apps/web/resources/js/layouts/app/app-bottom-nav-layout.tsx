@@ -22,51 +22,53 @@ import {
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
+import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import type { AppLayoutProps, NavItem, User } from '@/types';
-
-const bottomNavItems: (NavItem & { shortTitle: string })[] = [
-    {
-        title: 'Daily Diary',
-        shortTitle: 'Diary',
-        href: '/diary',
-        icon: CalendarDays,
-    },
-    {
-        title: 'Adaptive Strategy',
-        shortTitle: 'Strategy',
-        href: '/strategy',
-        icon: TrendingUp,
-    },
-    {
-        title: 'Foods & Search',
-        shortTitle: 'Foods',
-        href: '/foods',
-        icon: UtensilsCrossed,
-    },
-    {
-        title: 'Recipes & Meals',
-        shortTitle: 'Recipes',
-        href: '/recipes',
-        icon: ChefHat,
-    },
-    {
-        title: 'Reports & Exports',
-        shortTitle: 'Reports',
-        href: '/reports',
-        icon: FileText,
-    },
-];
 
 export default function AppBottomNavLayout({
     children,
     breadcrumbs = [],
 }: AppLayoutProps) {
+    const { t } = useTranslation();
     const page = usePage();
     const auth = (page.props as { auth?: { user?: User | null } })?.auth;
     const getInitials = useInitials();
     const { isCurrentUrl } = useCurrentUrl();
+
+    const bottomNavItems: (NavItem & { shortTitle: string })[] = [
+        {
+            title: t('nav.diary'),
+            shortTitle: t('nav.diary'),
+            href: '/diary',
+            icon: CalendarDays,
+        },
+        {
+            title: t('nav.strategy'),
+            shortTitle: t('nav.strategy'),
+            href: '/strategy',
+            icon: TrendingUp,
+        },
+        {
+            title: t('nav.foods'),
+            shortTitle: t('nav.foods'),
+            href: '/foods',
+            icon: UtensilsCrossed,
+        },
+        {
+            title: t('nav.recipes'),
+            shortTitle: t('nav.recipes'),
+            href: '/recipes',
+            icon: ChefHat,
+        },
+        {
+            title: t('nav.reports'),
+            shortTitle: t('nav.reports'),
+            href: '/reports',
+            icon: FileText,
+        },
+    ];
 
     return (
         <AppShell variant="bottom">

@@ -20,6 +20,7 @@ import BarcodeScannerModal from '@/components/barcode-scanner-modal';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/lib/i18n';
 import {
     Card,
     CardContent,
@@ -94,6 +95,7 @@ export default function FoodsIndex({
     searchBarcode,
     status,
 }: Props) {
+    const { t } = useTranslation();
     const [query, setQuery] = useState(searchQuery || '');
     const [barcodeInput, setBarcodeInput] = useState(searchBarcode || '');
     const [searchMode, setSearchMode] = useState<'text' | 'barcode'>(
@@ -255,17 +257,16 @@ export default function FoodsIndex({
 
     return (
         <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
-            <Head title="Food Database & Search" />
+            <Head title={t('foods.title')} />
 
             {/* Header */}
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                        Food Database
+                        {t('foods.title')}
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        Search foods from Open Food Facts or manage your custom
-                        recipe library.
+                        {t('foods.subtitle')}
                     </p>
                 </div>
 
@@ -275,7 +276,7 @@ export default function FoodsIndex({
                         className="gap-2 bg-primary text-primary-foreground"
                     >
                         <Plus className="h-4 w-4" />
-                        Create Custom Food
+                        {t('foods.create_custom_food')}
                     </Button>
                 </div>
             </div>
@@ -303,7 +304,7 @@ export default function FoodsIndex({
                                 className="gap-2"
                             >
                                 <Search className="h-4 w-4" />
-                                Text Search
+                                {t('foods.text_search')}
                             </Button>
                             <Button
                                 type="button"
@@ -317,7 +318,7 @@ export default function FoodsIndex({
                                 className="gap-2"
                             >
                                 <Barcode className="h-4 w-4" />
-                                Barcode Lookup
+                                {t('foods.barcode_lookup')}
                             </Button>
                         </div>
 
@@ -329,7 +330,7 @@ export default function FoodsIndex({
                             className="gap-2 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
                         >
                             <Camera className="h-4 w-4 text-emerald-600" />
-                            Scan with Camera
+                            {t('foods.scan_camera')}
                         </Button>
                     </div>
 
@@ -339,7 +340,7 @@ export default function FoodsIndex({
                                 <>
                                     <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
-                                        placeholder="Search by product name, brand, or ingredients (e.g. Oats, Greek Yogurt, Nutella)..."
+                                        placeholder={t('foods.search_placeholder')}
                                         value={query}
                                         onChange={(e) =>
                                             setQuery(e.target.value)
@@ -351,7 +352,7 @@ export default function FoodsIndex({
                                 <>
                                     <Barcode className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
-                                        placeholder="Enter barcode number (e.g. 3017620422003, 3229820129488)..."
+                                        placeholder={t('foods.barcode_placeholder')}
                                         value={barcodeInput}
                                         onChange={(e) =>
                                             setBarcodeInput(e.target.value)
@@ -372,7 +373,7 @@ export default function FoodsIndex({
                         </div>
                         <Button type="submit" className="gap-2">
                             <Search className="h-4 w-4" />
-                            Search
+                            {t('action.lookup')}
                         </Button>
                     </form>
                 </CardContent>
@@ -388,7 +389,7 @@ export default function FoodsIndex({
                                 className="gap-1.5 border-amber-500/40 bg-amber-500/10 py-1 text-amber-600 dark:text-amber-400"
                             >
                                 <AlertTriangle className="h-3.5 w-3.5" />
-                                Degraded Mode: Offline Cache
+                                {t('foods.degraded_mode')}
                             </Badge>
                         ) : searchResult.source === 'off_authenticated' ? (
                             <Badge
@@ -427,7 +428,7 @@ export default function FoodsIndex({
                         onClick={handleClearSearch}
                         className="text-xs"
                     >
-                        Clear results
+                        {t('foods.clear_search')}
                     </Button>
                 </div>
             )}
@@ -442,7 +443,7 @@ export default function FoodsIndex({
                         className="gap-2"
                     >
                         <Utensils className="h-4 w-4" />
-                        Common & Cached Foods ({initialFoods.length})
+                        {t('foods.common_cached')} ({initialFoods.length})
                     </Button>
                     <Button
                         variant={activeTab === 'custom' ? 'default' : 'ghost'}
@@ -451,7 +452,7 @@ export default function FoodsIndex({
                         className="gap-2"
                     >
                         <Apple className="h-4 w-4" />
-                        My Custom Foods ({customFoods.length})
+                        {t('foods.my_custom')} ({customFoods.length})
                     </Button>
                 </div>
             )}
@@ -614,7 +615,7 @@ export default function FoodsIndex({
                                     className="flex-1 gap-1.5 text-xs"
                                 >
                                     <Calculator className="h-3.5 w-3.5 text-primary" />
-                                    Portion & Log
+                                    {t('foods.portion_and_log')}
                                 </Button>
 
                                 {food.is_custom && (
@@ -646,7 +647,7 @@ export default function FoodsIndex({
                             <DialogHeader>
                                 <DialogTitle className="flex items-center gap-2">
                                     <Calculator className="h-5 w-5 text-primary" />
-                                    Portion Nutrition Calculator
+                                    {t('foods.portion_calculator')}
                                 </DialogTitle>
                                 <DialogDescription>
                                     {calculatingFood.name}{' '}
@@ -1160,8 +1161,8 @@ export default function FoodsIndex({
                                 disabled={customFoodForm.processing}
                             >
                                 {customFoodForm.processing
-                                    ? 'Saving...'
-                                    : 'Save Custom Food'}
+                                    ? t('action.save') + '...'
+                                    : t('foods.save_custom')}
                             </Button>
                         </DialogFooter>
                     </form>

@@ -39,6 +39,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getEcho } from '@/echo';
+import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { FoodItem, FoodServingData } from '@/pages/foods';
 
@@ -109,6 +110,7 @@ export default function DiaryIndex({
     recentFoods,
     status,
 }: Props) {
+    const { t, locale, formatNumber } = useTranslation();
     const { auth } = usePage().props as any;
     const { summary, slots } = diary;
 
@@ -346,10 +348,10 @@ export default function DiaryIndex({
     };
 
     const slotNames = {
-        breakfast: 'Breakfast',
-        lunch: 'Lunch',
-        dinner: 'Dinner',
-        snack: 'Snacks',
+        breakfast: t('slot.breakfast'),
+        lunch: t('slot.lunch'),
+        dinner: t('slot.dinner'),
+        snack: t('slot.snack'),
     };
 
     const slotThemes = {
@@ -419,7 +421,7 @@ export default function DiaryIndex({
                                 variant="secondary"
                                 className="border-primary/20 bg-primary/15 font-semibold text-primary"
                             >
-                                Today
+                                {t('status.today')}
                             </Badge>
                         )}
                     </div>
@@ -436,7 +438,7 @@ export default function DiaryIndex({
 
                 {summary.weight_kg !== null && (
                     <div className="flex items-center gap-2 rounded-full border border-border/80 bg-muted/60 px-3.5 py-1.5 text-xs text-muted-foreground shadow-2xs">
-                        <span>Logged Weight:</span>
+                        <span>{t('status.logged_weight')}:</span>
                         <strong className="text-foreground">
                             {summary.weight_kg} kg
                         </strong>
@@ -651,7 +653,7 @@ export default function DiaryIndex({
                                             )}
                                         >
                                             <Plus className="h-3.5 w-3.5" />
-                                            Add Food
+                                            {t('action.add_food')}
                                         </Button>
                                         <Button
                                             variant="ghost"
@@ -662,7 +664,7 @@ export default function DiaryIndex({
                                             className="h-8 gap-1.5 text-xs text-muted-foreground hover:bg-amber-500/10 hover:text-amber-700 dark:hover:text-amber-300"
                                         >
                                             <Zap className="h-3.5 w-3.5 text-amber-500" />
-                                            Quick Add
+                                            {t('action.quick_add')}
                                         </Button>
                                     </div>
                                 </CardHeader>
@@ -862,7 +864,7 @@ export default function DiaryIndex({
                                     className="shrink-0 gap-1.5 border-emerald-500/30 text-xs text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
                                 >
                                     <Camera className="h-3.5 w-3.5 text-emerald-600" />
-                                    Scan
+                                    {t('action.scan')}
                                 </Button>
                             </div>
 
@@ -895,7 +897,7 @@ export default function DiaryIndex({
                                     {isBarcodeLoading ? (
                                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                     ) : (
-                                        'Lookup'
+                                        t('action.lookup')
                                     )}
                                 </Button>
                             </form>
@@ -1360,13 +1362,13 @@ export default function DiaryIndex({
                                 variant="outline"
                                 onClick={() => setIsQuickAddOpen(false)}
                             >
-                                Cancel
+                                {t('action.cancel')}
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={quickAddForm.processing}
                             >
-                                Add Calories
+                                {t('diary.add_calories')}
                             </Button>
                         </DialogFooter>
                     </form>

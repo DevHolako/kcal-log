@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/lib/i18n';
 import type { FoodItem, FoodServingData } from '@/pages/foods';
 
 export interface RecipeItemData {
@@ -232,6 +233,7 @@ export default function RecipesIndex({
     availableFoods,
     status,
 }: Props) {
+    const { t } = useTranslation();
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [logModalOpen, setLogModalOpen] = useState(false);
     const [selectedRecipeToLog, setSelectedRecipeToLog] =
@@ -510,19 +512,17 @@ export default function RecipesIndex({
 
     return (
         <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
-            <Head title="Recipes & Multi-Ingredient Meals - kcal-log" />
+            <Head title={`${t('recipes.title')} - kcal-log`} />
 
             {/* Page Header */}
             <div className="flex flex-col items-start justify-between gap-4 border-b border-border pb-4 sm:flex-row sm:items-center">
                 <div>
                     <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
                         <ChefHat className="h-6 w-6 text-emerald-600" />
-                        Recipes & Meals
+                        {t('recipes.title')}
                     </h1>
                     <p className="mt-0.5 text-sm text-muted-foreground">
-                        Build composite recipes from multiple foods, view
-                        aggregate macros, and log them to your food diary with 1
-                        click.
+                        {t('recipes.subtitle')}
                     </p>
                 </div>
 
@@ -531,7 +531,7 @@ export default function RecipesIndex({
                     className="gap-2 bg-emerald-600 text-white shadow-xs hover:bg-emerald-700"
                 >
                     <Plus className="h-4 w-4" />
-                    Create Recipe
+                    {t('recipes.create_recipe')}
                 </Button>
             </div>
 
@@ -553,7 +553,7 @@ export default function RecipesIndex({
                     }`}
                 >
                     <ChefHat className="h-4 w-4 text-emerald-600" />
-                    My Custom Recipes ({recipes.length})
+                    {t('recipes.tab_my_recipes')} ({recipes.length})
                 </button>
                 <button
                     type="button"
@@ -565,7 +565,7 @@ export default function RecipesIndex({
                     }`}
                 >
                     <Sparkles className="h-4 w-4 text-amber-500" />
-                    Starter Meal-Prep Kits ({STARTER_MEAL_PREP_KITS.length})
+                    {t('recipes.tab_starter_kits')} ({STARTER_MEAL_PREP_KITS.length})
                 </button>
             </div>
 
@@ -578,24 +578,24 @@ export default function RecipesIndex({
                                 <ChefHat className="h-7 w-7" />
                             </div>
                             <h3 className="text-lg font-semibold text-foreground">
-                                No custom recipes created yet
+                                {t('recipes.no_recipes')}
                             </h3>
                             <p className="mx-auto mt-1 mb-6 max-w-sm text-sm text-muted-foreground">
-                                Combine ingredients into reusable composite recipes, or browse our ready-to-log meal-prep kits.
+                                {t('recipes.no_recipes_desc')}
                             </p>
                             <div className="flex flex-wrap items-center justify-center gap-3">
                                 <Button
                                     onClick={() => setCreateModalOpen(true)}
                                     className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
                                 >
-                                    <Plus className="h-4 w-4" /> Create Your First Recipe
+                                    <Plus className="h-4 w-4" /> {t('recipes.create_recipe')}
                                 </Button>
                                 <Button
                                     variant="outline"
                                     onClick={() => setActiveTab('starter-kits')}
                                     className="gap-2"
                                 >
-                                    <Sparkles className="h-4 w-4 text-amber-500" /> Browse Starter Kits
+                                    <Sparkles className="h-4 w-4 text-amber-500" /> {t('recipes.browse_kits')}
                                 </Button>
                             </div>
                         </div>
@@ -924,7 +924,7 @@ export default function RecipesIndex({
                                         className="h-8 gap-1.5 text-xs font-semibold"
                                     >
                                         <Plus className="h-3.5 w-3.5" />
-                                        Customize
+                                        {t('action.customize')}
                                     </Button>
 
                                     <Button
@@ -933,7 +933,7 @@ export default function RecipesIndex({
                                         className="h-8 gap-1.5 bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700"
                                     >
                                         <CalendarPlus className="h-3.5 w-3.5" />
-                                        Log Serving
+                                        {t('action.log_serving')}
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -948,7 +948,7 @@ export default function RecipesIndex({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <ChefHat className="h-5 w-5 text-emerald-600" />
-                            Create New Recipe
+                            {t('recipes.create_title')}
                         </DialogTitle>
                         <DialogDescription>
                             Combine multiple food items into a composite recipe
@@ -1074,7 +1074,7 @@ export default function RecipesIndex({
                                 {!activeFoodToAdd ? (
                                     <div className="space-y-2">
                                         <Input
-                                            placeholder="Type food name to search catalog..."
+                                            placeholder={t('recipes.search_ingredient')}
                                             value={foodSearchQuery}
                                             onChange={(e) =>
                                                 setFoodSearchQuery(
@@ -1227,7 +1227,7 @@ export default function RecipesIndex({
                                             onClick={handleAddIngredient}
                                             className="h-8 w-full bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
                                         >
-                                            Add This Ingredient
+                                            {t('recipes.add_this_ingredient')}
                                         </Button>
                                     </div>
                                 )}
@@ -1296,7 +1296,7 @@ export default function RecipesIndex({
                                 variant="outline"
                                 onClick={() => setCreateModalOpen(false)}
                             >
-                                Cancel
+                                {t('action.cancel')}
                             </Button>
                             <Button
                                 type="submit"
@@ -1310,7 +1310,7 @@ export default function RecipesIndex({
                                 {isSavingRecipe ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
-                                    'Save Recipe'
+                                    t('recipes.save_recipe')
                                 )}
                             </Button>
                         </DialogFooter>
