@@ -48,13 +48,13 @@ flowchart TD
 
 ## 2. Deploying on Coolify
 
-[Coolify](https://coolify.io) is an open-source, self-hosted PaaS. `kcal-log` provides a first-class compose configuration at [`docker-compose.coolify.yml`](file:///home/holako/github/kcal-log/docker-compose.coolify.yml).
+[Coolify](https://coolify.io) is an open-source, self-hosted PaaS. `kcal-log` provides a first-class compose configuration at [`docker-compose.yaml`](file:///home/holako/github/kcal-log/docker-compose.yaml).
 
 ### Step 1: Create a New Resource in Coolify
 1. In your Coolify dashboard, select your **Project** and **Environment**.
 2. Click **+ New Resource** $\rightarrow$ **Docker Compose**.
 3. Select your GitHub repository (`DevHolako/kcal-log`) and branch (`main`).
-4. Set the **Compose File Path** to `docker-compose.coolify.yml`.
+4. Coolify detects [`docker-compose.yaml`](file:///home/holako/github/kcal-log/docker-compose.yaml) automatically.
 
 ### Step 2: Configure Environment Variables in Coolify UI
 Add the following environment variables in the Coolify resource settings:
@@ -164,7 +164,7 @@ The Laravel Horizon monitoring dashboard is located at `/horizon`. Access is sec
 Add a daily cron job to the host system:
 ```bash
 # /etc/cron.daily/kcal-log-backup
-docker compose -f /opt/kcal-log/docker-compose.yml exec -T database \
+docker compose -f /opt/kcal-log/docker-compose.yaml exec -T database \
   mariadb-dump -u kcal_user -p"$DB_PASSWORD" kcal_log \
   | gzip > /var/backups/kcal-log-$(date +\%F).sql.gz
 ```

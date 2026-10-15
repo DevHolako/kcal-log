@@ -6,7 +6,7 @@
   "description": "Open-source MyFitnessPal replacement monorepo",
   "packageManager": "pnpm@10.5.2",
   "engines": {
-    "node": "24.21.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "dev": "concurrently -k -c \"blue.bold,magenta.bold,yellow.bold\" -n \"backend,frontend,queue\" \"cd apps/web && php artisan serve --port=9000\" \"cd apps/web && pnpm dev\" \"cd apps/web && php artisan queue:listen\"",

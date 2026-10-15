@@ -586,7 +586,9 @@ export default function StrategyIndex({
                                         </span>
                                         <div className="flex items-center gap-3 font-semibold">
                                             {activeTarget &&
-                                            Math.round(activeTarget.protein_g) !==
+                                            Math.round(
+                                                activeTarget.protein_g,
+                                            ) !==
                                                 Math.round(
                                                     pendingAdjustment.proposed_protein_g,
                                                 ) ? (

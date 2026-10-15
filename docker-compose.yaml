@@ -1,5 +1,5 @@
 # ==============================================================================
-# Coolify Production Docker Compose Specification for kcal-log
+# Production Docker Compose Specification for kcal-log
 # Multi-container orchestration: FrankenPHP Web, Horizon, Reverb, Scheduler, MariaDB & Redis
 # ==============================================================================
 
@@ -10,12 +10,14 @@ services:
       dockerfile: Dockerfile
     image: kcal-log-web:latest
     restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8088}:80"
     environment:
       APP_NAME: "${APP_NAME:-kcal-log}"
       APP_ENV: "${APP_ENV:-production}"
-      APP_KEY: "${APP_KEY}"
+      APP_KEY: "${APP_KEY:-base64:DBoWLamOPuKsEVLxu76Z/qgKMWq/rwvB93R0h7Ry2w0=}"
       APP_DEBUG: "${APP_DEBUG:-false}"
-      APP_URL: "${APP_URL}"
+      APP_URL: "${APP_URL:-http://localhost:8088}"
       ROLE: web
       RUN_MIGRATIONS: "${RUN_MIGRATIONS:-true}"
       DB_CONNECTION: mariadb
@@ -23,7 +25,7 @@ services:
       DB_PORT: 3306
       DB_DATABASE: "${DB_DATABASE:-kcal_log}"
       DB_USERNAME: "${DB_USERNAME:-kcal_user}"
-      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PASSWORD: "${DB_PASSWORD:-secret}"
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
@@ -33,14 +35,14 @@ services:
       BROADCAST_CONNECTION: reverb
       REVERB_APP_ID: "${REVERB_APP_ID:-kcal-log-id}"
       REVERB_APP_KEY: "${REVERB_APP_KEY:-kcal-log-key}"
-      REVERB_APP_SECRET: "${REVERB_APP_SECRET}"
+      REVERB_APP_SECRET: "${REVERB_APP_SECRET:-kcal-log-secret}"
       REVERB_HOST: reverb
       REVERB_PORT: 9080
       REVERB_SCHEME: http
       VITE_REVERB_APP_KEY: "${REVERB_APP_KEY:-kcal-log-key}"
-      VITE_REVERB_HOST: "${VITE_REVERB_HOST:-}"
-      VITE_REVERB_PORT: "${VITE_REVERB_PORT:-443}"
-      VITE_REVERB_SCHEME: "${VITE_REVERB_SCHEME:-https}"
+      VITE_REVERB_HOST: "${VITE_REVERB_HOST:-localhost}"
+      VITE_REVERB_PORT: "${VITE_REVERB_PORT:-8088}"
+      VITE_REVERB_SCHEME: "${VITE_REVERB_SCHEME:-http}"
     depends_on:
       database:
         condition: service_healthy
@@ -55,7 +57,7 @@ services:
     volumes:
       - app_storage:/app/apps/web/storage
     networks:
-      - kcal_internal
+      - kcal_network
 
   horizon:
     image: kcal-log-web:latest
@@ -64,7 +66,7 @@ services:
     environment:
       APP_NAME: "${APP_NAME:-kcal-log}"
       APP_ENV: "${APP_ENV:-production}"
-      APP_KEY: "${APP_KEY}"
+      APP_KEY: "${APP_KEY:-base64:DBoWLamOPuKsEVLxu76Z/qgKMWq/rwvB93R0h7Ry2w0=}"
       ROLE: horizon
       RUN_MIGRATIONS: "false"
       DB_CONNECTION: mariadb
@@ -72,7 +74,7 @@ services:
       DB_PORT: 3306
       DB_DATABASE: "${DB_DATABASE:-kcal_log}"
       DB_USERNAME: "${DB_USERNAME:-kcal_user}"
-      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PASSWORD: "${DB_PASSWORD:-secret}"
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
@@ -80,7 +82,7 @@ services:
       BROADCAST_CONNECTION: reverb
       REVERB_APP_ID: "${REVERB_APP_ID:-kcal-log-id}"
       REVERB_APP_KEY: "${REVERB_APP_KEY:-kcal-log-key}"
-      REVERB_APP_SECRET: "${REVERB_APP_SECRET}"
+      REVERB_APP_SECRET: "${REVERB_APP_SECRET:-kcal-log-secret}"
       REVERB_HOST: reverb
       REVERB_PORT: 9080
       REVERB_SCHEME: http
@@ -91,22 +93,29 @@ services:
         condition: service_healthy
     volumes:
       - app_storage:/app/apps/web/storage
+    healthcheck:
+      test: ["CMD", "php", "artisan", "horizon:status"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
     networks:
-      - kcal_internal
+      - kcal_network
 
   reverb:
     image: kcal-log-web:latest
     command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=9080"]
     restart: unless-stopped
+    ports:
+      - "${REVERB_PORT:-9080}:9080"
     environment:
       APP_NAME: "${APP_NAME:-kcal-log}"
       APP_ENV: "${APP_ENV:-production}"
-      APP_KEY: "${APP_KEY}"
+      APP_KEY: "${APP_KEY:-base64:DBoWLamOPuKsEVLxu76Z/qgKMWq/rwvB93R0h7Ry2w0=}"
       ROLE: reverb
       RUN_MIGRATIONS: "false"
       REVERB_APP_ID: "${REVERB_APP_ID:-kcal-log-id}"
       REVERB_APP_KEY: "${REVERB_APP_KEY:-kcal-log-key}"
-      REVERB_APP_SECRET: "${REVERB_APP_SECRET}"
+      REVERB_APP_SECRET: "${REVERB_APP_SECRET:-kcal-log-secret}"
       REVERB_SERVER_HOST: "0.0.0.0"
       REVERB_SERVER_PORT: 9080
       REDIS_HOST: redis
@@ -118,12 +127,12 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9080"]
+      test: ["CMD", "php", "-r", "$$fp = @fsockopen('127.0.0.1', 9080); if (!$$fp) exit(1); fclose($$fp);"]
       interval: 15s
       timeout: 5s
       retries: 5
     networks:
-      - kcal_internal
+      - kcal_network
 
   scheduler:
     image: kcal-log-web:latest
@@ -132,7 +141,7 @@ services:
     environment:
       APP_NAME: "${APP_NAME:-kcal-log}"
       APP_ENV: "${APP_ENV:-production}"
-      APP_KEY: "${APP_KEY}"
+      APP_KEY: "${APP_KEY:-base64:DBoWLamOPuKsEVLxu76Z/qgKMWq/rwvB93R0h7Ry2w0=}"
       ROLE: scheduler
       RUN_MIGRATIONS: "false"
       DB_CONNECTION: mariadb
@@ -140,7 +149,7 @@ services:
       DB_PORT: 3306
       DB_DATABASE: "${DB_DATABASE:-kcal_log}"
       DB_USERNAME: "${DB_USERNAME:-kcal_user}"
-      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PASSWORD: "${DB_PASSWORD:-secret}"
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
@@ -154,8 +163,13 @@ services:
         condition: service_healthy
     volumes:
       - app_storage:/app/apps/web/storage
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q '[s]chedule:work'"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
     networks:
-      - kcal_internal
+      - kcal_network
 
   database:
     image: mariadb:10.11
@@ -163,8 +177,8 @@ services:
     environment:
       MYSQL_DATABASE: "${DB_DATABASE:-kcal_log}"
       MYSQL_USER: "${DB_USERNAME:-kcal_user}"
-      MYSQL_PASSWORD: "${DB_PASSWORD}"
-      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-secret}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-rootsecret}"
     volumes:
       - mariadb_data:/var/lib/mysql
     healthcheck:
@@ -173,7 +187,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - kcal_internal
+      - kcal_network
 
   redis:
     image: redis:7-alpine
@@ -186,7 +200,7 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - kcal_internal
+      - kcal_network
 
 volumes:
   mariadb_data:
@@ -194,5 +208,5 @@ volumes:
   app_storage:
 
 networks:
-  kcal_internal:
+  kcal_network:
     driver: bridge

@@ -19,6 +19,8 @@ apps/web/storage/framework/views/*
 apps/web/storage/app/private/*
 apps/web/test-results
 apps/web/playwright-report
+apps/web/bootstrap/cache/*.php
+!apps/web/bootstrap/cache/.gitignore
 apps/web/.env
 apps/web/.env.*
 .env

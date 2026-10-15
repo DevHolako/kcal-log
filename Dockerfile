@@ -25,6 +25,7 @@ COPY apps/web/app ./apps/web/app
 COPY apps/web/vite.config.ts apps/web/tsconfig.json apps/web/components.json ./apps/web/
 
 # Build production assets (Vite+ / Rolldown)
+ENV SKIP_WAYFINDER=1
 RUN pnpm --filter @kcal-log/web build
 
 # --- Stage 2: Install PHP Composer Dependencies ---
@@ -82,7 +83,6 @@ RUN mkdir -p /app/apps/web/storage/framework/cache/data \
 # Environment defaults
 ENV SERVER_NAME=":80"
 ENV APP_ENV="production"
-ENV FRANKENPHP_CONFIG="worker /app/apps/web/public/index.php"
 
 WORKDIR /app/apps/web
 
