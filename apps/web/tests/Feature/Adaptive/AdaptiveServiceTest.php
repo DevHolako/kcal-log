@@ -66,8 +66,10 @@ test('calculateWeeklyAdjustment creates pending adjustment and calculates realiz
     $periodEnd = $today->copy()->subDay(); // 2026-10-13
     $periodStart = $periodEnd->copy()->subDays(6); // 2026-10-07
 
-    // Weight logs: lost 0.5 kg smoothed over the week
+    // Weight logs: lost 0.5 kg smoothed over the week (4 weigh-ins to satisfy calibration)
     WeightLog::create(['user_id' => $user->id, 'date' => $periodStart->format('Y-m-d'), 'weight_kg' => 70.0]);
+    WeightLog::create(['user_id' => $user->id, 'date' => $periodStart->copy()->addDays(2)->format('Y-m-d'), 'weight_kg' => 69.8]);
+    WeightLog::create(['user_id' => $user->id, 'date' => $periodStart->copy()->addDays(4)->format('Y-m-d'), 'weight_kg' => 69.6]);
     WeightLog::create(['user_id' => $user->id, 'date' => $periodEnd->format('Y-m-d'), 'weight_kg' => 69.5]);
 
     // Food logs: logged daily 1800 kcal
@@ -100,6 +102,115 @@ test('calculateWeeklyAdjustment creates pending adjustment and calculates realiz
     Event::assertDispatched(AdaptiveAdjustmentProposed::class, function (AdaptiveAdjustmentProposed $e) use ($user, $adjustment) {
         return $e->userId === $user->id && $e->adjustmentId === $adjustment->id;
     });
+});
+
+test('calculateWeeklyAdjustment maintains current target when diary entries are empty', function () {
+    Event::fake([AdaptiveAdjustmentProposed::class]);
+
+    $user = User::factory()->create();
+    Profile::create([
+        'user_id' => $user->id,
+        'date_of_birth' => '1995-05-15',
+        'sex' => 'male',
+        'height_cm' => 178.0,
+        'timezone' => 'UTC',
+    ]);
+
+    TargetProfile::create([
+        'user_id' => $user->id,
+        'calories' => 1637,
+        'protein_g' => 164,
+        'carbs_g' => 143,
+        'fat_g' => 45,
+        'fiber_g' => 25,
+        'water_ml' => 2500,
+        'activity_level' => 'sedentary',
+        'goal_type' => 'lose',
+        'weekly_rate_kg' => -0.5,
+        'is_active' => true,
+        'formula_inputs' => [],
+    ]);
+
+    $today = Carbon::parse('2026-10-15');
+    $periodEnd = $today->copy()->subDay();
+    $periodStart = $periodEnd->copy()->subDays(6);
+
+    // 2 weigh-ins, same weight
+    WeightLog::create(['user_id' => $user->id, 'date' => $periodStart->format('Y-m-d'), 'weight_kg' => 83.0]);
+    WeightLog::create(['user_id' => $user->id, 'date' => $periodEnd->format('Y-m-d'), 'weight_kg' => 83.0]);
+
+    // Zero diary entries!
+
+    $service = app(AdaptiveAdjustmentService::class);
+    $adjustment = $service->calculateWeeklyAdjustment($user, $today);
+
+    expect($adjustment)->not->toBeNull()
+        ->and($adjustment->status)->toBe('pending')
+        ->and((float) $adjustment->average_daily_calories)->toBe(0.0)
+        ->and((int) $adjustment->current_target_calories)->toBe(1637)
+        ->and((int) $adjustment->proposed_target_calories)->toBe(1637) // Maintained, not decreased!
+        ->and((float) $adjustment->proposed_protein_g)->toBe(164.0)
+        ->and((float) $adjustment->proposed_carbs_g)->toBe(143.0)
+        ->and((float) $adjustment->proposed_fat_g)->toBe(45.0);
+});
+
+test('calculateWeeklyAdjustment maintains current target when in initial calibration phase', function () {
+    Event::fake([AdaptiveAdjustmentProposed::class]);
+
+    $user = User::factory()->create();
+    Profile::create([
+        'user_id' => $user->id,
+        'date_of_birth' => '1995-05-15',
+        'sex' => 'male',
+        'height_cm' => 180.0,
+        'timezone' => 'UTC',
+    ]);
+
+    TargetProfile::create([
+        'user_id' => $user->id,
+        'calories' => 2000,
+        'protein_g' => 150,
+        'carbs_g' => 200,
+        'fat_g' => 65,
+        'is_active' => true,
+        'activity_level' => 'moderately_active',
+        'goal_type' => 'lose',
+        'weekly_rate_kg' => -0.5,
+        'formula_inputs' => [],
+    ]);
+
+    $today = Carbon::parse('2026-10-15');
+    $periodEnd = $today->copy()->subDay();
+    $periodStart = $periodEnd->copy()->subDays(6);
+
+    // Only 2 weigh-ins (< 4)
+    WeightLog::create(['user_id' => $user->id, 'date' => $periodStart->format('Y-m-d'), 'weight_kg' => 80.0]);
+    WeightLog::create(['user_id' => $user->id, 'date' => $periodEnd->format('Y-m-d'), 'weight_kg' => 80.0]);
+
+    // 7 days of food logged
+    $food = Food::factory()->create(['calories' => 500, 'serving_size' => 100]);
+    for ($i = 0; $i < 7; $i++) {
+        DiaryEntry::create([
+            'user_id' => $user->id,
+            'food_id' => $food->id,
+            'date' => $periodStart->copy()->addDays($i)->format('Y-m-d'),
+            'meal_slot' => 'lunch',
+            'quantity' => 4,
+            'unit' => 'g',
+            'grams' => 400,
+            'calories' => 2000,
+            'protein' => 150,
+            'carbs' => 200,
+            'fat' => 65,
+        ]);
+    }
+
+    $service = app(AdaptiveAdjustmentService::class);
+    $adjustment = $service->calculateWeeklyAdjustment($user, $today);
+
+    expect($adjustment)->not->toBeNull()
+        ->and((int) $adjustment->current_target_calories)->toBe(2000)
+        ->and((int) $adjustment->proposed_target_calories)->toBe(2000); // Maintained during calibration
 });
 
 test('acceptAdjustment deactivates old target profile and activates new proposed plan', function () {

@@ -21,6 +21,16 @@ class AdaptiveAdjustmentService
      */
     public const EWMA_ALPHA = 0.25;
 
+    /**
+     * Minimum number of weigh-ins required to exit initial calibration phase.
+     */
+    public const MIN_WEIGH_INS = 4;
+
+    /**
+     * Minimum number of logged diary days required in review period to adjust targets.
+     */
+    public const MIN_LOGGED_DAYS = 4;
+
     public function __construct(
         protected NutritionCalculator $nutritionCalculator
     ) {}
@@ -85,40 +95,66 @@ class AdaptiveAdjustmentService
 
         $currentTargetCalories = $activeTarget ? (int) $activeTarget->calories : 2000;
 
-        if ($diaryEntries->isEmpty()) {
-            $averageDailyCalories = (float) $currentTargetCalories;
+        $loggedDays = $diaryEntries->groupBy(function ($entry) {
+            return $entry->date->format('Y-m-d');
+        });
+        $loggedDaysCount = $loggedDays->count();
+        $weightLogsCount = $weightLogs->count();
+
+        $hasSufficientData = ($weightLogsCount >= self::MIN_WEIGH_INS) && ($loggedDaysCount >= self::MIN_LOGGED_DAYS);
+
+        if (! $hasSufficientData) {
+            // Insufficient logs to confirm a plateau or empirical TDEE shift: maintain current targets
+            $averageDailyCalories = $diaryEntries->isEmpty()
+                ? 0.0
+                : round((float) $loggedDays->map(fn ($dayEntries) => (float) $dayEntries->sum('calories'))->avg(), 2);
+
+            $calculatedTdee = ($activeTarget && (float) $activeTarget->tdee > 0)
+                ? (float) $activeTarget->tdee
+                : (float) $currentTargetCalories;
+
+            $proposedTargetCalories = $currentTargetCalories;
+
+            if ($activeTarget) {
+                $proposedProtein = (float) $activeTarget->protein_g;
+                $proposedCarbs = (float) $activeTarget->carbs_g;
+                $proposedFat = (float) $activeTarget->fat_g;
+            } else {
+                $macroPercentages = $this->deriveMacroPercentages($activeTarget);
+                $proposedMacros = $this->nutritionCalculator->calculateMacroGrams($proposedTargetCalories, $macroPercentages);
+                $proposedProtein = $proposedMacros['protein_g'];
+                $proposedCarbs = $proposedMacros['carbs_g'];
+                $proposedFat = $proposedMacros['fat_g'];
+            }
         } else {
-            $caloriesByDate = $diaryEntries->groupBy(function ($entry) {
-                return $entry->date->format('Y-m-d');
-            })->map(function ($dayEntries) {
-                return (float) $dayEntries->sum('calories');
-            });
+            $averageDailyCalories = round((float) $loggedDays->map(fn ($dayEntries) => (float) $dayEntries->sum('calories'))->avg(), 2);
 
-            $averageDailyCalories = round((float) $caloriesByDate->avg(), 2);
+            // Calculate realized metabolic TDEE
+            // 1 kg weight change ~ 7700 kcal
+            $dailyDeltaEnergy = ($ewmaWeightChangeKg * 7700) / 7;
+            $calculatedTdee = round($averageDailyCalories - $dailyDeltaEnergy, 2);
+            $calculatedTdee = max(1000.0, min(5000.0, $calculatedTdee));
+
+            $goalType = $activeTarget ? (string) $activeTarget->goal_type : 'maintain';
+            $weeklyRateKg = $activeTarget ? (float) $activeTarget->weekly_rate_kg : 0.0;
+            $sex = $user->profile !== null ? $user->profile->sex : 'female';
+
+            $calorieResult = $this->nutritionCalculator->calculateTargetCalories(
+                $calculatedTdee,
+                $goalType,
+                $weeklyRateKg,
+                $sex
+            );
+
+            $proposedTargetCalories = $calorieResult['calories'];
+
+            // Compute proposed macros using existing distribution
+            $macroPercentages = $this->deriveMacroPercentages($activeTarget);
+            $proposedMacros = $this->nutritionCalculator->calculateMacroGrams($proposedTargetCalories, $macroPercentages);
+            $proposedProtein = $proposedMacros['protein_g'];
+            $proposedCarbs = $proposedMacros['carbs_g'];
+            $proposedFat = $proposedMacros['fat_g'];
         }
-
-        // Calculate realized metabolic TDEE
-        // 1 kg weight change ~ 7700 kcal
-        $dailyDeltaEnergy = ($ewmaWeightChangeKg * 7700) / 7;
-        $calculatedTdee = round($averageDailyCalories - $dailyDeltaEnergy, 2);
-        $calculatedTdee = max(1000.0, min(5000.0, $calculatedTdee));
-
-        $goalType = $activeTarget ? (string) $activeTarget->goal_type : 'maintain';
-        $weeklyRateKg = $activeTarget ? (float) $activeTarget->weekly_rate_kg : 0.0;
-        $sex = $user->profile !== null ? $user->profile->sex : 'female';
-
-        $calorieResult = $this->nutritionCalculator->calculateTargetCalories(
-            $calculatedTdee,
-            $goalType,
-            $weeklyRateKg,
-            $sex
-        );
-
-        $proposedTargetCalories = $calorieResult['calories'];
-
-        // Compute proposed macros using existing distribution
-        $macroPercentages = $this->deriveMacroPercentages($activeTarget);
-        $proposedMacros = $this->nutritionCalculator->calculateMacroGrams($proposedTargetCalories, $macroPercentages);
 
         /** @var AdaptiveAdjustment $adjustment */
         $adjustment = AdaptiveAdjustment::create([
@@ -133,9 +169,9 @@ class AdaptiveAdjustmentService
             'calculated_tdee' => $calculatedTdee,
             'current_target_calories' => $currentTargetCalories,
             'proposed_target_calories' => $proposedTargetCalories,
-            'proposed_protein_g' => $proposedMacros['protein_g'],
-            'proposed_carbs_g' => $proposedMacros['carbs_g'],
-            'proposed_fat_g' => $proposedMacros['fat_g'],
+            'proposed_protein_g' => $proposedProtein,
+            'proposed_carbs_g' => $proposedCarbs,
+            'proposed_fat_g' => $proposedFat,
             'status' => 'pending',
         ]);
 

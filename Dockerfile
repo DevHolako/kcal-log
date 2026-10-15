@@ -20,6 +20,8 @@ RUN pnpm install --frozen-lockfile
 # Copy web frontend source files
 COPY apps/web/resources ./apps/web/resources
 COPY apps/web/public ./apps/web/public
+COPY apps/web/routes ./apps/web/routes
+COPY apps/web/app ./apps/web/app
 COPY apps/web/vite.config.ts apps/web/tsconfig.json apps/web/components.json ./apps/web/
 
 # Build production assets (Vite+ / Rolldown)

@@ -433,10 +433,10 @@ export default function StrategyIndex({
                                 </div>
                             </div>
                             <CardDescription>
-                                Based on your logged weight logs and daily diary
-                                intake over the past 7 days, your realized
-                                energy expenditure and target intake have been
-                                calculated.
+                                {pendingAdjustment.proposed_target_calories ===
+                                pendingAdjustment.current_target_calories
+                                    ? 'Current target is maintained. At least 4 weigh-ins and 4 logged diary days across the review window are required before adaptive adjustments can be proposed.'
+                                    : 'Based on your logged weight logs and daily diary intake over the past 7 days, your realized energy expenditure and target intake have been calculated.'}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
@@ -487,7 +487,10 @@ export default function StrategyIndex({
                                         </span>
                                     </div>
                                     <div className="mt-0.5 text-[10px] text-muted-foreground">
-                                        Logged in diary
+                                        {pendingAdjustment.average_daily_calories >
+                                        0
+                                            ? 'Logged in diary'
+                                            : 'No diary entries logged'}
                                     </div>
                                 </div>
 
@@ -551,18 +554,29 @@ export default function StrategyIndex({
                                             Target Calories
                                         </span>
                                         <div className="flex items-center gap-3 font-semibold">
-                                            <span className="text-muted-foreground line-through">
-                                                {
-                                                    pendingAdjustment.current_target_calories
-                                                }{' '}
-                                                kcal
-                                            </span>
-                                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                            {pendingAdjustment.current_target_calories !==
+                                            pendingAdjustment.proposed_target_calories ? (
+                                                <>
+                                                    <span className="text-muted-foreground line-through">
+                                                        {
+                                                            pendingAdjustment.current_target_calories
+                                                        }{' '}
+                                                        kcal
+                                                    </span>
+                                                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                                </>
+                                            ) : null}
                                             <span className="font-bold text-primary">
                                                 {
                                                     pendingAdjustment.proposed_target_calories
                                                 }{' '}
                                                 kcal
+                                                {pendingAdjustment.current_target_calories ===
+                                                    pendingAdjustment.proposed_target_calories && (
+                                                    <span className="ml-2 text-xs font-normal text-muted-foreground">
+                                                        (Maintained)
+                                                    </span>
+                                                )}
                                             </span>
                                         </div>
                                     </div>
@@ -571,7 +585,11 @@ export default function StrategyIndex({
                                             Protein Target
                                         </span>
                                         <div className="flex items-center gap-3 font-semibold">
-                                            {activeTarget && (
+                                            {activeTarget &&
+                                            Math.round(activeTarget.protein_g) !==
+                                                Math.round(
+                                                    pendingAdjustment.proposed_protein_g,
+                                                ) ? (
                                                 <>
                                                     <span className="text-muted-foreground line-through">
                                                         {Math.round(
@@ -581,7 +599,7 @@ export default function StrategyIndex({
                                                     </span>
                                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                                 </>
-                                            )}
+                                            ) : null}
                                             <span className="font-bold text-blue-600 dark:text-blue-400">
                                                 {Math.round(
                                                     pendingAdjustment.proposed_protein_g,
@@ -595,7 +613,11 @@ export default function StrategyIndex({
                                             Carbs Target
                                         </span>
                                         <div className="flex items-center gap-3 font-semibold">
-                                            {activeTarget && (
+                                            {activeTarget &&
+                                            Math.round(activeTarget.carbs_g) !==
+                                                Math.round(
+                                                    pendingAdjustment.proposed_carbs_g,
+                                                ) ? (
                                                 <>
                                                     <span className="text-muted-foreground line-through">
                                                         {Math.round(
@@ -605,7 +627,7 @@ export default function StrategyIndex({
                                                     </span>
                                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                                 </>
-                                            )}
+                                            ) : null}
                                             <span className="font-bold text-amber-600 dark:text-amber-400">
                                                 {Math.round(
                                                     pendingAdjustment.proposed_carbs_g,
@@ -619,7 +641,11 @@ export default function StrategyIndex({
                                             Fat Target
                                         </span>
                                         <div className="flex items-center gap-3 font-semibold">
-                                            {activeTarget && (
+                                            {activeTarget &&
+                                            Math.round(activeTarget.fat_g) !==
+                                                Math.round(
+                                                    pendingAdjustment.proposed_fat_g,
+                                                ) ? (
                                                 <>
                                                     <span className="text-muted-foreground line-through">
                                                         {Math.round(
@@ -629,7 +655,7 @@ export default function StrategyIndex({
                                                     </span>
                                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                                 </>
-                                            )}
+                                            ) : null}
                                             <span className="font-bold text-rose-600 dark:text-rose-400">
                                                 {Math.round(
                                                     pendingAdjustment.proposed_fat_g,
