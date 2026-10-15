@@ -10,12 +10,13 @@ import {
     Database,
     Globe,
     Plus,
+    RefreshCw,
     Search,
     Trash2,
     Utensils,
     X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import BarcodeScannerModal from '@/components/barcode-scanner-modal';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -76,6 +77,8 @@ export interface FoodItem {
 interface Props {
     initialFoods: FoodItem[];
     customFoods: FoodItem[];
+    totalCachedFoods?: number;
+    totalCustomFoods?: number;
     searchResult?: {
         items: FoodItem[];
         source: 'off_authenticated' | 'off_anonymous' | 'cache';
@@ -90,6 +93,8 @@ interface Props {
 export default function FoodsIndex({
     initialFoods,
     customFoods,
+    totalCachedFoods,
+    totalCustomFoods,
     searchResult,
     searchQuery,
     searchBarcode,
@@ -102,6 +107,52 @@ export default function FoodsIndex({
         searchBarcode ? 'barcode' : 'text',
     );
     const [activeTab, setActiveTab] = useState<'all' | 'custom'>('all');
+
+    // Open Food Facts Sync Modal State
+    const [isSyncOpen, setIsSyncOpen] = useState(false);
+    const [syncCount, setSyncCount] = useState<number>(50);
+    const [syncCategory, setSyncCategory] = useState<string>('staples');
+    const [syncTerms, setSyncTerms] = useState<string>('');
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    // Listen for background sync completion events via WebSockets (Reverb)
+    useEffect(() => {
+        const echo = (
+            window as unknown as {
+                Echo?: {
+                    channel: (name: string) => {
+                        listen: (event: string, callback: () => void) => void;
+                    };
+                };
+            }
+        ).Echo;
+
+        if (!echo) return;
+
+        const channel = echo.channel('foods');
+        channel.listen('.FoodCatalogSynced', () => {
+            router.reload({ only: ['initialFoods', 'totalCachedFoods'] });
+        });
+    }, []);
+
+    const handleTriggerSync = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSyncing(true);
+        router.post(
+            '/foods/sync',
+            {
+                count: syncCount,
+                category: syncCategory,
+                terms: syncTerms,
+            },
+            {
+                onFinish: () => {
+                    setIsSyncing(false);
+                    setIsSyncOpen(false);
+                },
+            },
+        );
+    };
 
     // Portion Calculator Dialog State
     const [calculatingFood, setCalculatingFood] = useState<FoodItem | null>(
@@ -272,6 +323,15 @@ export default function FoodsIndex({
 
                 <div className="flex items-center gap-2">
                     <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsSyncOpen(true)}
+                        className="gap-2 border-primary/20 hover:bg-primary/5"
+                    >
+                        <RefreshCw className="h-4 w-4 text-primary" />
+                        {t('foods.sync_button')}
+                    </Button>
+                    <Button
                         onClick={() => setIsCreateOpen(true)}
                         className="gap-2 bg-primary text-primary-foreground"
                     >
@@ -439,25 +499,42 @@ export default function FoodsIndex({
 
             {/* Navigation Tabs (when not actively viewing search results) */}
             {!searchResult && (
-                <div className="flex items-center gap-2 border-b border-border pb-2">
-                    <Button
-                        variant={activeTab === 'all' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setActiveTab('all')}
-                        className="gap-2"
-                    >
-                        <Utensils className="h-4 w-4" />
-                        {t('foods.common_cached')} ({initialFoods.length})
-                    </Button>
-                    <Button
-                        variant={activeTab === 'custom' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setActiveTab('custom')}
-                        className="gap-2"
-                    >
-                        <Apple className="h-4 w-4" />
-                        {t('foods.my_custom')} ({customFoods.length})
-                    </Button>
+                <div className="flex flex-col gap-2 border-b border-border pb-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant={activeTab === 'all' ? 'default' : 'ghost'}
+                            size="sm"
+                            onClick={() => setActiveTab('all')}
+                            className="gap-2"
+                        >
+                            <Utensils className="h-4 w-4" />
+                            {t('foods.common_cached')} (
+                            {totalCachedFoods ?? initialFoods.length})
+                        </Button>
+                        <Button
+                            variant={
+                                activeTab === 'custom' ? 'default' : 'ghost'
+                            }
+                            size="sm"
+                            onClick={() => setActiveTab('custom')}
+                            className="gap-2"
+                        >
+                            <Apple className="h-4 w-4" />
+                            {t('foods.my_custom')} (
+                            {totalCustomFoods ?? customFoods.length})
+                        </Button>
+                    </div>
+
+                    {activeTab === 'all' &&
+                        (totalCachedFoods ?? initialFoods.length) > 0 && (
+                            <div className="text-xs text-muted-foreground">
+                                {t('foods.showing_count', {
+                                    showing: initialFoods.length,
+                                    total:
+                                        totalCachedFoods ?? initialFoods.length,
+                                })}
+                            </div>
+                        )}
                 </div>
             )}
 
@@ -1167,6 +1244,143 @@ export default function FoodsIndex({
                                 {customFoodForm.processing
                                     ? t('action.save') + '...'
                                     : t('foods.save_custom')}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Open Food Facts On-Demand Sync Dialog */}
+            <Dialog open={isSyncOpen} onOpenChange={setIsSyncOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <RefreshCw
+                                className={`h-5 w-5 text-primary ${isSyncing ? 'animate-spin' : ''}`}
+                            />
+                            {t('foods.sync_title')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t('foods.sync_description')}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form
+                        onSubmit={handleTriggerSync}
+                        className="space-y-4 pt-2"
+                    >
+                        {/* Number of Items Selector */}
+                        <div className="space-y-2">
+                            <Label className="text-xs font-semibold">
+                                {t('foods.sync_count_label')}
+                            </Label>
+                            <div className="grid grid-cols-4 gap-2">
+                                {[20, 50, 100, 200].map((countOption) => (
+                                    <Button
+                                        key={countOption}
+                                        type="button"
+                                        variant={
+                                            syncCount === countOption
+                                                ? 'default'
+                                                : 'outline'
+                                        }
+                                        size="sm"
+                                        onClick={() =>
+                                            setSyncCount(countOption)
+                                        }
+                                        className="h-9 font-medium"
+                                    >
+                                        {countOption}
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Category Focus */}
+                        <div className="space-y-2">
+                            <Label className="text-xs font-semibold">
+                                {t('foods.sync_category_label')}
+                            </Label>
+                            <div className="grid grid-cols-1 gap-1.5">
+                                {[
+                                    {
+                                        id: 'staples',
+                                        label: t('foods.sync_category_staples'),
+                                    },
+                                    {
+                                        id: 'protein',
+                                        label: t('foods.sync_category_protein'),
+                                    },
+                                    {
+                                        id: 'produce',
+                                        label: t('foods.sync_category_produce'),
+                                    },
+                                    {
+                                        id: 'dairy',
+                                        label: t('foods.sync_category_dairy'),
+                                    },
+                                    {
+                                        id: 'grains',
+                                        label: t('foods.sync_category_grains'),
+                                    },
+                                ].map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        type="button"
+                                        onClick={() => setSyncCategory(cat.id)}
+                                        className={`flex items-center justify-between rounded-lg border p-2.5 text-left text-xs transition-colors ${
+                                            syncCategory === cat.id
+                                                ? 'border-primary bg-primary/5 font-medium text-primary'
+                                                : 'border-border/70 text-foreground hover:bg-muted/50'
+                                        }`}
+                                    >
+                                        <span>{cat.label}</span>
+                                        {syncCategory === cat.id && (
+                                            <Check className="h-4 w-4 shrink-0 text-primary" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Custom Search Terms (Optional) */}
+                        <div className="space-y-1.5">
+                            <Label
+                                htmlFor="sync-custom-terms"
+                                className="text-xs"
+                            >
+                                {t('foods.sync_custom_terms_label')}
+                            </Label>
+                            <Input
+                                id="sync-custom-terms"
+                                placeholder={t(
+                                    'foods.sync_custom_terms_placeholder',
+                                )}
+                                value={syncTerms}
+                                onChange={(e) => setSyncTerms(e.target.value)}
+                            />
+                        </div>
+
+                        <DialogFooter className="pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsSyncOpen(false)}
+                                disabled={isSyncing}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isSyncing}
+                                className="gap-2"
+                            >
+                                {isSyncing && (
+                                    <RefreshCw className="h-4 w-4 animate-spin" />
+                                )}
+                                {isSyncing
+                                    ? t('foods.syncing')
+                                    : t('foods.sync_start')}
                             </Button>
                         </DialogFooter>
                     </form>

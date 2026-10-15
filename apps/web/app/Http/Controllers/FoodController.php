@@ -125,12 +125,16 @@ class FoodController extends Controller
             ];
         }
 
-        // Fetch recent/popular database items for initial view
+        // Fetch recent/popular database items for initial view (up to 60 for rich initial view)
         $initialFoods = Food::availableTo($user->id)
             ->with('servings')
             ->latest()
-            ->take(20)
+            ->take(60)
             ->get();
+
+        // Real total counts in the database
+        $totalCachedFoods = Food::where('is_custom', false)->count();
+        $totalCustomFoods = Food::custom()->where('user_id', $user->id)->count();
 
         // User's custom foods
         $customFoods = Food::custom()
@@ -142,10 +146,59 @@ class FoodController extends Controller
         return Inertia::render('foods/index', [
             'initialFoods' => $initialFoods,
             'customFoods' => $customFoods,
+            'totalCachedFoods' => $totalCachedFoods,
+            'totalCustomFoods' => $totalCustomFoods,
             'searchResult' => $searchResult,
             'searchQuery' => $query,
             'searchBarcode' => $barcode,
         ]);
+    }
+
+    /**
+     * Trigger an on-demand sync from Open Food Facts with selectable item count and categories.
+     */
+    public function sync(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'count' => ['required', 'integer', 'in:20,50,100,200'],
+            'category' => ['nullable', 'string', 'in:all,protein,produce,dairy,grains,staples'],
+            'terms' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $count = (int) $validated['count'];
+        $category = $validated['category'] ?? 'staples';
+        $customTerms = ! empty($validated['terms'])
+            ? array_values(array_filter(array_map('trim', explode(',', (string) $validated['terms']))))
+            : null;
+
+        $categoryTerms = match ($category) {
+            'protein' => ['chicken breast', 'whey protein', 'salmon fillet', 'eggs', 'canned tuna', 'beef steak', 'tofu'],
+            'produce' => ['banana', 'apple', 'spinach', 'broccoli', 'avocado', 'sweet potato', 'blueberries'],
+            'dairy' => ['greek yogurt', 'whole milk', 'cottage cheese', 'cheddar cheese', 'skyr', 'mozzarella'],
+            'grains' => ['rolled oats', 'brown rice', 'quinoa', 'whole wheat bread', 'lentils', 'pasta'],
+            default => \App\Jobs\SyncOpenFoodFactsJob::DEFAULT_TERMS,
+        };
+
+        $terms = $customTerms ?: $categoryTerms;
+
+        $termsCount = max(1, count($terms));
+        $targetPerTerm = max(5, (int) ceil($count / $termsCount));
+        $pageSize = min(50, $targetPerTerm);
+        $pagesPerTerm = max(1, (int) ceil($targetPerTerm / $pageSize));
+
+        /** @var User $user */
+        $user = $request->user();
+
+        \App\Jobs\SyncOpenFoodFactsJob::dispatch(
+            terms: $terms,
+            pagesPerTerm: $pagesPerTerm,
+            pageSize: $pageSize,
+            refreshStale: false,
+            sleepMs: 0,
+            userId: $user->id,
+        );
+
+        return back()->with('status', "Sync started for {$count} {$category} items from Open Food Facts. Items are streaming in via queue.");
     }
 
     /**

@@ -167,6 +167,30 @@ export const translations: Record<Locale, Record<string, string>> = {
         'foods.portion_calculator': 'Portion Nutrition Calculator',
         'foods.degraded_mode': 'Degraded Mode: Offline Cache',
         'foods.clear_search': 'Clear results',
+        'foods.sync_button': 'Sync Open Food Facts',
+        'foods.sync_title': 'Sync from Open Food Facts',
+        'foods.sync_description':
+            'Ingest verified staple and nutrient-rich foods directly into your local database.',
+        'foods.sync_count_label': 'Number of items to fetch',
+        'foods.sync_category_label': 'Category or diet focus',
+        'foods.sync_category_staples':
+            'Everyday Staples (Chicken, Oats, Salmon, Rice, Milk)',
+        'foods.sync_category_protein':
+            'High Protein (Whey, Meat, Tuna, Eggs, Tofu)',
+        'foods.sync_category_produce':
+            'Fresh Produce (Fruits, Greens, Sweet Potatoes)',
+        'foods.sync_category_dairy':
+            'Dairy & Alternatives (Yogurt, Cheeses, Skyr)',
+        'foods.sync_category_grains':
+            'Grains & Legumes (Oats, Rice, Quinoa, Lentils)',
+        'foods.sync_custom_terms_label':
+            'Or custom comma-separated search terms',
+        'foods.sync_custom_terms_placeholder': 'e.g. tofu, matcha, almond milk',
+        'foods.sync_start': 'Start Syncing',
+        'foods.syncing': 'Syncing...',
+        'foods.sync_dispatched':
+            'Sync started in background! New foods will stream into your catalog.',
+        'foods.showing_count': 'Showing {showing} of {total} cached foods',
 
         // Recipes & Meals
         'recipes.title': 'Recipes & Meals',
@@ -446,6 +470,32 @@ export const translations: Record<Locale, Record<string, string>> = {
         'foods.portion_calculator': 'Calculateur de portions et nutriments',
         'foods.degraded_mode': 'Mode dégradé : Cache hors ligne',
         'foods.clear_search': 'Effacer les résultats',
+        'foods.sync_button': 'Synchroniser Open Food Facts',
+        'foods.sync_title': 'Synchroniser le catalogue Open Food Facts',
+        'foods.sync_description':
+            'Importez des aliments vérifiés de référence directement dans votre base de données locale.',
+        'foods.sync_count_label': 'Nombre d’éléments à récupérer',
+        'foods.sync_category_label': 'Catégorie ou priorité alimentaire',
+        'foods.sync_category_staples':
+            'Indispensables du quotidien (Poulet, Avoine, Saumon, Riz, Lait)',
+        'foods.sync_category_protein':
+            'Riche en protéines (Whey, Viandes, Thon, Œufs, Tofu)',
+        'foods.sync_category_produce':
+            'Fruits & Légumes frais (Épinards, Avocat, Patate douce)',
+        'foods.sync_category_dairy':
+            'Produits laitiers & Alternatifs (Skyr, Yaourt grec, Fromages)',
+        'foods.sync_category_grains':
+            'Céréales & Légumineuses (Quinoa, Lentilles, Pain complet)',
+        'foods.sync_custom_terms_label':
+            'Ou mots-clés personnalisés (séparés par des virgules)',
+        'foods.sync_custom_terms_placeholder':
+            'ex. tofu, matcha, lait d’amande',
+        'foods.sync_start': 'Lancer la synchronisation',
+        'foods.syncing': 'Synchronisation...',
+        'foods.sync_dispatched':
+            'Synchronisation lancée en arrière-plan ! Les nouveaux aliments apparaissent en direct.',
+        'foods.showing_count':
+            'Affichage de {showing} sur {total} aliments en cache',
 
         // Recipes & Meals
         'recipes.title': 'Recettes & Repas préparés',

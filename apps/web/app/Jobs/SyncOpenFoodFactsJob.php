@@ -54,6 +54,7 @@ class SyncOpenFoodFactsJob implements ShouldQueue
         public bool $refreshStale = true,
         public int $staleDays = 14,
         public int $sleepMs = 0,
+        public ?int $userId = null,
     ) {
         $this->onQueue('default');
     }
@@ -171,6 +172,24 @@ class SyncOpenFoodFactsJob implements ShouldQueue
             'refreshed' => $refreshedCount,
             'failed_queries' => $failedQueries,
         ]);
+
+        $totalCount = Food::where('is_custom', false)->count();
+
+        try {
+            \App\Events\FoodCatalogSynced::dispatch(
+                $savedCount,
+                $totalCount,
+                $this->userId,
+                [
+                    'refreshed' => $refreshedCount,
+                    'failed_queries' => $failedQueries,
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed broadcasting FoodCatalogSynced event', [
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return [
             'saved' => $savedCount,

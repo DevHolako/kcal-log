@@ -12,7 +12,10 @@ beforeEach(function () {
     TargetProfile::factory()->create(['user_id' => $this->user->id, 'is_active' => true]);
 });
 
-test('user can visit foods catalog web page', function () {
+test('user can visit foods catalog web page with accurate total counts', function () {
+    Food::factory()->count(5)->create(['is_custom' => false]);
+    Food::factory()->count(2)->create(['is_custom' => true, 'user_id' => $this->user->id]);
+
     $response = $this->actingAs($this->user)
         ->get(route('foods.index'));
 
@@ -21,7 +24,24 @@ test('user can visit foods catalog web page', function () {
             ->component('foods/index')
             ->has('initialFoods')
             ->has('customFoods')
+            ->where('totalCachedFoods', 5)
+            ->where('totalCustomFoods', 2)
         );
+});
+
+test('user can trigger on-demand open food facts sync with custom count and category', function () {
+    \Illuminate\Support\Facades\Queue::fake();
+
+    $response = $this->actingAs($this->user)
+        ->post(route('foods.sync'), [
+            'count' => 50,
+            'category' => 'protein',
+        ]);
+
+    $response->assertRedirect();
+    \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\SyncOpenFoodFactsJob::class, function ($job) {
+        return $job->pageSize > 0 && $job->userId === $this->user->id;
+    });
 });
 
 test('user can create and delete custom food through web route', function () {
