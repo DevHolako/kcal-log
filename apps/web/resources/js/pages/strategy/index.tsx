@@ -1,18 +1,15 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     Activity,
-    AlertCircle,
     ArrowDownRight,
     ArrowRight,
     ArrowUpRight,
     CheckCircle2,
-    Clock,
     Flame,
     History,
     RefreshCw,
     Scale,
     Sparkles,
-    TrendingDown,
     TrendingUp,
     XCircle,
 } from 'lucide-react';
@@ -20,7 +17,14 @@ import { useEffect, useState } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { getEcho } from '@/echo';
 import { formatDate } from '@/lib/utils';
 
@@ -75,7 +79,7 @@ interface Props {
 
 export default function StrategyIndex({
     pendingAdjustment,
-    latestAdjustment,
+    latestAdjustment: _latestAdjustment,
     activeTarget,
     history,
     weightTrends,
@@ -94,7 +98,14 @@ export default function StrategyIndex({
 
         const channel = echo.private(`user.${userId}`);
         channel.listen('.AdaptiveAdjustmentProposed', () => {
-            router.reload({ only: ['pendingAdjustment', 'latestAdjustment', 'history', 'activeTarget'] });
+            router.reload({
+                only: [
+                    'pendingAdjustment',
+                    'latestAdjustment',
+                    'history',
+                    'activeTarget',
+                ],
+            });
         });
 
         return () => {
@@ -110,7 +121,7 @@ export default function StrategyIndex({
             {
                 preserveScroll: true,
                 onFinish: () => setIsTriggering(false),
-            }
+            },
         );
     };
 
@@ -122,7 +133,7 @@ export default function StrategyIndex({
             {
                 preserveScroll: true,
                 onFinish: () => setIsDeciding(false),
-            }
+            },
         );
     };
 
@@ -134,7 +145,7 @@ export default function StrategyIndex({
             {
                 preserveScroll: true,
                 onFinish: () => setIsDeciding(false),
-            }
+            },
         );
     };
 
@@ -142,9 +153,9 @@ export default function StrategyIndex({
         <>
             <Head title="Adaptive Strategy & Checkpoints" />
 
-            <div className="flex flex-col gap-6 p-4 md:p-6 max-w-6xl mx-auto w-full">
+            <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 md:p-6">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <div className="flex items-center gap-2">
                             <Heading
@@ -157,9 +168,11 @@ export default function StrategyIndex({
                         variant="outline"
                         onClick={handleTrigger}
                         disabled={isTriggering}
-                        className="gap-2 self-start sm:self-auto shrink-0"
+                        className="shrink-0 gap-2 self-start sm:self-auto"
                     >
-                        <RefreshCw className={`h-4 w-4 ${isTriggering ? 'animate-spin' : ''}`} />
+                        <RefreshCw
+                            className={`h-4 w-4 ${isTriggering ? 'animate-spin' : ''}`}
+                        />
                         {isTriggering ? 'Calculating...' : 'Recalculate Trend'}
                     </Button>
                 </div>
@@ -171,40 +184,66 @@ export default function StrategyIndex({
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <Sparkles className="h-5 w-5 text-primary" />
-                                    <CardTitle className="text-base font-semibold">Active Target Plan</CardTitle>
+                                    <CardTitle className="text-base font-semibold">
+                                        Active Target Plan
+                                    </CardTitle>
                                 </div>
-                                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+                                <Badge
+                                    variant="outline"
+                                    className="border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                >
                                     Active Plan
                                 </Badge>
                             </div>
                             <CardDescription>
-                                Currently active caloric and macronutrient baseline targets applied to your diary.
+                                Currently active caloric and macronutrient
+                                baseline targets applied to your diary.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                                 <div className="rounded-lg bg-muted/40 p-3">
-                                    <div className="text-xs text-muted-foreground font-medium">Daily Target</div>
-                                    <div className="text-2xl font-bold mt-1 text-foreground">
-                                        {Math.round(activeTarget.calories)} <span className="text-xs font-normal text-muted-foreground">kcal</span>
+                                    <div className="text-xs font-medium text-muted-foreground">
+                                        Daily Target
+                                    </div>
+                                    <div className="mt-1 text-2xl font-bold text-foreground">
+                                        {Math.round(activeTarget.calories)}{' '}
+                                        <span className="text-xs font-normal text-muted-foreground">
+                                            kcal
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="rounded-lg bg-muted/40 p-3">
-                                    <div className="text-xs text-muted-foreground font-medium">Protein Target</div>
-                                    <div className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
-                                        {Math.round(activeTarget.protein_g)} <span className="text-xs font-normal text-muted-foreground">g</span>
+                                    <div className="text-xs font-medium text-muted-foreground">
+                                        Protein Target
+                                    </div>
+                                    <div className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                        {Math.round(activeTarget.protein_g)}{' '}
+                                        <span className="text-xs font-normal text-muted-foreground">
+                                            g
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="rounded-lg bg-muted/40 p-3">
-                                    <div className="text-xs text-muted-foreground font-medium">Carbohydrates</div>
-                                    <div className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">
-                                        {Math.round(activeTarget.carbs_g)} <span className="text-xs font-normal text-muted-foreground">g</span>
+                                    <div className="text-xs font-medium text-muted-foreground">
+                                        Carbohydrates
+                                    </div>
+                                    <div className="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-400">
+                                        {Math.round(activeTarget.carbs_g)}{' '}
+                                        <span className="text-xs font-normal text-muted-foreground">
+                                            g
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="rounded-lg bg-muted/40 p-3">
-                                    <div className="text-xs text-muted-foreground font-medium">Fat Target</div>
-                                    <div className="text-2xl font-bold mt-1 text-sky-600 dark:text-sky-400">
-                                        {Math.round(activeTarget.fat_g)} <span className="text-xs font-normal text-muted-foreground">g</span>
+                                    <div className="text-xs font-medium text-muted-foreground">
+                                        Fat Target
+                                    </div>
+                                    <div className="mt-1 text-2xl font-bold text-sky-600 dark:text-sky-400">
+                                        {Math.round(activeTarget.fat_g)}{' '}
+                                        <span className="text-xs font-normal text-muted-foreground">
+                                            g
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -216,172 +255,258 @@ export default function StrategyIndex({
                 {pendingAdjustment && (
                     <Card className="border-primary/40 bg-primary/5 shadow-md">
                         <CardHeader className="pb-3">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Flame className="h-5 w-5 text-amber-500 animate-pulse" />
-                                    <CardTitle className="text-lg font-bold">Weekly Checkpoint Brief</CardTitle>
-                                    <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30">
+                                    <Flame className="h-5 w-5 animate-pulse text-amber-500" />
+                                    <CardTitle className="text-lg font-bold">
+                                        Weekly Checkpoint Brief
+                                    </CardTitle>
+                                    <Badge className="border-amber-500/30 bg-amber-500/20 text-amber-700 dark:text-amber-300">
                                         Decision Required
                                     </Badge>
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                    Review Window: <span className="font-semibold text-foreground">{formatDate(pendingAdjustment.period_start)}</span> to{' '}
-                                    <span className="font-semibold text-foreground">{formatDate(pendingAdjustment.period_end)}</span>
+                                    Review Window:{' '}
+                                    <span className="font-semibold text-foreground">
+                                        {formatDate(
+                                            pendingAdjustment.period_start,
+                                        )}
+                                    </span>{' '}
+                                    to{' '}
+                                    <span className="font-semibold text-foreground">
+                                        {formatDate(
+                                            pendingAdjustment.period_end,
+                                        )}
+                                    </span>
                                 </div>
                             </div>
                             <CardDescription>
-                                Based on your logged weight logs and daily diary intake over the past 7 days, your realized energy expenditure and target intake have been calculated.
+                                Based on your logged weight logs and daily diary
+                                intake over the past 7 days, your realized
+                                energy expenditure and target intake have been
+                                calculated.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             {/* Key Indicators */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="rounded-lg bg-background/80 p-3 border border-border/50">
+                            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                                <div className="rounded-lg border border-border/50 bg-background/80 p-3">
                                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                         <Scale className="h-3.5 w-3.5" />
                                         <span>EWMA Weight Change</span>
                                     </div>
-                                    <div className="text-xl font-bold mt-1 flex items-center gap-1">
-                                        {pendingAdjustment.ewma_weight_change_kg > 0 ? (
+                                    <div className="mt-1 flex items-center gap-1 text-xl font-bold">
+                                        {pendingAdjustment.ewma_weight_change_kg >
+                                        0 ? (
                                             <ArrowUpRight className="h-4 w-4 text-amber-500" />
-                                        ) : pendingAdjustment.ewma_weight_change_kg < 0 ? (
+                                        ) : pendingAdjustment.ewma_weight_change_kg <
+                                          0 ? (
                                             <ArrowDownRight className="h-4 w-4 text-emerald-500" />
                                         ) : null}
                                         <span>
-                                            {pendingAdjustment.ewma_weight_change_kg > 0 ? '+' : ''}
-                                            {pendingAdjustment.ewma_weight_change_kg} kg
+                                            {pendingAdjustment.ewma_weight_change_kg >
+                                            0
+                                                ? '+'
+                                                : ''}
+                                            {
+                                                pendingAdjustment.ewma_weight_change_kg
+                                            }{' '}
+                                            kg
                                         </span>
                                     </div>
-                                    <div className="text-[10px] text-muted-foreground mt-0.5">
-                                        {pendingAdjustment.starting_weight_kg} kg &rarr; {pendingAdjustment.ending_weight_kg} kg
+                                    <div className="mt-0.5 text-[10px] text-muted-foreground">
+                                        {pendingAdjustment.starting_weight_kg}{' '}
+                                        kg &rarr;{' '}
+                                        {pendingAdjustment.ending_weight_kg} kg
                                     </div>
                                 </div>
 
-                                <div className="rounded-lg bg-background/80 p-3 border border-border/50">
+                                <div className="rounded-lg border border-border/50 bg-background/80 p-3">
                                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                         <Activity className="h-3.5 w-3.5" />
                                         <span>Avg Daily Intake</span>
                                     </div>
-                                    <div className="text-xl font-bold mt-1">
-                                        {Math.round(pendingAdjustment.average_daily_calories)}{' '}
-                                        <span className="text-xs font-normal text-muted-foreground">kcal/day</span>
+                                    <div className="mt-1 text-xl font-bold">
+                                        {Math.round(
+                                            pendingAdjustment.average_daily_calories,
+                                        )}{' '}
+                                        <span className="text-xs font-normal text-muted-foreground">
+                                            kcal/day
+                                        </span>
                                     </div>
-                                    <div className="text-[10px] text-muted-foreground mt-0.5">Logged in diary</div>
+                                    <div className="mt-0.5 text-[10px] text-muted-foreground">
+                                        Logged in diary
+                                    </div>
                                 </div>
 
-                                <div className="rounded-lg bg-background/80 p-3 border border-border/50">
+                                <div className="rounded-lg border border-border/50 bg-background/80 p-3">
                                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                         <Flame className="h-3.5 w-3.5 text-primary" />
                                         <span>Calculated TDEE</span>
                                     </div>
-                                    <div className="text-xl font-bold mt-1 text-primary">
-                                        {Math.round(pendingAdjustment.calculated_tdee)}{' '}
-                                        <span className="text-xs font-normal text-muted-foreground">kcal/day</span>
+                                    <div className="mt-1 text-xl font-bold text-primary">
+                                        {Math.round(
+                                            pendingAdjustment.calculated_tdee,
+                                        )}{' '}
+                                        <span className="text-xs font-normal text-muted-foreground">
+                                            kcal/day
+                                        </span>
                                     </div>
-                                    <div className="text-[10px] text-muted-foreground mt-0.5">Realized expenditure</div>
+                                    <div className="mt-0.5 text-[10px] text-muted-foreground">
+                                        Realized expenditure
+                                    </div>
                                 </div>
 
-                                <div className="rounded-lg bg-background/80 p-3 border border-border/50">
+                                <div className="rounded-lg border border-border/50 bg-background/80 p-3">
                                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                         <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
                                         <span>Proposed Target</span>
                                     </div>
-                                    <div className="text-xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
-                                        {pendingAdjustment.proposed_target_calories}{' '}
-                                        <span className="text-xs font-normal text-muted-foreground">kcal/day</span>
+                                    <div className="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                                        {
+                                            pendingAdjustment.proposed_target_calories
+                                        }{' '}
+                                        <span className="text-xs font-normal text-muted-foreground">
+                                            kcal/day
+                                        </span>
                                     </div>
-                                    <div className="text-[10px] text-muted-foreground mt-0.5">
+                                    <div className="mt-0.5 text-[10px] text-muted-foreground">
                                         Delta:{' '}
-                                        {pendingAdjustment.proposed_target_calories - pendingAdjustment.current_target_calories > 0 ? '+' : ''}
-                                        {pendingAdjustment.proposed_target_calories - pendingAdjustment.current_target_calories} kcal
+                                        {pendingAdjustment.proposed_target_calories -
+                                            pendingAdjustment.current_target_calories >
+                                        0
+                                            ? '+'
+                                            : ''}
+                                        {pendingAdjustment.proposed_target_calories -
+                                            pendingAdjustment.current_target_calories}{' '}
+                                        kcal
                                     </div>
                                 </div>
                             </div>
 
                             {/* Push-Right Comparative Plan Delta Table */}
-                            <div data-testid="plan-comparison" className="rounded-xl border border-border/60 overflow-hidden bg-background/60">
-                                <div className="px-4 py-2.5 bg-muted/40 font-semibold text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+                            <div
+                                data-testid="plan-comparison"
+                                className="overflow-hidden rounded-xl border border-border/60 bg-background/60"
+                            >
+                                <div className="flex items-center justify-between bg-muted/40 px-4 py-2.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                                     <span>Plan Comparison</span>
                                     <span>Current &rarr; Proposed</span>
                                 </div>
                                 <div className="divide-y divide-border/40 text-sm">
                                     <div className="flex items-center justify-between px-4 py-3">
-                                        <span className="font-medium text-foreground">Target Calories</span>
+                                        <span className="font-medium text-foreground">
+                                            Target Calories
+                                        </span>
                                         <div className="flex items-center gap-3 font-semibold">
                                             <span className="text-muted-foreground line-through">
-                                                {pendingAdjustment.current_target_calories} kcal
+                                                {
+                                                    pendingAdjustment.current_target_calories
+                                                }{' '}
+                                                kcal
                                             </span>
                                             <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-primary font-bold">
-                                                {pendingAdjustment.proposed_target_calories} kcal
+                                            <span className="font-bold text-primary">
+                                                {
+                                                    pendingAdjustment.proposed_target_calories
+                                                }{' '}
+                                                kcal
                                             </span>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between px-4 py-3">
-                                        <span className="font-medium text-foreground">Protein Target</span>
+                                        <span className="font-medium text-foreground">
+                                            Protein Target
+                                        </span>
                                         <div className="flex items-center gap-3 font-semibold">
                                             {activeTarget && (
                                                 <>
                                                     <span className="text-muted-foreground line-through">
-                                                        {Math.round(activeTarget.protein_g)} g
+                                                        {Math.round(
+                                                            activeTarget.protein_g,
+                                                        )}{' '}
+                                                        g
                                                     </span>
                                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                                 </>
                                             )}
-                                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                                                {Math.round(pendingAdjustment.proposed_protein_g)} g
+                                            <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                                {Math.round(
+                                                    pendingAdjustment.proposed_protein_g,
+                                                )}{' '}
+                                                g
                                             </span>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between px-4 py-3">
-                                        <span className="font-medium text-foreground">Carbs Target</span>
+                                        <span className="font-medium text-foreground">
+                                            Carbs Target
+                                        </span>
                                         <div className="flex items-center gap-3 font-semibold">
                                             {activeTarget && (
                                                 <>
                                                     <span className="text-muted-foreground line-through">
-                                                        {Math.round(activeTarget.carbs_g)} g
+                                                        {Math.round(
+                                                            activeTarget.carbs_g,
+                                                        )}{' '}
+                                                        g
                                                     </span>
                                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                                 </>
                                             )}
-                                            <span className="text-amber-600 dark:text-amber-400 font-bold">
-                                                {Math.round(pendingAdjustment.proposed_carbs_g)} g
+                                            <span className="font-bold text-amber-600 dark:text-amber-400">
+                                                {Math.round(
+                                                    pendingAdjustment.proposed_carbs_g,
+                                                )}{' '}
+                                                g
                                             </span>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between px-4 py-3">
-                                        <span className="font-medium text-foreground">Fat Target</span>
+                                        <span className="font-medium text-foreground">
+                                            Fat Target
+                                        </span>
                                         <div className="flex items-center gap-3 font-semibold">
                                             {activeTarget && (
                                                 <>
                                                     <span className="text-muted-foreground line-through">
-                                                        {Math.round(activeTarget.fat_g)} g
+                                                        {Math.round(
+                                                            activeTarget.fat_g,
+                                                        )}{' '}
+                                                        g
                                                     </span>
                                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                                 </>
                                             )}
-                                            <span className="text-sky-600 dark:text-sky-400 font-bold">
-                                                {Math.round(pendingAdjustment.proposed_fat_g)} g
+                                            <span className="font-bold text-sky-600 dark:text-sky-400">
+                                                {Math.round(
+                                                    pendingAdjustment.proposed_fat_g,
+                                                )}{' '}
+                                                g
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </CardContent>
-                        <CardFooter className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
+                        <CardFooter className="flex flex-col items-center justify-end gap-3 pt-2 sm:flex-row">
                             <Button
                                 variant="outline"
-                                onClick={() => handleReject(pendingAdjustment.id)}
+                                onClick={() =>
+                                    handleReject(pendingAdjustment.id)
+                                }
                                 disabled={isDeciding}
-                                className="w-full sm:w-auto gap-2"
+                                className="w-full gap-2 sm:w-auto"
                             >
                                 <XCircle className="h-4 w-4 text-muted-foreground" />
                                 Reject & Keep Current Targets
                             </Button>
                             <Button
-                                onClick={() => handleAccept(pendingAdjustment.id)}
+                                onClick={() =>
+                                    handleAccept(pendingAdjustment.id)
+                                }
                                 disabled={isDeciding}
-                                className="w-full sm:w-auto gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                className="w-full gap-2 bg-emerald-600 text-white hover:bg-emerald-700 sm:w-auto"
                             >
                                 <CheckCircle2 className="h-4 w-4" />
                                 Accept & Activate Plan
@@ -396,21 +521,31 @@ export default function StrategyIndex({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="h-5 w-5 text-primary" />
-                                <CardTitle className="text-base font-semibold">EWMA Weight Smoothing Trend</CardTitle>
+                                <CardTitle className="text-base font-semibold">
+                                    EWMA Weight Smoothing Trend
+                                </CardTitle>
                             </div>
-                            <span className="text-xs text-muted-foreground">Exponentially Weighted Moving Average (&alpha; = 0.25)</span>
+                            <span className="text-xs text-muted-foreground">
+                                Exponentially Weighted Moving Average (&alpha; =
+                                0.25)
+                            </span>
                         </div>
                         <CardDescription>
-                            Dampens daily water weight noise to reveal true physiological fat and tissue changes.
+                            Dampens daily water weight noise to reveal true
+                            physiological fat and tissue changes.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         {weightTrends.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center p-8 text-center border border-dashed rounded-lg">
-                                <Scale className="h-8 w-8 text-muted-foreground mb-2" />
-                                <p className="text-sm font-medium text-foreground">No weigh-ins logged yet</p>
-                                <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                                    Log your body weight in the diary to build your EWMA trend and trigger weekly adaptive adjustments.
+                            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+                                <Scale className="mb-2 h-8 w-8 text-muted-foreground" />
+                                <p className="text-sm font-medium text-foreground">
+                                    No weigh-ins logged yet
+                                </p>
+                                <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+                                    Log your body weight in the diary to build
+                                    your EWMA trend and trigger weekly adaptive
+                                    adjustments.
                                 </p>
                             </div>
                         ) : (
@@ -419,37 +554,74 @@ export default function StrategyIndex({
                                     <table className="w-full text-sm">
                                         <thead>
                                             <tr className="border-b text-xs text-muted-foreground">
-                                                <th className="text-left py-2 font-medium">Date</th>
-                                                <th className="text-right py-2 font-medium">Recorded Weight</th>
-                                                <th className="text-right py-2 font-medium">EWMA Smoothed</th>
-                                                <th className="text-right py-2 font-medium">Daily Noise</th>
+                                                <th className="py-2 text-left font-medium">
+                                                    Date
+                                                </th>
+                                                <th className="py-2 text-right font-medium">
+                                                    Recorded Weight
+                                                </th>
+                                                <th className="py-2 text-right font-medium">
+                                                    EWMA Smoothed
+                                                </th>
+                                                <th className="py-2 text-right font-medium">
+                                                    Daily Noise
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/50">
-                                            {weightTrends.slice(-10).reverse().map((point) => {
-                                                const noise = point.weight_kg - point.ewma_kg;
-                                                return (
-                                                    <tr key={point.date} className="hover:bg-muted/30">
-                                                        <td className="py-2.5 font-medium">{formatDate(point.date)}</td>
-                                                        <td className="py-2.5 text-right font-semibold">{point.weight_kg.toFixed(2)} kg</td>
-                                                        <td className="py-2.5 text-right text-primary font-bold">{point.ewma_kg.toFixed(2)} kg</td>
-                                                        <td className="py-2.5 text-right text-xs">
-                                                            <span
-                                                                className={
-                                                                    noise > 0
-                                                                        ? 'text-amber-500'
-                                                                        : noise < 0
-                                                                        ? 'text-emerald-500'
-                                                                        : 'text-muted-foreground'
-                                                                }
-                                                            >
-                                                                {noise > 0 ? '+' : ''}
-                                                                {noise.toFixed(2)} kg
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
+                                            {weightTrends
+                                                .slice(-10)
+                                                .reverse()
+                                                .map((point) => {
+                                                    const noise =
+                                                        point.weight_kg -
+                                                        point.ewma_kg;
+                                                    return (
+                                                        <tr
+                                                            key={point.date}
+                                                            className="hover:bg-muted/30"
+                                                        >
+                                                            <td className="py-2.5 font-medium">
+                                                                {formatDate(
+                                                                    point.date,
+                                                                )}
+                                                            </td>
+                                                            <td className="py-2.5 text-right font-semibold">
+                                                                {point.weight_kg.toFixed(
+                                                                    2,
+                                                                )}{' '}
+                                                                kg
+                                                            </td>
+                                                            <td className="py-2.5 text-right font-bold text-primary">
+                                                                {point.ewma_kg.toFixed(
+                                                                    2,
+                                                                )}{' '}
+                                                                kg
+                                                            </td>
+                                                            <td className="py-2.5 text-right text-xs">
+                                                                <span
+                                                                    className={
+                                                                        noise >
+                                                                        0
+                                                                            ? 'text-amber-500'
+                                                                            : noise <
+                                                                                0
+                                                                              ? 'text-emerald-500'
+                                                                              : 'text-muted-foreground'
+                                                                    }
+                                                                >
+                                                                    {noise > 0
+                                                                        ? '+'
+                                                                        : ''}
+                                                                    {noise.toFixed(
+                                                                        2,
+                                                                    )}{' '}
+                                                                    kg
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
                                         </tbody>
                                     </table>
                                 </div>
@@ -463,9 +635,14 @@ export default function StrategyIndex({
                     <CardHeader>
                         <div className="flex items-center gap-2">
                             <History className="h-5 w-5 text-muted-foreground" />
-                            <CardTitle className="text-base font-semibold">Checkpoint Decision History</CardTitle>
+                            <CardTitle className="text-base font-semibold">
+                                Checkpoint Decision History
+                            </CardTitle>
                         </div>
-                        <CardDescription>Record of previous weekly reviews and target adjustment choices.</CardDescription>
+                        <CardDescription>
+                            Record of previous weekly reviews and target
+                            adjustment choices.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         {history.length === 0 ? (
@@ -477,47 +654,96 @@ export default function StrategyIndex({
                                 <table className="w-full text-sm">
                                     <thead>
                                         <tr className="border-b text-xs text-muted-foreground">
-                                            <th className="text-left py-2 font-medium">Review Date</th>
-                                            <th className="text-left py-2 font-medium">Period</th>
-                                            <th className="text-right py-2 font-medium">Trend Change</th>
-                                            <th className="text-right py-2 font-medium">Realized TDEE</th>
-                                            <th className="text-right py-2 font-medium">Target Shift</th>
-                                            <th className="text-center py-2 font-medium">Status</th>
+                                            <th className="py-2 text-left font-medium">
+                                                Review Date
+                                            </th>
+                                            <th className="py-2 text-left font-medium">
+                                                Period
+                                            </th>
+                                            <th className="py-2 text-right font-medium">
+                                                Trend Change
+                                            </th>
+                                            <th className="py-2 text-right font-medium">
+                                                Realized TDEE
+                                            </th>
+                                            <th className="py-2 text-right font-medium">
+                                                Target Shift
+                                            </th>
+                                            <th className="py-2 text-center font-medium">
+                                                Status
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border/50">
                                         {history.map((item) => (
-                                            <tr key={item.id} className="hover:bg-muted/30">
-                                                <td className="py-2.5 font-medium">{formatDate(item.review_date)}</td>
+                                            <tr
+                                                key={item.id}
+                                                className="hover:bg-muted/30"
+                                            >
+                                                <td className="py-2.5 font-medium">
+                                                    {formatDate(
+                                                        item.review_date,
+                                                    )}
+                                                </td>
                                                 <td className="py-2.5 text-xs text-muted-foreground">
-                                                    {formatDate(item.period_start)} &rarr; {formatDate(item.period_end)}
+                                                    {formatDate(
+                                                        item.period_start,
+                                                    )}{' '}
+                                                    &rarr;{' '}
+                                                    {formatDate(
+                                                        item.period_end,
+                                                    )}
                                                 </td>
                                                 <td className="py-2.5 text-right font-semibold">
-                                                    {item.ewma_weight_change_kg > 0 ? '+' : ''}
-                                                    {item.ewma_weight_change_kg} kg
+                                                    {item.ewma_weight_change_kg >
+                                                    0
+                                                        ? '+'
+                                                        : ''}
+                                                    {item.ewma_weight_change_kg}{' '}
+                                                    kg
                                                 </td>
-                                                <td className="py-2.5 text-right">{Math.round(item.calculated_tdee)} kcal</td>
+                                                <td className="py-2.5 text-right">
+                                                    {Math.round(
+                                                        item.calculated_tdee,
+                                                    )}{' '}
+                                                    kcal
+                                                </td>
                                                 <td className="py-2.5 text-right font-medium">
-                                                    {item.current_target_calories} &rarr;{' '}
+                                                    {
+                                                        item.current_target_calories
+                                                    }{' '}
+                                                    &rarr;{' '}
                                                     <span className="font-bold text-foreground">
-                                                        {item.proposed_target_calories} kcal
+                                                        {
+                                                            item.proposed_target_calories
+                                                        }{' '}
+                                                        kcal
                                                     </span>
                                                 </td>
                                                 <td className="py-2.5 text-center">
-                                                    {item.status === 'accepted' ? (
-                                                        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs">
+                                                    {item.status ===
+                                                    'accepted' ? (
+                                                        <Badge className="border-emerald-500/20 bg-emerald-500/10 text-xs text-emerald-600">
                                                             Accepted
                                                         </Badge>
-                                                    ) : item.status === 'rejected' ? (
-                                                        <Badge variant="outline" className="text-muted-foreground text-xs">
+                                                    ) : item.status ===
+                                                      'rejected' ? (
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="text-xs text-muted-foreground"
+                                                        >
                                                             Rejected
                                                         </Badge>
-                                                    ) : item.status === 'pending' ? (
-                                                        <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs">
+                                                    ) : item.status ===
+                                                      'pending' ? (
+                                                        <Badge className="border-amber-500/20 bg-amber-500/10 text-xs text-amber-600">
                                                             Pending
                                                         </Badge>
                                                     ) : (
-                                                        <Badge variant="outline" className="text-xs">
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="text-xs"
+                                                        >
                                                             {item.status}
                                                         </Badge>
                                                     )}

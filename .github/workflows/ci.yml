@@ -62,6 +62,9 @@ jobs:
       - name: Test Nutrition Domain Engine
         run: pnpm test
 
+      - name: Lint and Code Formatting Check
+        run: pnpm lint
+
   phpstan:
     name: PHPStan Level 5 Static Analysis
     runs-on: ubuntu-latest

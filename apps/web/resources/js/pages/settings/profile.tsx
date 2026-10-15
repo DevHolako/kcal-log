@@ -4,7 +4,10 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
-import NutritionSettings, { type TargetProfileSummary, type UserProfileSummary } from '@/components/nutrition-settings';
+import NutritionSettings, {
+    type TargetProfileSummary,
+    type UserProfileSummary,
+} from '@/components/nutrition-settings';
 import ResetTrackingData from '@/components/reset-tracking-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,14 +40,17 @@ export default function Profile({
             <h1 className="sr-only">Profile settings</h1>
 
             {status && (
-                <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                     {status}
                 </div>
             )}
 
-            <NutritionSettings activeTarget={activeTarget} userProfile={userProfile} />
+            <NutritionSettings
+                activeTarget={activeTarget}
+                userProfile={userProfile}
+            />
 
-            <div className="space-y-6 pt-4 border-t border-border">
+            <div className="space-y-6 border-t border-border pt-4">
                 <Heading
                     variant="small"
                     title="Profile"
@@ -137,11 +143,11 @@ export default function Profile({
                 </Form>
             </div>
 
-            <div className="pt-4 border-t border-border">
+            <div className="border-t border-border pt-4">
                 <ResetTrackingData />
             </div>
 
-            <div className="pt-4 border-t border-border">
+            <div className="border-t border-border pt-4">
                 <DeleteUser />
             </div>
         </>

@@ -73,9 +73,12 @@ export default function Onboarding({
     initialData,
     isRecalibrating = false,
 }: OnboardingProps) {
-    const initialUnit = (initialData?.unit_preference as 'metric' | 'imperial') || 'metric';
+    const initialUnit =
+        (initialData?.unit_preference as 'metric' | 'imperial') || 'metric';
     const [step, setStep] = useState<number>(1);
-    const [weightUnit, setWeightUnit] = useState<'metric' | 'imperial'>(initialUnit);
+    const [weightUnit, setWeightUnit] = useState<'metric' | 'imperial'>(
+        initialUnit,
+    );
 
     const initialWeight = initialData?.current_weight_kg ?? 75;
     const initialHeight = initialData?.height_cm ?? 175;
@@ -83,10 +86,10 @@ export default function Onboarding({
     const [displayWeight, setDisplayWeight] = useState<string>(
         initialUnit === 'imperial'
             ? kgToLbs(initialWeight).toString()
-            : initialWeight.toString()
+            : initialWeight.toString(),
     );
     const [displayHeight, setDisplayHeight] = useState<string>(
-        initialHeight.toString()
+        initialHeight.toString(),
     );
 
     const { data, setData, post, processing, errors } = useForm({
@@ -94,7 +97,8 @@ export default function Onboarding({
         sex: (initialData?.sex || 'male') as Sex,
         height_cm: initialHeight,
         current_weight_kg: initialWeight,
-        activity_level: (initialData?.activity_level || 'moderately_active') as ActivityLevel,
+        activity_level: (initialData?.activity_level ||
+            'moderately_active') as ActivityLevel,
         goal_type: (initialData?.goal_type || 'lose') as GoalType,
         weekly_rate_kg: initialData?.weekly_rate_kg ?? -0.5,
         diet_type: initialData?.diet_type || 'balanced',
@@ -178,9 +182,19 @@ export default function Onboarding({
         };
 
         const split: MacroSplit = {
-            proteinPercent: toPercent((rawPreset as any)?.protein ?? (rawPreset as any)?.proteinPercent, 30),
-            carbsPercent: toPercent((rawPreset as any)?.carbs ?? (rawPreset as any)?.carbsPercent, 40),
-            fatPercent: toPercent((rawPreset as any)?.fat ?? (rawPreset as any)?.fatPercent, 30),
+            proteinPercent: toPercent(
+                (rawPreset as any)?.protein ??
+                    (rawPreset as any)?.proteinPercent,
+                30,
+            ),
+            carbsPercent: toPercent(
+                (rawPreset as any)?.carbs ?? (rawPreset as any)?.carbsPercent,
+                40,
+            ),
+            fatPercent: toPercent(
+                (rawPreset as any)?.fat ?? (rawPreset as any)?.fatPercent,
+                30,
+            ),
         };
 
         const macros = calculateMacroGrams(targetCalories, split);
@@ -227,7 +241,7 @@ export default function Onboarding({
                     </div>
                     {isRecalibrating && (
                         <div>
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                                 <Sparkles className="h-3.5 w-3.5" />
                                 Recalibrating Nutrition Plan
                             </span>
@@ -244,7 +258,10 @@ export default function Onboarding({
                     </p>
                     {isRecalibrating && (
                         <p className="pt-1 text-xs">
-                            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground underline">
+                            <Link
+                                href="/dashboard"
+                                className="text-muted-foreground underline hover:text-foreground"
+                            >
                                 Cancel and return to dashboard
                             </Link>
                         </p>
@@ -807,8 +824,7 @@ export default function Onboarding({
                                                     Protein (4 kcal/g)
                                                 </div>
                                                 <div className="mt-1 text-xl font-bold text-blue-950 dark:text-blue-100">
-                                                    {liveStats.macros.proteinG}
-                                                    g
+                                                    {liveStats.macros.proteinG}g
                                                 </div>
                                                 <div className="text-[10px] text-blue-500">
                                                     {Math.round(
@@ -885,77 +901,164 @@ export default function Onboarding({
                                                 </span>
                                             </div>
                                             <p className="mt-1 text-xs text-emerald-100">
-                                                TDEE {liveStats.tdee} kcal &bull; Goal: {data.goal_type} ({data.weekly_rate_kg > 0 ? '+' : ''}{data.weekly_rate_kg} kg/wk)
+                                                TDEE {liveStats.tdee} kcal
+                                                &bull; Goal: {data.goal_type} (
+                                                {data.weekly_rate_kg > 0
+                                                    ? '+'
+                                                    : ''}
+                                                {data.weekly_rate_kg} kg/wk)
                                             </p>
                                         </div>
 
                                         <div className="grid grid-cols-4 gap-2 border-t border-white/20 pt-3">
                                             <div>
-                                                <div className="text-[10px] text-emerald-100">Protein</div>
-                                                <div className="text-lg font-bold">{liveStats.macros.proteinG}g</div>
-                                                <div className="text-[10px] text-emerald-200">{Math.round(liveStats.percentages.protein * 100)}%</div>
+                                                <div className="text-[10px] text-emerald-100">
+                                                    Protein
+                                                </div>
+                                                <div className="text-lg font-bold">
+                                                    {liveStats.macros.proteinG}g
+                                                </div>
+                                                <div className="text-[10px] text-emerald-200">
+                                                    {Math.round(
+                                                        liveStats.percentages
+                                                            .protein * 100,
+                                                    )}
+                                                    %
+                                                </div>
                                             </div>
                                             <div>
-                                                <div className="text-[10px] text-emerald-100">Carbs</div>
-                                                <div className="text-lg font-bold">{liveStats.macros.carbsG}g</div>
-                                                <div className="text-[10px] text-emerald-200">{Math.round(liveStats.percentages.carbs * 100)}%</div>
+                                                <div className="text-[10px] text-emerald-100">
+                                                    Carbs
+                                                </div>
+                                                <div className="text-lg font-bold">
+                                                    {liveStats.macros.carbsG}g
+                                                </div>
+                                                <div className="text-[10px] text-emerald-200">
+                                                    {Math.round(
+                                                        liveStats.percentages
+                                                            .carbs * 100,
+                                                    )}
+                                                    %
+                                                </div>
                                             </div>
                                             <div>
-                                                <div className="text-[10px] text-emerald-100">Fat</div>
-                                                <div className="text-lg font-bold">{liveStats.macros.fatG}g</div>
-                                                <div className="text-[10px] text-emerald-200">{Math.round(liveStats.percentages.fat * 100)}%</div>
+                                                <div className="text-[10px] text-emerald-100">
+                                                    Fat
+                                                </div>
+                                                <div className="text-lg font-bold">
+                                                    {liveStats.macros.fatG}g
+                                                </div>
+                                                <div className="text-[10px] text-emerald-200">
+                                                    {Math.round(
+                                                        liveStats.percentages
+                                                            .fat * 100,
+                                                    )}
+                                                    %
+                                                </div>
                                             </div>
                                             <div>
-                                                <div className="text-[10px] text-emerald-100">Water</div>
-                                                <div className="text-lg font-bold">{liveStats.waterMl}ml</div>
-                                                <div className="text-[10px] text-emerald-200">Daily</div>
+                                                <div className="text-[10px] text-emerald-100">
+                                                    Water
+                                                </div>
+                                                <div className="text-lg font-bold">
+                                                    {liveStats.waterMl}ml
+                                                </div>
+                                                <div className="text-[10px] text-emerald-200">
+                                                    Daily
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Metabolic & Goal Analysis Breakdown */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                         <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-900/50">
-                                            <div className="text-xs text-slate-500 font-medium">Basal Metabolic Rate (BMR)</div>
-                                            <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
-                                                {Math.round(liveStats.bmr)} <span className="text-xs font-normal text-slate-500">kcal/day</span>
+                                            <div className="text-xs font-medium text-slate-500">
+                                                Basal Metabolic Rate (BMR)
                                             </div>
-                                            <div className="text-[11px] text-slate-500 mt-0.5">Energy burned at complete rest</div>
+                                            <div className="mt-0.5 text-lg font-bold text-slate-900 dark:text-white">
+                                                {Math.round(liveStats.bmr)}{' '}
+                                                <span className="text-xs font-normal text-slate-500">
+                                                    kcal/day
+                                                </span>
+                                            </div>
+                                            <div className="mt-0.5 text-[11px] text-slate-500">
+                                                Energy burned at complete rest
+                                            </div>
                                         </div>
 
                                         <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-900/50">
-                                            <div className="text-xs text-slate-500 font-medium">Total Daily Expenditure (TDEE)</div>
-                                            <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
-                                                {Math.round(liveStats.tdee)} <span className="text-xs font-normal text-slate-500">kcal/day</span>
+                                            <div className="text-xs font-medium text-slate-500">
+                                                Total Daily Expenditure (TDEE)
                                             </div>
-                                            <div className="text-[11px] text-slate-500 mt-0.5">Energy expenditure with activity</div>
+                                            <div className="mt-0.5 text-lg font-bold text-slate-900 dark:text-white">
+                                                {Math.round(liveStats.tdee)}{' '}
+                                                <span className="text-xs font-normal text-slate-500">
+                                                    kcal/day
+                                                </span>
+                                            </div>
+                                            <div className="mt-0.5 text-[11px] text-slate-500">
+                                                Energy expenditure with activity
+                                            </div>
                                         </div>
 
                                         <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-900/50">
-                                            <div className="text-xs text-slate-500 font-medium">Net Caloric Shift</div>
-                                            <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
-                                                {liveStats.targetCalories - Math.round(liveStats.tdee) > 0 ? '+' : ''}
-                                                {liveStats.targetCalories - Math.round(liveStats.tdee)}{' '}
-                                                <span className="text-xs font-normal text-slate-500">kcal/day</span>
+                                            <div className="text-xs font-medium text-slate-500">
+                                                Net Caloric Shift
                                             </div>
-                                            <div className="text-[11px] text-slate-500 mt-0.5">
-                                                {data.goal_type === 'lose' ? 'Calorie deficit for fat loss' : data.goal_type === 'gain' ? 'Calorie surplus for muscle gain' : 'Maintenance caloric balance'}
+                                            <div className="mt-0.5 text-lg font-bold text-slate-900 dark:text-white">
+                                                {liveStats.targetCalories -
+                                                    Math.round(liveStats.tdee) >
+                                                0
+                                                    ? '+'
+                                                    : ''}
+                                                {liveStats.targetCalories -
+                                                    Math.round(
+                                                        liveStats.tdee,
+                                                    )}{' '}
+                                                <span className="text-xs font-normal text-slate-500">
+                                                    kcal/day
+                                                </span>
+                                            </div>
+                                            <div className="mt-0.5 text-[11px] text-slate-500">
+                                                {data.goal_type === 'lose'
+                                                    ? 'Calorie deficit for fat loss'
+                                                    : data.goal_type === 'gain'
+                                                      ? 'Calorie surplus for muscle gain'
+                                                      : 'Maintenance caloric balance'}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="space-y-2 rounded-xl bg-slate-100/70 p-4 text-xs text-slate-600 dark:bg-slate-800/60 dark:text-slate-400">
                                         <div className="flex items-center gap-2">
-                                            <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                                            <span>Initial weigh-in ({data.current_weight_kg} kg) recorded to your progress timeline.</span>
+                                            <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                                            <span>
+                                                Initial weigh-in (
+                                                {data.current_weight_kg} kg)
+                                                recorded to your progress
+                                                timeline.
+                                            </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                                            <span>Breakfast, lunch, dinner, and snack slots in your food diary will use these targets.</span>
+                                            <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                                            <span>
+                                                Breakfast, lunch, dinner, and
+                                                snack slots in your food diary
+                                                will use these targets.
+                                            </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                                            <span>You can recalibrate these targets or reset your tracking data anytime in <strong>Profile Settings</strong>.</span>
+                                            <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                                            <span>
+                                                You can recalibrate these
+                                                targets or reset your tracking
+                                                data anytime in{' '}
+                                                <strong>
+                                                    Profile Settings
+                                                </strong>
+                                                .
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -986,7 +1089,9 @@ export default function Onboarding({
                                         }
                                         className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700"
                                     >
-                                        {step === 4 ? 'Calculate & Review Plan' : 'Continue'}{' '}
+                                        {step === 4
+                                            ? 'Calculate & Review Plan'
+                                            : 'Continue'}{' '}
                                         <ArrowRight className="h-4 w-4" />
                                     </Button>
                                 ) : (

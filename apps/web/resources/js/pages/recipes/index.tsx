@@ -1,13 +1,10 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     CalendarPlus,
     ChefHat,
     Flame,
-    Layers,
     Loader2,
-    Minus,
     Plus,
-    Sparkles,
     Trash2,
     Utensils,
     X,
@@ -15,7 +12,14 @@ import {
 import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -71,10 +75,15 @@ interface Props {
     status?: string;
 }
 
-export default function RecipesIndex({ recipes, availableFoods, status }: Props) {
+export default function RecipesIndex({
+    recipes,
+    availableFoods,
+    status,
+}: Props) {
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [logModalOpen, setLogModalOpen] = useState(false);
-    const [selectedRecipeToLog, setSelectedRecipeToLog] = useState<MealRecipeData | null>(null);
+    const [selectedRecipeToLog, setSelectedRecipeToLog] =
+        useState<MealRecipeData | null>(null);
 
     // Form for creating a recipe
     const [recipeName, setRecipeName] = useState('');
@@ -99,15 +108,21 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
 
     // Ingredient picker state inside create modal
     const [foodSearchQuery, setFoodSearchQuery] = useState('');
-    const [activeFoodToAdd, setActiveFoodToAdd] = useState<FoodItem | null>(null);
-    const [selectedServingId, setSelectedServingId] = useState<number | null>(null);
+    const [activeFoodToAdd, setActiveFoodToAdd] = useState<FoodItem | null>(
+        null,
+    );
+    const [selectedServingId, setSelectedServingId] = useState<number | null>(
+        null,
+    );
     const [itemQuantity, setItemQuantity] = useState(1);
     const [itemCustomGrams, setItemCustomGrams] = useState<string>('');
 
     // Logging recipe form state
     const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
     const [logDate, setLogDate] = useState(todayStr);
-    const [logMealSlot, setLogMealSlot] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('lunch');
+    const [logMealSlot, setLogMealSlot] = useState<
+        'breakfast' | 'lunch' | 'dinner' | 'snack'
+    >('lunch');
     const [logServings, setLogServings] = useState(1);
     const [logAsIndividual, setLogAsIndividual] = useState(true);
     const [isLogging, setIsLogging] = useState(false);
@@ -118,7 +133,9 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
         if (!foodSearchQuery.trim()) return availableFoods.slice(0, 8);
         const q = foodSearchQuery.toLowerCase();
         return availableFoods.filter(
-            (f) => f.name.toLowerCase().includes(q) || (f.brand && f.brand.toLowerCase().includes(q))
+            (f) =>
+                f.name.toLowerCase().includes(q) ||
+                (f.brand && f.brand.toLowerCase().includes(q)),
         );
     }, [availableFoods, foodSearchQuery]);
 
@@ -126,13 +143,18 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
     const handleAddIngredient = () => {
         if (!activeFoodToAdd) return;
 
-        const baseSize = Number(activeFoodToAdd.serving_size) > 0 ? Number(activeFoodToAdd.serving_size) : 100;
+        const baseSize =
+            Number(activeFoodToAdd.serving_size) > 0
+                ? Number(activeFoodToAdd.serving_size)
+                : 100;
         let grams = 100;
 
         if (itemCustomGrams && Number(itemCustomGrams) > 0) {
             grams = Number(itemCustomGrams);
         } else if (selectedServingId && activeFoodToAdd.servings) {
-            const s = activeFoodToAdd.servings.find((serv) => serv.id === selectedServingId);
+            const s = activeFoodToAdd.servings.find(
+                (serv) => serv.id === selectedServingId,
+            );
             if (s) {
                 grams = Number(s.gram_equivalent) * itemQuantity;
             } else {
@@ -143,14 +165,26 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
         }
 
         const factor = grams / baseSize;
-        const calories = Math.round(Number(activeFoodToAdd.calories) * factor * 10) / 10;
-        const protein = Math.round(Number(activeFoodToAdd.protein) * factor * 10) / 10;
-        const carbs = Math.round(Number(activeFoodToAdd.carbs) * factor * 10) / 10;
+        const calories =
+            Math.round(Number(activeFoodToAdd.calories) * factor * 10) / 10;
+        const protein =
+            Math.round(Number(activeFoodToAdd.protein) * factor * 10) / 10;
+        const carbs =
+            Math.round(Number(activeFoodToAdd.carbs) * factor * 10) / 10;
         const fat = Math.round(Number(activeFoodToAdd.fat) * factor * 10) / 10;
-        const fiber = activeFoodToAdd.fiber ? Math.round(Number(activeFoodToAdd.fiber) * factor * 10) / 10 : 0;
-        const sugar = activeFoodToAdd.sugar ? Math.round(Number(activeFoodToAdd.sugar) * factor * 10) / 10 : 0;
-        const saturated_fat = activeFoodToAdd.saturated_fat ? Math.round(Number(activeFoodToAdd.saturated_fat) * factor * 10) / 10 : 0;
-        const sodium = activeFoodToAdd.sodium ? Math.round(Number(activeFoodToAdd.sodium) * factor * 1000) / 1000 : 0;
+        const fiber = activeFoodToAdd.fiber
+            ? Math.round(Number(activeFoodToAdd.fiber) * factor * 10) / 10
+            : 0;
+        const sugar = activeFoodToAdd.sugar
+            ? Math.round(Number(activeFoodToAdd.sugar) * factor * 10) / 10
+            : 0;
+        const saturated_fat = activeFoodToAdd.saturated_fat
+            ? Math.round(Number(activeFoodToAdd.saturated_fat) * factor * 10) /
+              10
+            : 0;
+        const sodium = activeFoodToAdd.sodium
+            ? Math.round(Number(activeFoodToAdd.sodium) * factor * 1000) / 1000
+            : 0;
 
         setSelectedItems((prev) => [
             ...prev,
@@ -238,7 +272,7 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
                     setSelectedItems([]);
                 },
                 onFinish: () => setIsSavingRecipe(false),
-            }
+            },
         );
     };
 
@@ -269,13 +303,14 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
                     setSelectedRecipeToLog(null);
                 },
                 onFinish: () => setIsLogging(false),
-            }
+            },
         );
     };
 
     // Delete recipe
     const handleDeleteRecipe = (recipe: MealRecipeData) => {
-        if (!confirm(`Are you sure you want to delete "${recipe.name}"?`)) return;
+        if (!confirm(`Are you sure you want to delete "${recipe.name}"?`))
+            return;
         router.delete(`/recipes/${recipe.id}`);
     };
 
@@ -284,20 +319,22 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
             <Head title="Recipes & Multi-Ingredient Meals - kcal-log" />
 
             {/* Page Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
+            <div className="flex flex-col items-start justify-between gap-4 border-b border-border pb-4 sm:flex-row sm:items-center">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                    <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
                         <ChefHat className="h-6 w-6 text-emerald-600" />
                         Recipes & Meals
                     </h1>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                        Build composite recipes from multiple foods, view aggregate macros, and log them to your food diary with 1 click.
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                        Build composite recipes from multiple foods, view
+                        aggregate macros, and log them to your food diary with 1
+                        click.
                     </p>
                 </div>
 
                 <Button
                     onClick={() => setCreateModalOpen(true)}
-                    className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                    className="gap-2 bg-emerald-600 text-white shadow-xs hover:bg-emerald-700"
                 >
                     <Plus className="h-4 w-4" />
                     Create Recipe
@@ -305,51 +342,81 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
             </div>
 
             {status && (
-                <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                     {status}
                 </div>
             )}
 
             {/* Recipes Grid */}
             {recipes.length === 0 ? (
-                <div className="rounded-2xl border-2 border-dashed border-border p-12 text-center bg-card/50">
-                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 mb-4">
+                <div className="rounded-2xl border-2 border-dashed border-border bg-card/50 p-12 text-center">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600">
                         <ChefHat className="h-7 w-7" />
                     </div>
-                    <h3 className="text-lg font-semibold text-foreground">No recipes created yet</h3>
-                    <p className="mx-auto max-w-sm text-sm text-muted-foreground mt-1 mb-6">
-                        Combine oats, milk, protein powder, and fruits into a single reusable recipe to log complete meals in seconds.
+                    <h3 className="text-lg font-semibold text-foreground">
+                        No recipes created yet
+                    </h3>
+                    <p className="mx-auto mt-1 mb-6 max-w-sm text-sm text-muted-foreground">
+                        Combine oats, milk, protein powder, and fruits into a
+                        single reusable recipe to log complete meals in seconds.
                     </p>
                     <Button
                         onClick={() => setCreateModalOpen(true)}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+                        className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
                     >
                         <Plus className="h-4 w-4" /> Create Your First Recipe
                     </Button>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {recipes.map((recipe) => {
-                        const servingsCount = Number(recipe.servings) > 0 ? Number(recipe.servings) : 1;
-                        const calsPerServing = Math.round(Number(recipe.total_calories) / servingsCount);
-                        const proPerServing = Math.round((Number(recipe.total_protein) / servingsCount) * 10) / 10;
-                        const carbPerServing = Math.round((Number(recipe.total_carbs) / servingsCount) * 10) / 10;
-                        const fatPerServing = Math.round((Number(recipe.total_fat) / servingsCount) * 10) / 10;
+                        const servingsCount =
+                            Number(recipe.servings) > 0
+                                ? Number(recipe.servings)
+                                : 1;
+                        const calsPerServing = Math.round(
+                            Number(recipe.total_calories) / servingsCount,
+                        );
+                        const proPerServing =
+                            Math.round(
+                                (Number(recipe.total_protein) / servingsCount) *
+                                    10,
+                            ) / 10;
+                        const carbPerServing =
+                            Math.round(
+                                (Number(recipe.total_carbs) / servingsCount) *
+                                    10,
+                            ) / 10;
+                        const fatPerServing =
+                            Math.round(
+                                (Number(recipe.total_fat) / servingsCount) * 10,
+                            ) / 10;
 
                         return (
-                            <Card key={recipe.id} className="border-border/60 shadow-xs flex flex-col justify-between hover:border-border transition-colors">
+                            <Card
+                                key={recipe.id}
+                                className="flex flex-col justify-between border-border/60 shadow-xs transition-colors hover:border-border"
+                            >
                                 <CardHeader className="pb-3">
                                     <div className="flex items-start justify-between gap-2">
                                         <div>
-                                            <CardTitle className="text-lg font-bold text-foreground">{recipe.name}</CardTitle>
+                                            <CardTitle className="text-lg font-bold text-foreground">
+                                                {recipe.name}
+                                            </CardTitle>
                                             {recipe.description && (
-                                                <CardDescription className="text-xs line-clamp-2 mt-1">
+                                                <CardDescription className="mt-1 line-clamp-2 text-xs">
                                                     {recipe.description}
                                                 </CardDescription>
                                             )}
                                         </div>
-                                        <Badge variant="outline" className="shrink-0 text-xs font-medium">
-                                            {recipe.servings} {Number(recipe.servings) === 1 ? 'serving' : 'servings'}
+                                        <Badge
+                                            variant="outline"
+                                            className="shrink-0 text-xs font-medium"
+                                        >
+                                            {recipe.servings}{' '}
+                                            {Number(recipe.servings) === 1
+                                                ? 'serving'
+                                                : 'servings'}
                                         </Badge>
                                     </div>
                                 </CardHeader>
@@ -357,67 +424,108 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
                                 <CardContent className="space-y-4 pb-4">
                                     {/* Per Serving Nutrition Badges */}
                                     <div className="rounded-lg bg-muted/40 p-3">
-                                        <div className="flex items-center justify-between pb-2 border-b border-border/50">
-                                            <span className="text-xs font-semibold text-muted-foreground">Per Serving</span>
-                                            <span className="text-sm font-extrabold text-foreground flex items-center gap-1">
+                                        <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                                            <span className="text-xs font-semibold text-muted-foreground">
+                                                Per Serving
+                                            </span>
+                                            <span className="flex items-center gap-1 text-sm font-extrabold text-foreground">
                                                 <Flame className="h-3.5 w-3.5 text-amber-500" />
                                                 {calsPerServing} kcal
                                             </span>
                                         </div>
-                                        <div className="grid grid-cols-3 gap-2 text-center pt-2">
+                                        <div className="grid grid-cols-3 gap-2 pt-2 text-center">
                                             <div>
-                                                <span className="text-[10px] text-muted-foreground uppercase font-bold">Protein</span>
-                                                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{proPerServing}g</p>
+                                                <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                                    Protein
+                                                </span>
+                                                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                                    {proPerServing}g
+                                                </p>
                                             </div>
                                             <div>
-                                                <span className="text-[10px] text-muted-foreground uppercase font-bold">Carbs</span>
-                                                <p className="text-xs font-bold text-amber-600 dark:text-amber-400">{carbPerServing}g</p>
+                                                <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                                    Carbs
+                                                </span>
+                                                <p className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                                                    {carbPerServing}g
+                                                </p>
                                             </div>
                                             <div>
-                                                <span className="text-[10px] text-muted-foreground uppercase font-bold">Fat</span>
-                                                <p className="text-xs font-bold text-sky-600 dark:text-sky-400">{fatPerServing}g</p>
+                                                <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                                    Fat
+                                                </span>
+                                                <p className="text-xs font-bold text-sky-600 dark:text-sky-400">
+                                                    {fatPerServing}g
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Ingredients List */}
-                                    {recipe.items && recipe.items.length > 0 && (
-                                        <div className="space-y-1.5">
-                                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                                                Ingredients ({recipe.items.length})
-                                            </span>
-                                            <ul className="text-xs space-y-1 text-muted-foreground divide-y divide-border/30">
-                                                {recipe.items.slice(0, 4).map((it, idx) => (
-                                                    <li key={idx} className="flex justify-between py-1">
-                                                        <span className="truncate pr-2 font-medium text-foreground">
-                                                            {it.food?.name || 'Food item'}
-                                                        </span>
-                                                        <span className="shrink-0">{it.grams}g &bull; {Math.round(Number(it.calories))} kcal</span>
-                                                    </li>
-                                                ))}
-                                                {recipe.items.length > 4 && (
-                                                    <li className="text-[11px] text-muted-foreground italic pt-1">
-                                                        +{recipe.items.length - 4} more ingredient(s)
-                                                    </li>
-                                                )}
-                                            </ul>
-                                        </div>
-                                    )}
+                                    {recipe.items &&
+                                        recipe.items.length > 0 && (
+                                            <div className="space-y-1.5">
+                                                <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                                                    Ingredients (
+                                                    {recipe.items.length})
+                                                </span>
+                                                <ul className="space-y-1 divide-y divide-border/30 text-xs text-muted-foreground">
+                                                    {recipe.items
+                                                        .slice(0, 4)
+                                                        .map((it, idx) => (
+                                                            <li
+                                                                key={idx}
+                                                                className="flex justify-between py-1"
+                                                            >
+                                                                <span className="truncate pr-2 font-medium text-foreground">
+                                                                    {it.food
+                                                                        ?.name ||
+                                                                        'Food item'}
+                                                                </span>
+                                                                <span className="shrink-0">
+                                                                    {it.grams}g
+                                                                    &bull;{' '}
+                                                                    {Math.round(
+                                                                        Number(
+                                                                            it.calories,
+                                                                        ),
+                                                                    )}{' '}
+                                                                    kcal
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    {recipe.items.length >
+                                                        4 && (
+                                                        <li className="pt-1 text-[11px] text-muted-foreground italic">
+                                                            +
+                                                            {recipe.items
+                                                                .length -
+                                                                4}{' '}
+                                                            more ingredient(s)
+                                                        </li>
+                                                    )}
+                                                </ul>
+                                            </div>
+                                        )}
                                 </CardContent>
 
-                                <CardFooter className="pt-2 border-t border-border flex items-center justify-between gap-2">
+                                <CardFooter className="flex items-center justify-between gap-2 border-t border-border pt-2">
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() => handleDeleteRecipe(recipe)}
-                                        className="text-muted-foreground hover:text-destructive h-8 px-2"
+                                        onClick={() =>
+                                            handleDeleteRecipe(recipe)
+                                        }
+                                        className="h-8 px-2 text-muted-foreground hover:text-destructive"
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
 
                                     <Button
-                                        onClick={() => handleOpenLogModal(recipe)}
-                                        className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white h-8 px-3 text-xs font-semibold"
+                                        onClick={() =>
+                                            handleOpenLogModal(recipe)
+                                        }
+                                        className="h-8 gap-1.5 bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700"
                                     >
                                         <CalendarPlus className="h-3.5 w-3.5" />
                                         Log to Diary
@@ -431,32 +539,45 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
 
             {/* Create Recipe Dialog */}
             <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
-                <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <ChefHat className="h-5 w-5 text-emerald-600" />
                             Create New Recipe
                         </DialogTitle>
                         <DialogDescription>
-                            Combine multiple food items into a composite recipe with aggregate macro and calorie tracking.
+                            Combine multiple food items into a composite recipe
+                            with aggregate macro and calorie tracking.
                         </DialogDescription>
                     </DialogHeader>
 
                     <form onSubmit={handleSaveRecipe} className="space-y-5">
                         {/* Recipe Metadata */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div className="sm:col-span-2 space-y-1.5">
-                                <Label htmlFor="recipe-name" className="text-xs font-semibold">Recipe Name *</Label>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                            <div className="space-y-1.5 sm:col-span-2">
+                                <Label
+                                    htmlFor="recipe-name"
+                                    className="text-xs font-semibold"
+                                >
+                                    Recipe Name *
+                                </Label>
                                 <Input
                                     id="recipe-name"
                                     required
                                     placeholder="e.g. High-Protein Berry Oatmeal"
                                     value={recipeName}
-                                    onChange={(e) => setRecipeName(e.target.value)}
+                                    onChange={(e) =>
+                                        setRecipeName(e.target.value)
+                                    }
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="recipe-servings" className="text-xs font-semibold">Servings *</Label>
+                                <Label
+                                    htmlFor="recipe-servings"
+                                    className="text-xs font-semibold"
+                                >
+                                    Servings *
+                                </Label>
                                 <Input
                                     id="recipe-servings"
                                     type="number"
@@ -465,51 +586,71 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
                                     max="50"
                                     required
                                     value={recipeServings}
-                                    onChange={(e) => setRecipeServings(Number(e.target.value))}
+                                    onChange={(e) =>
+                                        setRecipeServings(
+                                            Number(e.target.value),
+                                        )
+                                    }
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label htmlFor="recipe-description" className="text-xs font-semibold">Description (optional)</Label>
+                            <Label
+                                htmlFor="recipe-description"
+                                className="text-xs font-semibold"
+                            >
+                                Description (optional)
+                            </Label>
                             <Input
                                 id="recipe-description"
                                 placeholder="e.g. Quick breakfast bowl prepared with whey and chia seeds"
                                 value={recipeDescription}
-                                onChange={(e) => setRecipeDescription(e.target.value)}
+                                onChange={(e) =>
+                                    setRecipeDescription(e.target.value)
+                                }
                             />
                         </div>
 
                         {/* Ingredients Box */}
-                        <div className="space-y-3 rounded-xl border border-border p-4 bg-muted/20">
-                            <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+                            <h4 className="flex items-center gap-2 text-sm font-bold text-foreground">
                                 <Utensils className="h-4 w-4 text-emerald-600" />
                                 Recipe Ingredients
                             </h4>
 
                             {/* Added Ingredients Table */}
                             {selectedItems.length === 0 ? (
-                                <p className="text-xs text-muted-foreground italic py-2 text-center">
-                                    No ingredients added yet. Search and select foods below to add them to this recipe.
+                                <p className="py-2 text-center text-xs text-muted-foreground italic">
+                                    No ingredients added yet. Search and select
+                                    foods below to add them to this recipe.
                                 </p>
                             ) : (
                                 <div className="space-y-2">
                                     {selectedItems.map((item, idx) => (
                                         <div
                                             key={idx}
-                                            className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-card border border-border text-xs"
+                                            className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-2.5 text-xs"
                                         >
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-semibold text-foreground truncate">{item.food.name}</p>
-                                                <p className="text-muted-foreground text-[11px]">
-                                                    {item.grams}g &bull; {item.calories} kcal &bull; P: {item.protein}g | C: {item.carbs}g | F: {item.fat}g
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate font-semibold text-foreground">
+                                                    {item.food.name}
+                                                </p>
+                                                <p className="text-[11px] text-muted-foreground">
+                                                    {item.grams}g &bull;{' '}
+                                                    {item.calories} kcal &bull;
+                                                    P: {item.protein}g | C:{' '}
+                                                    {item.carbs}g | F:{' '}
+                                                    {item.fat}g
                                                 </p>
                                             </div>
                                             <Button
                                                 type="button"
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() => handleRemoveIngredient(idx)}
+                                                onClick={() =>
+                                                    handleRemoveIngredient(idx)
+                                                }
                                                 className="h-7 w-7 text-muted-foreground hover:text-destructive"
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
@@ -520,89 +661,157 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
                             )}
 
                             {/* Add Food Picker */}
-                            <div className="space-y-3 pt-3 border-t border-border">
-                                <Label className="text-xs font-semibold text-foreground">Add An Ingredient</Label>
+                            <div className="space-y-3 border-t border-border pt-3">
+                                <Label className="text-xs font-semibold text-foreground">
+                                    Add An Ingredient
+                                </Label>
 
                                 {!activeFoodToAdd ? (
                                     <div className="space-y-2">
                                         <Input
                                             placeholder="Type food name to search catalog..."
                                             value={foodSearchQuery}
-                                            onChange={(e) => setFoodSearchQuery(e.target.value)}
+                                            onChange={(e) =>
+                                                setFoodSearchQuery(
+                                                    e.target.value,
+                                                )
+                                            }
                                             className="text-xs"
                                         />
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
+                                        <div className="grid max-h-40 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
                                             {filteredFoods.map((f) => (
                                                 <button
                                                     key={f.id}
                                                     type="button"
                                                     onClick={() => {
                                                         setActiveFoodToAdd(f);
-                                                        setSelectedServingId(f.servings?.[0]?.id ?? null);
+                                                        setSelectedServingId(
+                                                            f.servings?.[0]
+                                                                ?.id ?? null,
+                                                        );
                                                         setItemQuantity(1);
                                                         setItemCustomGrams('');
                                                     }}
-                                                    className="flex items-center justify-between p-2 rounded-lg border border-border/70 text-left hover:border-emerald-500 hover:bg-emerald-500/5 transition-all text-xs"
+                                                    className="flex items-center justify-between rounded-lg border border-border/70 p-2 text-left text-xs transition-all hover:border-emerald-500 hover:bg-emerald-500/5"
                                                 >
-                                                    <span className="truncate font-medium">{f.name}</span>
-                                                    <span className="text-[11px] text-muted-foreground shrink-0">{Math.round(Number(f.calories))} kcal</span>
+                                                    <span className="truncate font-medium">
+                                                        {f.name}
+                                                    </span>
+                                                    <span className="shrink-0 text-[11px] text-muted-foreground">
+                                                        {Math.round(
+                                                            Number(f.calories),
+                                                        )}{' '}
+                                                        kcal
+                                                    </span>
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-3">
+                                    <div className="space-y-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs font-bold text-foreground">{activeFoodToAdd.name}</span>
+                                            <span className="text-xs font-bold text-foreground">
+                                                {activeFoodToAdd.name}
+                                            </span>
                                             <Button
                                                 type="button"
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => setActiveFoodToAdd(null)}
+                                                onClick={() =>
+                                                    setActiveFoodToAdd(null)
+                                                }
                                                 className="h-6 w-6 p-0"
                                             >
                                                 <X className="h-3.5 w-3.5" />
                                             </Button>
                                         </div>
 
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                                             {/* Serving Portion Dropdown */}
-                                            {activeFoodToAdd.servings && activeFoodToAdd.servings.length > 0 && (
-                                                <div className="space-y-1">
-                                                    <Label className="text-[11px]">Portion</Label>
-                                                    <select
-                                                        value={selectedServingId ?? ''}
-                                                        onChange={(e) => setSelectedServingId(e.target.value ? Number(e.target.value) : null)}
-                                                        className="w-full text-xs rounded-md border border-input bg-card p-1.5"
-                                                    >
-                                                        {activeFoodToAdd.servings.map((s) => (
-                                                            <option key={s.id} value={s.id}>
-                                                                {s.serving_name} ({s.gram_equivalent}g)
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            )}
+                                            {activeFoodToAdd.servings &&
+                                                activeFoodToAdd.servings
+                                                    .length > 0 && (
+                                                    <div className="space-y-1">
+                                                        <Label className="text-[11px]">
+                                                            Portion
+                                                        </Label>
+                                                        <select
+                                                            value={
+                                                                selectedServingId ??
+                                                                ''
+                                                            }
+                                                            onChange={(e) =>
+                                                                setSelectedServingId(
+                                                                    e.target
+                                                                        .value
+                                                                        ? Number(
+                                                                              e
+                                                                                  .target
+                                                                                  .value,
+                                                                          )
+                                                                        : null,
+                                                                )
+                                                            }
+                                                            className="w-full rounded-md border border-input bg-card p-1.5 text-xs"
+                                                        >
+                                                            {activeFoodToAdd.servings.map(
+                                                                (s) => (
+                                                                    <option
+                                                                        key={
+                                                                            s.id
+                                                                        }
+                                                                        value={
+                                                                            s.id
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            s.serving_name
+                                                                        }{' '}
+                                                                        (
+                                                                        {
+                                                                            s.gram_equivalent
+                                                                        }
+                                                                        g)
+                                                                    </option>
+                                                                ),
+                                                            )}
+                                                        </select>
+                                                    </div>
+                                                )}
 
                                             <div className="space-y-1">
-                                                <Label className="text-[11px]">Multiplier</Label>
+                                                <Label className="text-[11px]">
+                                                    Multiplier
+                                                </Label>
                                                 <Input
                                                     type="number"
                                                     step="0.1"
                                                     min="0.1"
                                                     value={itemQuantity}
-                                                    onChange={(e) => setItemQuantity(Number(e.target.value))}
+                                                    onChange={(e) =>
+                                                        setItemQuantity(
+                                                            Number(
+                                                                e.target.value,
+                                                            ),
+                                                        )
+                                                    }
                                                     className="h-8 text-xs"
                                                 />
                                             </div>
 
                                             <div className="space-y-1">
-                                                <Label className="text-[11px]">Or exact grams</Label>
+                                                <Label className="text-[11px]">
+                                                    Or exact grams
+                                                </Label>
                                                 <Input
                                                     type="number"
                                                     placeholder="e.g. 150"
                                                     value={itemCustomGrams}
-                                                    onChange={(e) => setItemCustomGrams(e.target.value)}
+                                                    onChange={(e) =>
+                                                        setItemCustomGrams(
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                     className="h-8 text-xs"
                                                 />
                                             </div>
@@ -611,7 +820,7 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
                                         <Button
                                             type="button"
                                             onClick={handleAddIngredient}
-                                            className="w-full h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                                            className="h-8 w-full bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
                                         >
                                             Add This Ingredient
                                         </Button>
@@ -622,44 +831,82 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
 
                         {/* Nutrition Summary Bar */}
                         {selectedItems.length > 0 && (
-                            <div className="rounded-xl border border-border p-4 bg-muted/40 space-y-3">
+                            <div className="space-y-3 rounded-xl border border-border bg-muted/40 p-4">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-foreground">Recipe Caloric Summary</span>
+                                    <span className="text-xs font-bold text-foreground">
+                                        Recipe Caloric Summary
+                                    </span>
                                     <span className="text-xs text-muted-foreground">
-                                        Total: <strong>{recipeTotals.totalCalories} kcal</strong> &bull; Per Serving: <strong>{recipeTotals.perServingCalories} kcal</strong>
+                                        Total:{' '}
+                                        <strong>
+                                            {recipeTotals.totalCalories} kcal
+                                        </strong>{' '}
+                                        &bull; Per Serving:{' '}
+                                        <strong>
+                                            {recipeTotals.perServingCalories}{' '}
+                                            kcal
+                                        </strong>
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                                    <div className="rounded-lg bg-card p-2 border border-border/50">
-                                        <span className="text-[10px] text-muted-foreground uppercase font-bold">Protein</span>
-                                        <p className="font-bold text-emerald-600">{recipeTotals.perServingProtein}g</p>
+                                    <div className="rounded-lg border border-border/50 bg-card p-2">
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                            Protein
+                                        </span>
+                                        <p className="font-bold text-emerald-600">
+                                            {recipeTotals.perServingProtein}g
+                                        </p>
                                     </div>
-                                    <div className="rounded-lg bg-card p-2 border border-border/50">
-                                        <span className="text-[10px] text-muted-foreground uppercase font-bold">Carbs</span>
-                                        <p className="font-bold text-amber-600">{recipeTotals.perServingCarbs}g</p>
+                                    <div className="rounded-lg border border-border/50 bg-card p-2">
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                            Carbs
+                                        </span>
+                                        <p className="font-bold text-amber-600">
+                                            {recipeTotals.perServingCarbs}g
+                                        </p>
                                     </div>
-                                    <div className="rounded-lg bg-card p-2 border border-border/50">
-                                        <span className="text-[10px] text-muted-foreground uppercase font-bold">Fat</span>
-                                        <p className="font-bold text-sky-600">{recipeTotals.perServingFat}g</p>
+                                    <div className="rounded-lg border border-border/50 bg-card p-2">
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                            Fat
+                                        </span>
+                                        <p className="font-bold text-sky-600">
+                                            {recipeTotals.perServingFat}g
+                                        </p>
                                     </div>
-                                    <div className="rounded-lg bg-card p-2 border border-border/50">
-                                        <span className="text-[10px] text-muted-foreground uppercase font-bold">Fiber</span>
-                                        <p className="font-bold text-foreground">{recipeTotals.perServingFiber}g</p>
+                                    <div className="rounded-lg border border-border/50 bg-card p-2">
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                            Fiber
+                                        </span>
+                                        <p className="font-bold text-foreground">
+                                            {recipeTotals.perServingFiber}g
+                                        </p>
                                     </div>
                                 </div>
                             </div>
                         )}
 
                         <DialogFooter className="gap-2 pt-2">
-                            <Button type="button" variant="outline" onClick={() => setCreateModalOpen(false)}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setCreateModalOpen(false)}
+                            >
                                 Cancel
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={isSavingRecipe || !recipeName.trim() || selectedItems.length === 0}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                                disabled={
+                                    isSavingRecipe ||
+                                    !recipeName.trim() ||
+                                    selectedItems.length === 0
+                                }
+                                className="bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
                             >
-                                {isSavingRecipe ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Recipe'}
+                                {isSavingRecipe ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    'Save Recipe'
+                                )}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -682,7 +929,12 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
                     {selectedRecipeToLog && (
                         <form onSubmit={handleLogRecipe} className="space-y-4">
                             <div className="space-y-1.5">
-                                <Label htmlFor="log-date" className="text-xs font-semibold">Date</Label>
+                                <Label
+                                    htmlFor="log-date"
+                                    className="text-xs font-semibold"
+                                >
+                                    Date
+                                </Label>
                                 <Input
                                     id="log-date"
                                     type="date"
@@ -693,12 +945,19 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
                             </div>
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="log-meal-slot" className="text-xs font-semibold">Meal Slot</Label>
+                                <Label
+                                    htmlFor="log-meal-slot"
+                                    className="text-xs font-semibold"
+                                >
+                                    Meal Slot
+                                </Label>
                                 <select
                                     id="log-meal-slot"
                                     value={logMealSlot}
-                                    onChange={(e) => setLogMealSlot(e.target.value as any)}
-                                    className="w-full text-sm rounded-md border border-input bg-card p-2"
+                                    onChange={(e) =>
+                                        setLogMealSlot(e.target.value as any)
+                                    }
+                                    className="w-full rounded-md border border-input bg-card p-2 text-sm"
                                 >
                                     <option value="breakfast">Breakfast</option>
                                     <option value="lunch">Lunch</option>
@@ -708,7 +967,12 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
                             </div>
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="log-servings" className="text-xs font-semibold">Servings to Log</Label>
+                                <Label
+                                    htmlFor="log-servings"
+                                    className="text-xs font-semibold"
+                                >
+                                    Servings to Log
+                                </Label>
                                 <Input
                                     id="log-servings"
                                     type="number"
@@ -717,7 +981,9 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
                                     max="10"
                                     required
                                     value={logServings}
-                                    onChange={(e) => setLogServings(Number(e.target.value))}
+                                    onChange={(e) =>
+                                        setLogServings(Number(e.target.value))
+                                    }
                                 />
                             </div>
 
@@ -726,24 +992,38 @@ export default function RecipesIndex({ recipes, availableFoods, status }: Props)
                                     id="log-as-individual"
                                     type="checkbox"
                                     checked={logAsIndividual}
-                                    onChange={(e) => setLogAsIndividual(e.target.checked)}
+                                    onChange={(e) =>
+                                        setLogAsIndividual(e.target.checked)
+                                    }
                                     className="rounded border-border text-emerald-600 focus:ring-emerald-500"
                                 />
-                                <Label htmlFor="log-as-individual" className="text-xs font-normal text-foreground">
-                                    Log as individual ingredients (enables tweaking items in diary)
+                                <Label
+                                    htmlFor="log-as-individual"
+                                    className="text-xs font-normal text-foreground"
+                                >
+                                    Log as individual ingredients (enables
+                                    tweaking items in diary)
                                 </Label>
                             </div>
 
                             <DialogFooter className="gap-2 pt-3">
-                                <Button type="button" variant="outline" onClick={() => setLogModalOpen(false)}>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setLogModalOpen(false)}
+                                >
                                     Cancel
                                 </Button>
                                 <Button
                                     type="submit"
                                     disabled={isLogging}
-                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                                    className="bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
                                 >
-                                    {isLogging ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm Log'}
+                                    {isLogging ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        'Confirm Log'
+                                    )}
                                 </Button>
                             </DialogFooter>
                         </form>

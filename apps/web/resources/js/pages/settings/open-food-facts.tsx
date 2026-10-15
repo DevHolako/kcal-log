@@ -1,14 +1,19 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Database, KeyRound, Link as LinkIcon, ShieldCheck, Unlink } from 'lucide-react';
+import { Database, Link as LinkIcon, ShieldCheck, Unlink } from 'lucide-react';
 import type { FormEventHandler } from 'react';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import SettingsLayout from '@/layouts/settings/layout';
 
 interface Props {
     connection: {
@@ -54,7 +59,7 @@ export default function OpenFoodFactsSettings({ connection, status }: Props) {
                 />
 
                 {status && (
-                    <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                    <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                         {status}
                     </div>
                 )}
@@ -68,22 +73,39 @@ export default function OpenFoodFactsSettings({ connection, status }: Props) {
                                 Privacy-First 3-Tier Fallback
                             </CardTitle>
                         </div>
-                        <CardDescription className="text-xs text-muted-foreground leading-relaxed">
-                            Your password is encrypted at rest using AES-256 and never logged or exposed in client requests. Lookups seamlessly fall back across three tiers:
+                        <CardDescription className="text-xs leading-relaxed text-muted-foreground">
+                            Your password is encrypted at rest using AES-256 and
+                            never logged or exposed in client requests. Lookups
+                            seamlessly fall back across three tiers:
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="pt-0 text-xs text-muted-foreground space-y-1.5">
+                    <CardContent className="space-y-1.5 pt-0 text-xs text-muted-foreground">
                         <div className="flex items-center gap-2">
-                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary font-mono text-[11px] font-bold">1</span>
-                            <span><strong>Authenticated OFF:</strong> Uses your linked personal session</span>
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 font-mono text-[11px] font-bold text-primary">
+                                1
+                            </span>
+                            <span>
+                                <strong>Authenticated OFF:</strong> Uses your
+                                linked personal session
+                            </span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary font-mono text-[11px] font-bold">2</span>
-                            <span><strong>Anonymous OFF:</strong> App fallback with polite User-Agent</span>
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 font-mono text-[11px] font-bold text-primary">
+                                2
+                            </span>
+                            <span>
+                                <strong>Anonymous OFF:</strong> App fallback
+                                with polite User-Agent
+                            </span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary font-mono text-[11px] font-bold">3</span>
-                            <span><strong>Local Cache:</strong> High-speed offline food database</span>
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 font-mono text-[11px] font-bold text-primary">
+                                3
+                            </span>
+                            <span>
+                                <strong>Local Cache:</strong> High-speed offline
+                                food database
+                            </span>
                         </div>
                     </CardContent>
                 </Card>
@@ -94,13 +116,21 @@ export default function OpenFoodFactsSettings({ connection, status }: Props) {
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
-                                        <CardTitle className="text-base font-medium">Account Linked</CardTitle>
-                                        <Badge variant="outline" className="border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10">
+                                        <CardTitle className="text-base font-medium">
+                                            Account Linked
+                                        </CardTitle>
+                                        <Badge
+                                            variant="outline"
+                                            className="border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                        >
                                             Connected
                                         </Badge>
                                     </div>
                                     <CardDescription>
-                                        Logged in as <strong className="text-foreground">{connection.username}</strong>
+                                        Logged in as{' '}
+                                        <strong className="text-foreground">
+                                            {connection.username}
+                                        </strong>
                                     </CardDescription>
                                 </div>
                                 <Database className="h-8 w-8 text-emerald-500/60" />
@@ -109,7 +139,10 @@ export default function OpenFoodFactsSettings({ connection, status }: Props) {
                         <CardContent className="space-y-4">
                             {connection.last_synced_at && (
                                 <p className="text-xs text-muted-foreground">
-                                    Last synchronized: {new Date(connection.last_synced_at).toLocaleString()}
+                                    Last synchronized:{' '}
+                                    {new Date(
+                                        connection.last_synced_at,
+                                    ).toLocaleString()}
                                 </p>
                             )}
 
@@ -132,42 +165,66 @@ export default function OpenFoodFactsSettings({ connection, status }: Props) {
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle className="text-base font-medium">Link Open Food Facts</CardTitle>
+                                    <CardTitle className="text-base font-medium">
+                                        Link Open Food Facts
+                                    </CardTitle>
                                     <CardDescription>
-                                        Enter your Open Food Facts credentials to enable Tier 1 authentication.
+                                        Enter your Open Food Facts credentials
+                                        to enable Tier 1 authentication.
                                     </CardDescription>
                                 </div>
                                 <Badge variant="secondary">Not Connected</Badge>
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <form onSubmit={handleConnect} className="space-y-4">
+                            <form
+                                onSubmit={handleConnect}
+                                className="space-y-4"
+                            >
                                 <div className="grid gap-2">
-                                    <Label htmlFor="off-username">Username</Label>
+                                    <Label htmlFor="off-username">
+                                        Username
+                                    </Label>
                                     <Input
                                         id="off-username"
                                         type="text"
                                         placeholder="e.g. foodlover42"
                                         value={connectForm.data.username}
-                                        onChange={(e) => connectForm.setData('username', e.target.value)}
+                                        onChange={(e) =>
+                                            connectForm.setData(
+                                                'username',
+                                                e.target.value,
+                                            )
+                                        }
                                         required
                                         autoComplete="username"
                                     />
-                                    <InputError message={connectForm.errors.username} />
+                                    <InputError
+                                        message={connectForm.errors.username}
+                                    />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="off-password">Password</Label>
+                                    <Label htmlFor="off-password">
+                                        Password
+                                    </Label>
                                     <Input
                                         id="off-password"
                                         type="password"
                                         placeholder="••••••••••••"
                                         value={connectForm.data.password}
-                                        onChange={(e) => connectForm.setData('password', e.target.value)}
+                                        onChange={(e) =>
+                                            connectForm.setData(
+                                                'password',
+                                                e.target.value,
+                                            )
+                                        }
                                         required
                                         autoComplete="current-password"
                                     />
-                                    <InputError message={connectForm.errors.password} />
+                                    <InputError
+                                        message={connectForm.errors.password}
+                                    />
                                 </div>
 
                                 <div className="flex items-center justify-between pt-2">
@@ -177,16 +234,19 @@ export default function OpenFoodFactsSettings({ connection, status }: Props) {
                                         className="gap-2"
                                     >
                                         <LinkIcon className="h-4 w-4" />
-                                        {connectForm.processing ? 'Verifying...' : 'Connect Open Food Facts'}
+                                        {connectForm.processing
+                                            ? 'Verifying...'
+                                            : 'Connect Open Food Facts'}
                                     </Button>
 
                                     <a
                                         href="https://world.openfoodfacts.org"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
+                                        className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
                                     >
-                                        Need an account? Sign up at openfoodfacts.org
+                                        Need an account? Sign up at
+                                        openfoodfacts.org
                                     </a>
                                 </div>
                             </form>

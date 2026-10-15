@@ -16,7 +16,7 @@
     "test": "pnpm --filter @kcal-log/nutrition test",
     "test:php": "cd apps/web && php artisan test",
     "test:all": "pnpm test && pnpm test:php",
-    "lint": "pnpm --filter @kcal-log/web lint",
+    "lint": "pnpm --filter @kcal-log/web check",
     "check": "pnpm --filter @kcal-log/web check"
   },
   "devDependencies": {

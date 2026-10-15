@@ -1,8 +1,6 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
-    Calendar,
     Download,
-    FileCheck,
     FileCode,
     FileSpreadsheet,
     FileText,
@@ -10,11 +8,17 @@ import {
     Loader2,
     ShieldCheck,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import Heading from '@/components/heading';
+import { useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getEcho } from '@/echo';
@@ -45,7 +49,9 @@ interface Props {
 export default function ReportsIndex({ exports, status }: Props) {
     const { auth } = usePage().props as any;
     const today = new Date().toISOString().split('T')[0];
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0];
 
     useEffect(() => {
         const userId = auth?.user?.id;
@@ -71,7 +77,9 @@ export default function ReportsIndex({ exports, status }: Props) {
     });
 
     const setPreset = (days: number) => {
-        const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split('T')[0];
         form.setData({
             ...form.data,
             date_from: start,
@@ -97,17 +105,20 @@ export default function ReportsIndex({ exports, status }: Props) {
             <Head title="Reports & Data Exports" />
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Reports & Data Exports</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                        Reports & Data Exports
+                    </h1>
                     <p className="text-sm text-muted-foreground">
-                        Generate downloadable PDF summary reports, spreadsheet CSVs, or raw JSON data archives.
+                        Generate downloadable PDF summary reports, spreadsheet
+                        CSVs, or raw JSON data archives.
                     </p>
                 </div>
             </div>
 
             {status && (
-                <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                     {status}
                 </div>
             )}
@@ -121,17 +132,23 @@ export default function ReportsIndex({ exports, status }: Props) {
                             Full Data Ownership & Zero Secret Leaks
                         </CardTitle>
                     </div>
-                    <CardDescription className="text-xs text-muted-foreground leading-relaxed">
-                        In accordance with kcal-log's privacy mandate, your exports contain only your nutrition, body measurements, and diary tracking history. Passwords, auth tokens, and encrypted Open Food Facts credentials are completely excluded.
+                    <CardDescription className="text-xs leading-relaxed text-muted-foreground">
+                        In accordance with kcal-log's privacy mandate, your
+                        exports contain only your nutrition, body measurements,
+                        and diary tracking history. Passwords, auth tokens, and
+                        encrypted Open Food Facts credentials are completely
+                        excluded.
                     </CardDescription>
                 </CardHeader>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 {/* Export Generator Form */}
-                <Card className="lg:col-span-1 border-border/70 h-fit">
+                <Card className="h-fit border-border/70 lg:col-span-1">
                     <CardHeader>
-                        <CardTitle className="text-base font-semibold">Generate Export</CardTitle>
+                        <CardTitle className="text-base font-semibold">
+                            Generate Export
+                        </CardTitle>
                         <CardDescription className="text-xs">
                             Select output format and timeframe.
                         </CardDescription>
@@ -141,15 +158,19 @@ export default function ReportsIndex({ exports, status }: Props) {
                         <CardContent className="space-y-4">
                             {/* Format Selector */}
                             <div className="space-y-2">
-                                <Label className="text-xs font-semibold">Export Format</Label>
+                                <Label className="text-xs font-semibold">
+                                    Export Format
+                                </Label>
                                 <div className="grid grid-cols-3 gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => form.setData('type', 'pdf')}
-                                        className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-lg border text-center transition-colors ${
+                                        onClick={() =>
+                                            form.setData('type', 'pdf')
+                                        }
+                                        className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border p-3 text-center transition-colors ${
                                             form.data.type === 'pdf'
-                                                ? 'border-primary bg-primary/10 text-primary font-bold'
-                                                : 'border-border hover:bg-muted/50 text-muted-foreground'
+                                                ? 'border-primary bg-primary/10 font-bold text-primary'
+                                                : 'border-border text-muted-foreground hover:bg-muted/50'
                                         }`}
                                     >
                                         <FileText className="h-5 w-5 text-rose-500" />
@@ -158,11 +179,13 @@ export default function ReportsIndex({ exports, status }: Props) {
 
                                     <button
                                         type="button"
-                                        onClick={() => form.setData('type', 'csv')}
-                                        className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-lg border text-center transition-colors ${
+                                        onClick={() =>
+                                            form.setData('type', 'csv')
+                                        }
+                                        className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border p-3 text-center transition-colors ${
                                             form.data.type === 'csv'
-                                                ? 'border-primary bg-primary/10 text-primary font-bold'
-                                                : 'border-border hover:bg-muted/50 text-muted-foreground'
+                                                ? 'border-primary bg-primary/10 font-bold text-primary'
+                                                : 'border-border text-muted-foreground hover:bg-muted/50'
                                         }`}
                                     >
                                         <FileSpreadsheet className="h-5 w-5 text-emerald-500" />
@@ -171,11 +194,13 @@ export default function ReportsIndex({ exports, status }: Props) {
 
                                     <button
                                         type="button"
-                                        onClick={() => form.setData('type', 'json')}
-                                        className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-lg border text-center transition-colors ${
+                                        onClick={() =>
+                                            form.setData('type', 'json')
+                                        }
+                                        className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border p-3 text-center transition-colors ${
                                             form.data.type === 'json'
-                                                ? 'border-primary bg-primary/10 text-primary font-bold'
-                                                : 'border-border hover:bg-muted/50 text-muted-foreground'
+                                                ? 'border-primary bg-primary/10 font-bold text-primary'
+                                                : 'border-border text-muted-foreground hover:bg-muted/50'
                                         }`}
                                     >
                                         <FileCode className="h-5 w-5 text-blue-500" />
@@ -186,14 +211,16 @@ export default function ReportsIndex({ exports, status }: Props) {
 
                             {/* Preset Buttons */}
                             <div className="space-y-1.5">
-                                <Label className="text-xs font-semibold">Quick Range</Label>
+                                <Label className="text-xs font-semibold">
+                                    Quick Range
+                                </Label>
                                 <div className="flex gap-1.5">
                                     <Button
                                         type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => setPreset(7)}
-                                        className="text-xs flex-1"
+                                        className="flex-1 text-xs"
                                     >
                                         7 Days
                                     </Button>
@@ -202,7 +229,7 @@ export default function ReportsIndex({ exports, status }: Props) {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => setPreset(30)}
-                                        className="text-xs flex-1"
+                                        className="flex-1 text-xs"
                                     >
                                         30 Days
                                     </Button>
@@ -211,7 +238,7 @@ export default function ReportsIndex({ exports, status }: Props) {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => setPreset(90)}
-                                        className="text-xs flex-1"
+                                        className="flex-1 text-xs"
                                     >
                                         90 Days
                                     </Button>
@@ -221,23 +248,43 @@ export default function ReportsIndex({ exports, status }: Props) {
                             {/* Date Inputs */}
                             <div className="space-y-3 pt-1">
                                 <div className="space-y-1">
-                                    <Label htmlFor="date_from" className="text-xs">Start Date</Label>
+                                    <Label
+                                        htmlFor="date_from"
+                                        className="text-xs"
+                                    >
+                                        Start Date
+                                    </Label>
                                     <Input
                                         id="date_from"
                                         type="date"
                                         value={form.data.date_from}
-                                        onChange={(e) => form.setData('date_from', e.target.value)}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'date_from',
+                                                e.target.value,
+                                            )
+                                        }
                                         required
                                     />
                                 </div>
 
                                 <div className="space-y-1">
-                                    <Label htmlFor="date_to" className="text-xs">End Date</Label>
+                                    <Label
+                                        htmlFor="date_to"
+                                        className="text-xs"
+                                    >
+                                        End Date
+                                    </Label>
                                     <Input
                                         id="date_to"
                                         type="date"
                                         value={form.data.date_to}
-                                        onChange={(e) => form.setData('date_to', e.target.value)}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'date_to',
+                                                e.target.value,
+                                            )
+                                        }
                                         required
                                     />
                                 </div>
@@ -258,7 +305,8 @@ export default function ReportsIndex({ exports, status }: Props) {
                                 ) : (
                                     <>
                                         <Download className="h-4 w-4" />
-                                        Generate {form.data.type.toUpperCase()} Export
+                                        Generate {form.data.type.toUpperCase()}{' '}
+                                        Export
                                     </>
                                 )}
                             </Button>
@@ -267,13 +315,15 @@ export default function ReportsIndex({ exports, status }: Props) {
                 </Card>
 
                 {/* Export History Table */}
-                <Card className="lg:col-span-2 border-border/70">
-                    <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-border/40">
+                <Card className="border-border/70 lg:col-span-2">
+                    <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 pb-3">
                         <div className="flex items-center gap-2">
                             <History className="h-4 w-4 text-primary" />
-                            <CardTitle className="text-base font-semibold">Generated Files</CardTitle>
+                            <CardTitle className="text-base font-semibold">
+                                Generated Files
+                            </CardTitle>
                         </div>
-                        <Badge variant="outline" className="text-xs font-mono">
+                        <Badge variant="outline" className="font-mono text-xs">
                             {exports.total} file{exports.total === 1 ? '' : 's'}
                         </Badge>
                     </CardHeader>
@@ -281,44 +331,71 @@ export default function ReportsIndex({ exports, status }: Props) {
                     <CardContent className="p-0">
                         {exports.data.length === 0 ? (
                             <div className="p-8 text-center text-xs text-muted-foreground">
-                                No exports generated yet. Select a format and date range on the left to create your first report.
+                                No exports generated yet. Select a format and
+                                date range on the left to create your first
+                                report.
                             </div>
                         ) : (
                             <div className="divide-y divide-border/40">
                                 {exports.data.map((item) => (
                                     <div
                                         key={item.id}
-                                        className="flex items-center justify-between p-4 hover:bg-muted/20 transition-colors"
+                                        className="flex items-center justify-between p-4 transition-colors hover:bg-muted/20"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 rounded-lg bg-muted border border-border">
+                                            <div className="rounded-lg border border-border bg-muted p-2">
                                                 {typeIcons[item.type]}
                                             </div>
 
                                             <div className="space-y-0.5">
-                                                <div className="text-sm font-semibold flex items-center gap-2">
-                                                    <span>{item.type.toUpperCase()} Report</span>
-                                                    {item.status === 'completed' ? (
-                                                        <Badge variant="outline" className="text-[10px] border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10">
+                                                <div className="flex items-center gap-2 text-sm font-semibold">
+                                                    <span>
+                                                        {item.type.toUpperCase()}{' '}
+                                                        Report
+                                                    </span>
+                                                    {item.status ===
+                                                    'completed' ? (
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="border-emerald-500/40 bg-emerald-500/10 text-[10px] text-emerald-600 dark:text-emerald-400"
+                                                        >
                                                             Ready
                                                         </Badge>
-                                                    ) : item.status === 'processing' ? (
-                                                        <Badge variant="outline" className="text-[10px] border-blue-500/40 text-blue-600 dark:text-blue-400 bg-blue-500/10">
+                                                    ) : item.status ===
+                                                      'processing' ? (
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="border-blue-500/40 bg-blue-500/10 text-[10px] text-blue-600 dark:text-blue-400"
+                                                        >
                                                             Processing
                                                         </Badge>
-                                                    ) : item.status === 'pending' ? (
-                                                        <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10">
+                                                    ) : item.status ===
+                                                      'pending' ? (
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="border-amber-500/40 bg-amber-500/10 text-[10px] text-amber-600 dark:text-amber-400"
+                                                        >
                                                             Queued
                                                         </Badge>
                                                     ) : (
-                                                        <Badge variant="destructive" className="text-[10px]">
+                                                        <Badge
+                                                            variant="destructive"
+                                                            className="text-[10px]"
+                                                        >
                                                             Failed
                                                         </Badge>
                                                     )}
                                                 </div>
 
                                                 <div className="text-xs text-muted-foreground">
-                                                    Period: {formatDate(item.date_from)} to {formatDate(item.date_to)} &bull; Created {formatDate(item.created_at)}
+                                                    Period:{' '}
+                                                    {formatDate(item.date_from)}{' '}
+                                                    to{' '}
+                                                    {formatDate(item.date_to)}{' '}
+                                                    &bull; Created{' '}
+                                                    {formatDate(
+                                                        item.created_at,
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -326,7 +403,7 @@ export default function ReportsIndex({ exports, status }: Props) {
                                         {item.status === 'completed' && (
                                             <a
                                                 href={`/reports/exports/${item.id}/download`}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                                                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                                             >
                                                 <Download className="h-3.5 w-3.5" />
                                                 Download
@@ -334,13 +411,13 @@ export default function ReportsIndex({ exports, status }: Props) {
                                         )}
                                     </div>
                                 ))}
-                             </div>
-                         )}
-                     </CardContent>
-                 </Card>
-             </div>
-         </div>
-     );
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
 }
 
 ReportsIndex.layout = {
