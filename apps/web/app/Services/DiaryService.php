@@ -117,6 +117,57 @@ class DiaryService
     }
 
     /**
+     * Get 7-day intake history ending on the given date.
+     *
+     * @return array<int, array{date: string, day: string, calories: float, target: float, protein: float, carbs: float, fat: float}>
+     */
+    public function getWeeklyCalorieHistory(User $user, string $endDate): array
+    {
+        $end = \Illuminate\Support\Carbon::parse($endDate);
+        $start = (clone $end)->subDays(6);
+
+        /** @var TargetProfile|null $target */
+        $target = TargetProfile::where('user_id', $user->id)
+            ->where('is_active', true)
+            ->latest('id')
+            ->first();
+
+        $targetCalories = $target ? (float) $target->calories : 2000.0;
+
+        /** @var Collection<int, DiaryEntry> $entries */
+        $entries = DiaryEntry::where('user_id', $user->id)
+            ->whereBetween('date', [$start->format('Y-m-d'), $end->format('Y-m-d')])
+            ->get();
+
+        $history = [];
+        for ($i = 0; $i < 7; $i++) {
+            $curr = (clone $start)->addDays($i);
+            $currDate = $curr->format('Y-m-d');
+            $dayLabel = $curr->format('D');
+
+            $dayEntries = $entries->filter(function (DiaryEntry $entry) use ($currDate) {
+                $entryDate = $entry->date instanceof \Illuminate\Support\Carbon
+                    ? $entry->date->format('Y-m-d')
+                    : substr((string) $entry->date, 0, 10);
+
+                return $entryDate === $currDate;
+            });
+
+            $history[] = [
+                'date' => $currDate,
+                'day' => $dayLabel,
+                'calories' => round((float) $dayEntries->sum('calories'), 0),
+                'target' => round($targetCalories, 0),
+                'protein' => round((float) $dayEntries->sum('protein'), 1),
+                'carbs' => round((float) $dayEntries->sum('carbs'), 1),
+                'fat' => round((float) $dayEntries->sum('fat'), 1),
+            ];
+        }
+
+        return $history;
+    }
+
+    /**
      * Log a food portion to a meal slot.
      *
      * @param  array<string, mixed>  $data

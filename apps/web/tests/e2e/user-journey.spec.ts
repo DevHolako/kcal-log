@@ -98,15 +98,31 @@ test.describe('End-to-End User Experience', () => {
         await expect(page.locator('body')).not.toHaveText(
             /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
         );
-        // UX Assertion: Concentric macro rings SVG region is rendered
+        // UX Assertion: Macro visualizer (Donut & Concentric Rings switcher) is rendered
+        await expect(
+            page.getByRole('region', { name: /Daily Nutrition/i }),
+        ).toBeVisible();
+
+        // Test switching to concentric rings view and back
+        await page.getByRole('button', { name: /concentric rings/i }).click();
         await expect(
             page.getByRole('region', { name: /Daily Nutrition Rings/i }),
         ).toBeVisible();
-        // UX Assertion: Language switcher and Theme toggle buttons are present
+        await page.getByRole('button', { name: /donut chart/i }).click();
+        await expect(
+            page.getByRole('region', { name: /Daily Nutrition Donut/i }),
+        ).toBeVisible();
+
+        // UX Assertion: Theme palette selector, Language switcher and Theme toggle buttons are present
+        await expect(
+            page.getByRole('button', { name: /theme palette/i }),
+        ).toBeVisible();
         await expect(
             page.getByRole('button', { name: /change language/i }),
         ).toBeVisible();
-        const themeToggle = page.getByRole('button', { name: /switch to dark mode/i });
+        const themeToggle = page.getByRole('button', {
+            name: /switch to dark mode/i,
+        });
         await expect(themeToggle).toBeVisible();
         await page.screenshot({
             path: 'test-results/screenshots/03-dashboard-initial.png',
@@ -118,8 +134,35 @@ test.describe('End-to-End User Experience', () => {
         await page.screenshot({
             path: 'test-results/screenshots/03b-dashboard-dark.png',
         });
-        await page.getByRole('button', { name: /switch to light mode/i }).click();
+        await page
+            .getByRole('button', { name: /switch to light mode/i })
+            .click();
         await expect(page.locator('html')).not.toHaveClass(/dark/);
+
+        // Screenshot 7-Day Intake Bar Chart
+        const barChart = page.locator('text=7-Day Energy Intake');
+        await expect(barChart).toBeVisible();
+        await barChart.scrollIntoViewIfNeeded();
+        await page.evaluate(() => window.scrollBy(0, 300));
+        await page.waitForTimeout(300);
+        await page.screenshot({
+            path: 'test-results/screenshots/03c-dashboard-7day-chart.png',
+        });
+
+        // Test Palette Selector modal and capture screenshot
+        const paletteBtn = page.getByRole('button', { name: /theme palette/i });
+        await paletteBtn.click();
+        await expect(
+            page.getByRole('dialog', { name: /choose theme palette/i }),
+        ).toBeVisible();
+        await page.waitForTimeout(300);
+        await page.screenshot({
+            path: 'test-results/screenshots/03d-palette-selector-modal.png',
+        });
+        // Select 'Sunset Coral' preset to test switching palette dynamically
+        await page.getByRole('button', { name: /sunset coral/i }).click();
+        // Close dialog
+        await page.keyboard.press('Escape');
 
         // 4. Quick Add Calories to Breakfast
         const breakfastQuickAdd = page

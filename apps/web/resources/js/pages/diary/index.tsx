@@ -16,6 +16,10 @@ import {
 import { useEffect, useState } from 'react';
 import BarcodeScannerModal from '@/components/barcode-scanner-modal';
 import ConcentricMacroRings from '@/components/concentric-macro-rings';
+import MacroDonutChart from '@/components/macro-donut-chart';
+import WeeklyIntakeBarChart, {
+    type DailyIntakeItem,
+} from '@/components/weekly-intake-bar-chart';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,6 +91,7 @@ interface Props {
             snack: { entries: DiaryEntryData[]; calories: number };
         };
     };
+    weeklyHistory?: DailyIntakeItem[];
     selectedDate: string;
     recentFoods: FoodItem[];
     status?: string;
@@ -94,6 +99,7 @@ interface Props {
 
 export default function DiaryIndex({
     diary,
+    weeklyHistory,
     selectedDate,
     recentFoods,
     status,
@@ -138,6 +144,9 @@ export default function DiaryIndex({
     // Barcode scanner & Micronutrient Dialog state
     const [scannerOpen, setScannerOpen] = useState(false);
     const [microModalOpen, setMicroModalOpen] = useState(false);
+    const [visualizerMode, setVisualizerMode] = useState<'donut' | 'rings'>(
+        'donut',
+    );
 
     const addFoodForm = useForm({
         food_id: 0,
@@ -356,38 +365,97 @@ export default function DiaryIndex({
             </div>
 
             {status && (
-                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm font-semibold text-emerald-700 shadow-2xs dark:text-emerald-300">
+                <div className="rounded-xl border border-primary/30 bg-primary/10 p-3 text-sm font-semibold text-primary shadow-2xs">
                     {status}
                 </div>
             )}
 
-            {/* Daily Nutrition Summary Card with Concentric Rings */}
+            {/* Daily Nutrition Summary Card with Donut & Concentric Rings Views */}
             <Card className="relative overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs">
-                <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-96 -translate-x-1/2 rounded-full bg-emerald-500/[0.08] blur-3xl dark:bg-emerald-500/[0.12]" />
-                <CardContent className="relative space-y-6 p-5">
-                    <ConcentricMacroRings
-                        calories={{
-                            consumed: summary.total_calories,
-                            target: summary.target_calories,
-                            remaining: summary.remaining_calories,
-                            unit: 'kcal',
-                        }}
-                        protein={{
-                            consumed: summary.total_protein,
-                            target: summary.target_protein,
-                            unit: 'g',
-                        }}
-                        carbs={{
-                            consumed: summary.total_carbs,
-                            target: summary.target_carbs,
-                            unit: 'g',
-                        }}
-                        fat={{
-                            consumed: summary.total_fat,
-                            target: summary.target_fat,
-                            unit: 'g',
-                        }}
-                    />
+                <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-96 -translate-x-1/2 rounded-full bg-primary/[0.08] blur-3xl dark:bg-primary/[0.12]" />
+                <CardContent className="relative space-y-5 p-5">
+                    {/* Header View Switcher */}
+                    <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                        <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                            Macronutrient Breakdown
+                        </span>
+                        <div className="flex items-center rounded-lg bg-muted/60 p-0.5 text-xs font-semibold">
+                            <button
+                                type="button"
+                                onClick={() => setVisualizerMode('donut')}
+                                className={cn(
+                                    'rounded-md px-2.5 py-1 transition-colors',
+                                    visualizerMode === 'donut'
+                                        ? 'bg-card text-foreground shadow-2xs'
+                                        : 'text-muted-foreground hover:text-foreground',
+                                )}
+                            >
+                                Donut Chart
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setVisualizerMode('rings')}
+                                className={cn(
+                                    'rounded-md px-2.5 py-1 transition-colors',
+                                    visualizerMode === 'rings'
+                                        ? 'bg-card text-foreground shadow-2xs'
+                                        : 'text-muted-foreground hover:text-foreground',
+                                )}
+                            >
+                                Concentric Rings
+                            </button>
+                        </div>
+                    </div>
+
+                    {visualizerMode === 'donut' ? (
+                        <MacroDonutChart
+                            calories={{
+                                consumed: summary.total_calories,
+                                target: summary.target_calories,
+                                remaining: summary.remaining_calories,
+                                unit: 'kcal',
+                            }}
+                            protein={{
+                                consumed: summary.total_protein,
+                                target: summary.target_protein,
+                                unit: 'g',
+                            }}
+                            carbs={{
+                                consumed: summary.total_carbs,
+                                target: summary.target_carbs,
+                                unit: 'g',
+                            }}
+                            fat={{
+                                consumed: summary.total_fat,
+                                target: summary.target_fat,
+                                unit: 'g',
+                            }}
+                        />
+                    ) : (
+                        <ConcentricMacroRings
+                            calories={{
+                                consumed: summary.total_calories,
+                                target: summary.target_calories,
+                                remaining: summary.remaining_calories,
+                                unit: 'kcal',
+                            }}
+                            protein={{
+                                consumed: summary.total_protein,
+                                target: summary.target_protein,
+                                unit: 'g',
+                            }}
+                            carbs={{
+                                consumed: summary.total_carbs,
+                                target: summary.target_carbs,
+                                unit: 'g',
+                            }}
+                            fat={{
+                                consumed: summary.total_fat,
+                                target: summary.target_fat,
+                                unit: 'g',
+                            }}
+                        />
+                    )}
 
                     {/* Micronutrient Summary Quick-Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/50 pt-3 text-xs text-muted-foreground">
@@ -428,14 +496,23 @@ export default function DiaryIndex({
                             variant="ghost"
                             size="sm"
                             onClick={() => setMicroModalOpen(true)}
-                            className="h-7 gap-1.5 px-2 text-xs font-semibold text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400"
+                            className="h-7 gap-1.5 px-2 text-xs font-semibold text-primary hover:bg-primary/10 hover:text-primary dark:text-primary"
                         >
-                            <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
+                            <Sparkles className="h-3.5 w-3.5 text-primary" />
                             Detailed Micronutrients
                         </Button>
                     </div>
                 </CardContent>
             </Card>
+
+            {/* 7-Day Energy Intake Bar Chart */}
+            {weeklyHistory && weeklyHistory.length > 0 && (
+                <WeeklyIntakeBarChart
+                    data={weeklyHistory}
+                    selectedDate={selectedDate}
+                    onSelectDate={handleSelectDate}
+                />
+            )}
 
             {/* Meal Slots Section */}
             <div className="space-y-4">

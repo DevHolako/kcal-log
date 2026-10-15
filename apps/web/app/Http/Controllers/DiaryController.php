@@ -49,6 +49,7 @@ class DiaryController extends Controller
         $date = (string) $request->query('date', now()->format('Y-m-d'));
 
         $diary = $this->diaryService->getDayDiary($user, $date);
+        $weeklyHistory = $this->diaryService->getWeeklyCalorieHistory($user, $date);
 
         $recentFoods = Food::availableTo($user->id)
             ->with('servings')
@@ -58,6 +59,7 @@ class DiaryController extends Controller
 
         return Inertia::render('diary/index', [
             'diary' => $diary,
+            'weeklyHistory' => $weeklyHistory,
             'selectedDate' => $date,
             'recentFoods' => $recentFoods,
         ]);
