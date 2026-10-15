@@ -18,6 +18,7 @@ class ExportController extends Controller
 {
     public function __construct(
         protected CreateExportAction $createExportAction,
+        protected \App\Services\ExportService $exportService,
     ) {}
 
     /**
@@ -32,8 +33,11 @@ class ExportController extends Controller
             ->latest()
             ->paginate(15);
 
+        $userStats = $this->exportService->getUserStats($user, 30);
+
         return Inertia::render('reports/index', [
             'exports' => $exports,
+            'userStats' => $userStats,
         ]);
     }
 

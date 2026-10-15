@@ -1,12 +1,18 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
+    Activity,
+    CalendarCheck,
     Download,
+    Droplets,
     FileCode,
     FileSpreadsheet,
     FileText,
+    Flame,
     History,
     Loader2,
+    Scale,
     ShieldCheck,
+    Target,
 } from 'lucide-react';
 import { useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +29,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getEcho } from '@/echo';
 import { formatDate } from '@/lib/utils';
+
+export interface UserStats {
+    periodDays: number;
+    totalDaysLogged: number;
+    loggingRate: number;
+    avgCalories: number;
+    targetCalories: number;
+    calorieVariance: number;
+    adherenceRate: number;
+    avgProtein: number;
+    avgCarbs: number;
+    avgFat: number;
+    proteinPct: number;
+    carbsPct: number;
+    fatPct: number;
+    weightDelta: number | null;
+    avgWater: number;
+}
 
 interface ReportExportItem {
     id: number;
@@ -43,10 +67,11 @@ interface Props {
         last_page: number;
         total: number;
     };
+    userStats?: UserStats;
     status?: string;
 }
 
-export default function ReportsIndex({ exports, status }: Props) {
+export default function ReportsIndex({ exports, userStats, status }: Props) {
     const { auth } = usePage().props as any;
     const today = new Date().toISOString().split('T')[0];
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
@@ -120,6 +145,138 @@ export default function ReportsIndex({ exports, status }: Props) {
             {status && (
                 <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                     {status}
+                </div>
+            )}
+
+            {/* Executive Summary 30-Day Mini-Dashboard */}
+            {userStats && (
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-sm font-semibold tracking-wide text-foreground uppercase">
+                            Executive 30-Day Nutrition Summary
+                        </h2>
+                        <span className="text-xs text-muted-foreground">
+                            {userStats.totalDaysLogged} of {userStats.periodDays} days recorded ({userStats.loggingRate}%)
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {/* Card 1: Caloric Average */}
+                        <Card className="border-border/60 bg-card/60 backdrop-blur-sm">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <CardTitle className="text-xs font-medium text-muted-foreground">
+                                    Avg Daily Calories
+                                </CardTitle>
+                                <Flame className="h-4 w-4 text-emerald-500" />
+                            </CardHeader>
+                            <CardContent className="space-y-1">
+                                <div className="text-2xl font-bold tracking-tight text-foreground">
+                                    {userStats.avgCalories}{' '}
+                                    <span className="text-xs font-normal text-muted-foreground">
+                                        kcal
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <span>Target: {userStats.targetCalories} kcal</span>
+                                    <span
+                                        className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                                            Math.abs(userStats.calorieVariance) <= 150
+                                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                : userStats.calorieVariance > 150
+                                                  ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                        }`}
+                                    >
+                                        {userStats.calorieVariance > 0 ? '+' : ''}
+                                        {userStats.calorieVariance} kcal
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Card 2: Adherence Rate */}
+                        <Card className="border-border/60 bg-card/60 backdrop-blur-sm">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <CardTitle className="text-xs font-medium text-muted-foreground">
+                                    Target Adherence
+                                </CardTitle>
+                                <CalendarCheck className="h-4 w-4 text-blue-500" />
+                            </CardHeader>
+                            <CardContent className="space-y-1">
+                                <div className="text-2xl font-bold tracking-tight text-foreground">
+                                    {userStats.adherenceRate}%
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    Within ±10% of caloric target on logged days
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        {/* Card 3: Macro Profile */}
+                        <Card className="border-border/60 bg-card/60 backdrop-blur-sm">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <CardTitle className="text-xs font-medium text-muted-foreground">
+                                    Avg Macronutrients
+                                </CardTitle>
+                                <Activity className="h-4 w-4 text-purple-500" />
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
+                                    <div
+                                        style={{ width: `${userStats.proteinPct}%` }}
+                                        className="bg-blue-600 dark:bg-blue-500"
+                                        title={`Protein: ${userStats.proteinPct}%`}
+                                    />
+                                    <div
+                                        style={{ width: `${userStats.carbsPct}%` }}
+                                        className="bg-amber-500"
+                                        title={`Carbs: ${userStats.carbsPct}%`}
+                                    />
+                                    <div
+                                        style={{ width: `${userStats.fatPct}%` }}
+                                        className="bg-rose-500"
+                                        title={`Fat: ${userStats.fatPct}%`}
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between text-[11px]">
+                                    <span className="font-semibold text-blue-600 dark:text-blue-400">
+                                        P: {userStats.avgProtein}g ({userStats.proteinPct}%)
+                                    </span>
+                                    <span className="font-semibold text-amber-600 dark:text-amber-400">
+                                        C: {userStats.avgCarbs}g ({userStats.carbsPct}%)
+                                    </span>
+                                    <span className="font-semibold text-rose-600 dark:text-rose-400">
+                                        F: {userStats.avgFat}g ({userStats.fatPct}%)
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Card 4: Weight & Hydration */}
+                        <Card className="border-border/60 bg-card/60 backdrop-blur-sm">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <CardTitle className="text-xs font-medium text-muted-foreground">
+                                    Trend & Hydration
+                                </CardTitle>
+                                <Scale className="h-4 w-4 text-indigo-500" />
+                            </CardHeader>
+                            <CardContent className="space-y-1">
+                                <div className="text-2xl font-bold tracking-tight text-foreground">
+                                    {userStats.weightDelta !== null
+                                        ? `${userStats.weightDelta > 0 ? '+' : ''}${userStats.weightDelta} kg`
+                                        : 'Baseline'}
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <Droplets className="h-3 w-3 text-cyan-500" />
+                                    <span>
+                                        {userStats.avgWater > 0
+                                            ? `${userStats.avgWater} ml/day water`
+                                            : 'No hydration logged'}
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             )}
 

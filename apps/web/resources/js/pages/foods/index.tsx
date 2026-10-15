@@ -4,7 +4,9 @@ import {
     Apple,
     Barcode,
     Calculator,
+    CalendarPlus,
     Camera,
+    Check,
     Database,
     Globe,
     Plus,
@@ -53,6 +55,7 @@ export interface FoodItem {
     name: string;
     brand?: string | null;
     barcode?: string | null;
+    image_url?: string | null;
     serving_size: number | string;
     serving_unit: string;
     calories: number | string;
@@ -105,6 +108,13 @@ export default function FoodsIndex({
     const [selectedServing, setSelectedServing] =
         useState<FoodServingData | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
+    const [logMealSlot, setLogMealSlot] = useState<
+        'breakfast' | 'lunch' | 'dinner' | 'snack'
+    >('breakfast');
+    const [logDate, setLogDate] = useState<string>(
+        new Date().toISOString().split('T')[0],
+    );
+    const [isLoggingToDiary, setIsLoggingToDiary] = useState(false);
 
     // Create Custom Food Dialog State
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -179,6 +189,30 @@ export default function FoodsIndex({
         if (confirm('Are you sure you want to delete this custom food item?')) {
             router.delete(`/foods/custom/${foodId}`, { preserveScroll: true });
         }
+    };
+
+    const handleLogToDiary = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!calculatingFood) return;
+
+        setIsLoggingToDiary(true);
+        router.post(
+            '/diary',
+            {
+                food_id: calculatingFood.id,
+                food_serving_id: selectedServing?.id ?? null,
+                date: logDate,
+                meal_slot: logMealSlot,
+                quantity: quantity,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setCalculatingFood(null);
+                },
+                onFinish: () => setIsLoggingToDiary(false),
+            },
+        );
     };
 
     // Scaled portion calculations
@@ -446,51 +480,74 @@ export default function FoodsIndex({
                             className="flex flex-col justify-between transition-colors hover:border-primary/50"
                         >
                             <CardHeader className="pb-2">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="space-y-1">
-                                        <CardTitle className="line-clamp-1 text-base leading-tight font-semibold">
-                                            {food.name}
-                                        </CardTitle>
+                                <div className="flex items-start gap-3">
+                                    <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-muted/30">
+                                        {food.image_url ? (
+                                            <img
+                                                src={food.image_url}
+                                                alt={food.name}
+                                                className="h-full w-full object-contain p-1"
+                                                loading="lazy"
+                                                onError={(e) => {
+                                                    (
+                                                        e.currentTarget as HTMLElement
+                                                    ).style.display = 'none';
+                                                }}
+                                            />
+                                        ) : (
+                                            <Utensils className="h-6 w-6 text-muted-foreground/40" />
+                                        )}
+                                    </div>
+
+                                    <div className="min-w-0 flex-1 space-y-1">
+                                        <div className="flex items-start justify-between gap-1">
+                                            <CardTitle
+                                                className="line-clamp-1 text-base leading-tight font-semibold"
+                                                title={food.name}
+                                            >
+                                                {food.name}
+                                            </CardTitle>
+
+                                            {food.is_custom ? (
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="shrink-0 border-purple-500/30 bg-purple-500/10 text-[10px] text-purple-600 dark:text-purple-400"
+                                                >
+                                                    Custom
+                                                </Badge>
+                                            ) : food.nutri_score ? (
+                                                <Badge
+                                                    className={`shrink-0 text-[10px] font-bold uppercase ${
+                                                        food.nutri_score.toLowerCase() ===
+                                                        'a'
+                                                            ? 'bg-emerald-600 text-white'
+                                                            : food.nutri_score.toLowerCase() ===
+                                                                'b'
+                                                              ? 'bg-green-500 text-white'
+                                                              : food.nutri_score.toLowerCase() ===
+                                                                  'c'
+                                                                ? 'bg-yellow-500 text-black'
+                                                                : food.nutri_score.toLowerCase() ===
+                                                                    'd'
+                                                                  ? 'bg-orange-500 text-white'
+                                                                  : 'bg-red-600 text-white'
+                                                    }`}
+                                                >
+                                                    Nutri {food.nutri_score}
+                                                </Badge>
+                                            ) : (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="shrink-0 text-[10px]"
+                                                >
+                                                    OFF
+                                                </Badge>
+                                            )}
+                                        </div>
                                         <CardDescription className="line-clamp-1 text-xs">
                                             {food.brand || 'Generic / Homemade'}
                                         </CardDescription>
                                     </div>
-
-                                    {food.is_custom ? (
-                                        <Badge
-                                            variant="secondary"
-                                            className="border-purple-500/30 bg-purple-500/10 text-[10px] text-purple-600 dark:text-purple-400"
-                                        >
-                                            Custom
-                                        </Badge>
-                                    ) : food.nutri_score ? (
-                                        <Badge
-                                            className={`text-[11px] font-bold uppercase ${
-                                                food.nutri_score.toLowerCase() ===
-                                                'a'
-                                                    ? 'bg-emerald-600 text-white'
-                                                    : food.nutri_score.toLowerCase() ===
-                                                        'b'
-                                                      ? 'bg-green-500 text-white'
-                                                      : food.nutri_score.toLowerCase() ===
-                                                          'c'
-                                                        ? 'bg-yellow-500 text-black'
-                                                        : food.nutri_score.toLowerCase() ===
-                                                            'd'
-                                                          ? 'bg-orange-500 text-white'
-                                                          : 'bg-red-600 text-white'
-                                            }`}
-                                        >
-                                            Nutri {food.nutri_score}
-                                        </Badge>
-                                    ) : (
-                                        <Badge
-                                            variant="outline"
-                                            className="text-[10px]"
-                                        >
-                                            OFF
-                                        </Badge>
-                                    )}
                                 </div>
                             </CardHeader>
 
@@ -509,7 +566,7 @@ export default function FoodsIndex({
                                         <div className="text-[11px] font-medium text-muted-foreground uppercase">
                                             Protein
                                         </div>
-                                        <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                                        <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
                                             {Number(food.protein)}g
                                         </div>
                                     </div>
@@ -517,7 +574,7 @@ export default function FoodsIndex({
                                         <div className="text-[11px] font-medium text-muted-foreground uppercase">
                                             Carbs
                                         </div>
-                                        <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                                        <div className="text-sm font-semibold text-amber-600 dark:text-amber-400">
                                             {Number(food.carbs)}g
                                         </div>
                                     </div>
@@ -525,7 +582,7 @@ export default function FoodsIndex({
                                         <div className="text-[11px] font-medium text-muted-foreground uppercase">
                                             Fat
                                         </div>
-                                        <div className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                                        <div className="text-sm font-semibold text-rose-600 dark:text-rose-400">
                                             {Number(food.fat)}g
                                         </div>
                                     </div>
@@ -557,7 +614,7 @@ export default function FoodsIndex({
                                     className="flex-1 gap-1.5 text-xs"
                                 >
                                     <Calculator className="h-3.5 w-3.5 text-primary" />
-                                    Portion Calculator
+                                    Portion & Log
                                 </Button>
 
                                 {food.is_custom && (
@@ -696,7 +753,7 @@ export default function FoodsIndex({
                                                 <div className="text-[11px] font-medium text-muted-foreground">
                                                     Protein
                                                 </div>
-                                                <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                                                <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
                                                     {scaledNutrition.protein}g
                                                 </div>
                                             </div>
@@ -704,7 +761,7 @@ export default function FoodsIndex({
                                                 <div className="text-[11px] font-medium text-muted-foreground">
                                                     Carbs
                                                 </div>
-                                                <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                                                <div className="text-sm font-bold text-amber-600 dark:text-amber-400">
                                                     {scaledNutrition.carbs}g
                                                 </div>
                                             </div>
@@ -712,7 +769,7 @@ export default function FoodsIndex({
                                                 <div className="text-[11px] font-medium text-muted-foreground">
                                                     Fat
                                                 </div>
-                                                <div className="text-sm font-bold text-amber-600 dark:text-amber-400">
+                                                <div className="text-sm font-bold text-rose-600 dark:text-rose-400">
                                                     {scaledNutrition.fat}g
                                                 </div>
                                             </div>
@@ -749,14 +806,82 @@ export default function FoodsIndex({
                                         )}
                                     </CardContent>
                                 </Card>
+
+                                {/* Quick Log to Daily Diary */}
+                                <div className="space-y-3 rounded-lg border border-border/80 bg-muted/30 p-3">
+                                    <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                                        <CalendarPlus className="h-4 w-4 text-emerald-600" />
+                                        Log this portion directly to Diary
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <Label className="text-[11px] text-muted-foreground">
+                                                Meal Slot
+                                            </Label>
+                                            <select
+                                                className="mt-1 w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-xs capitalize shadow-xs focus-visible:outline-hidden"
+                                                value={logMealSlot}
+                                                onChange={(e) =>
+                                                    setLogMealSlot(
+                                                        e.target.value as any,
+                                                    )
+                                                }
+                                            >
+                                                <option value="breakfast">
+                                                    Breakfast
+                                                </option>
+                                                <option value="lunch">
+                                                    Lunch
+                                                </option>
+                                                <option value="dinner">
+                                                    Dinner
+                                                </option>
+                                                <option value="snack">
+                                                    Snack
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <Label className="text-[11px] text-muted-foreground">
+                                                Date
+                                            </Label>
+                                            <Input
+                                                type="date"
+                                                value={logDate}
+                                                onChange={(e) =>
+                                                    setLogDate(e.target.value)
+                                                }
+                                                className="mt-1 h-8 text-xs"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <DialogFooter>
+                            <DialogFooter className="flex items-center justify-between gap-2 sm:justify-between">
                                 <Button
-                                    variant="outline"
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() => setCalculatingFood(null)}
                                 >
-                                    Done
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    disabled={isLoggingToDiary}
+                                    onClick={handleLogToDiary}
+                                    className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700"
+                                >
+                                    <Check className="h-4 w-4" />
+                                    {isLoggingToDiary
+                                        ? 'Logging...'
+                                        : `Log to ${
+                                              logMealSlot
+                                                  .charAt(0)
+                                                  .toUpperCase() +
+                                              logMealSlot.slice(1)
+                                          }`}
                                 </Button>
                             </DialogFooter>
                         </>
@@ -1047,7 +1172,7 @@ export default function FoodsIndex({
             <BarcodeScannerModal
                 open={scannerOpen}
                 onOpenChange={setScannerOpen}
-                onFoodFound={(food) => handleOpenCalculator(food)}
+                onFoodFound={(food) => openCalculator(food)}
             />
         </div>
     );

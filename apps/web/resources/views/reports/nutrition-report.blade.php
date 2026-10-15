@@ -121,7 +121,7 @@
     </table>
 
     <!-- Summary KPI cards -->
-    <table style="width: 100%; margin-bottom: 20px;" cellspacing="6">
+    <table style="width: 100%; margin-bottom: 12px;" cellspacing="6">
         <tr>
             <td style="width: 25%;">
                 <div class="card">
@@ -131,20 +131,49 @@
             </td>
             <td style="width: 25%;">
                 <div class="card">
-                    <div class="card-val" style="color: #059669;">{{ round($avgProtein, 1) }}g</div>
+                    <div class="card-val" style="color: #2563eb;">{{ round($avgProtein, 1) }}g</div>
                     <div class="card-lbl">Avg Protein</div>
                 </div>
             </td>
             <td style="width: 25%;">
                 <div class="card">
-                    <div class="card-val" style="color: #2563eb;">{{ round($avgCarbs, 1) }}g</div>
+                    <div class="card-val" style="color: #d97706;">{{ round($avgCarbs, 1) }}g</div>
                     <div class="card-lbl">Avg Carbs</div>
                 </div>
             </td>
             <td style="width: 25%;">
                 <div class="card">
-                    <div class="card-val" style="color: #d97706;">{{ round($avgFat, 1) }}g</div>
+                    <div class="card-val" style="color: #e11d48;">{{ round($avgFat, 1) }}g</div>
                     <div class="card-lbl">Avg Fat</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table style="width: 100%; margin-bottom: 20px;" cellspacing="6">
+        <tr>
+            <td style="width: 25%;">
+                <div class="card">
+                    <div class="card-val" style="color: #059669;">{{ $adherenceRate }}%</div>
+                    <div class="card-lbl">Target Adherence</div>
+                </div>
+            </td>
+            <td style="width: 25%;">
+                <div class="card">
+                    <div class="card-val" style="color: #0284c7;">{{ $totalDaysWithEntries }}</div>
+                    <div class="card-lbl">Days Tracked</div>
+                </div>
+            </td>
+            <td style="width: 25%;">
+                <div class="card">
+                    <div class="card-val" style="color: #4f46e5;">{{ $weightDelta !== null ? ($weightDelta > 0 ? '+'.$weightDelta : $weightDelta).'kg' : 'Baseline' }}</div>
+                    <div class="card-lbl">Weight Trend &Delta;</div>
+                </div>
+            </td>
+            <td style="width: 25%;">
+                <div class="card">
+                    <div class="card-val" style="color: #0891b2;">{{ $avgWater > 0 ? $avgWater.'ml' : '-' }}</div>
+                    <div class="card-lbl">Avg Hydration</div>
                 </div>
             </td>
         </tr>

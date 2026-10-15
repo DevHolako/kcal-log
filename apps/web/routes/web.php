@@ -30,6 +30,8 @@ Route::middleware(['auth', 'verified', EnsureOnboardingIsComplete::class])->grou
     Route::delete('diary/water/{waterLog}', [WebDiaryController::class, 'destroyWater'])->name('diary.water.destroy');
 
     // Food Catalog & Management
+    Route::get('foods/search', [WebFoodController::class, 'search'])->name('foods.search');
+    Route::get('foods/barcode/{barcode}', [WebFoodController::class, 'barcode'])->name('foods.barcode');
     Route::get('foods', [WebFoodController::class, 'index'])->name('foods.index');
     Route::post('foods/custom', [WebFoodController::class, 'storeCustom'])->name('foods.custom.store');
     Route::delete('foods/custom/{food}', [WebFoodController::class, 'destroyCustom'])->name('foods.custom.destroy');

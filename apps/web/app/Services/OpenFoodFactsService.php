@@ -184,12 +184,21 @@ class OpenFoodFactsService
         $novaGroup = isset($product['nova_group']) ? (int) $product['nova_group'] : null;
         $ecoScore = isset($product['ecoscore_grade']) ? strtolower((string) $product['ecoscore_grade']) : null;
 
+        $imageUrl = isset($product['image_front_small_url'])
+            ? (string) $product['image_front_small_url']
+            : (isset($product['image_small_url'])
+                ? (string) $product['image_small_url']
+                : (isset($product['image_front_url'])
+                    ? (string) $product['image_front_url']
+                    : (isset($product['image_url']) ? (string) $product['image_url'] : null)));
+
         return [
             'off_id' => $code ?: null,
             'user_id' => null,
             'is_custom' => false,
             'name' => $name,
             'brand' => $brand,
+            'image_url' => $imageUrl,
             'barcode' => $code ?: null,
             'serving_size' => 100.00,
             'serving_unit' => 'g',

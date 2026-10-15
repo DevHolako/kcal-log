@@ -22,6 +22,7 @@ class Food extends Model
         'is_custom',
         'name',
         'brand',
+        'image_url',
         'barcode',
         'serving_size',
         'serving_unit',
@@ -39,6 +40,33 @@ class Food extends Model
         'raw_off_data',
         'last_synced_at',
     ];
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = [
+        'image_url',
+    ];
+
+    /**
+     * Resolve image URL from direct column or nested Open Food Facts payload.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! empty($this->attributes['image_url'])) {
+            return (string) $this->attributes['image_url'];
+        }
+
+        if (is_array($this->raw_off_data)) {
+            return $this->raw_off_data['image_front_small_url']
+                ?? $this->raw_off_data['image_small_url']
+                ?? $this->raw_off_data['image_front_url']
+                ?? $this->raw_off_data['image_url']
+                ?? null;
+        }
+
+        return null;
+    }
 
     /**
      * @return array<string, string>

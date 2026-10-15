@@ -90,3 +90,31 @@ test('user can connect and disconnect OFF account through web settings', functio
         'is_connected' => false,
     ]);
 });
+
+test('user can search foods via web search ajax endpoint', function () {
+    Food::factory()->create([
+        'name' => 'Searchable Granola',
+        'is_custom' => false,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->getJson(route('foods.search', ['q' => 'Granola']));
+
+    $response->assertOk()
+        ->assertJsonStructure(['items', 'source', 'is_degraded', 'total']);
+});
+
+test('user can lookup barcode via web barcode endpoint', function () {
+    $food = Food::factory()->create([
+        'name' => 'Barcoded Milk',
+        'barcode' => '7622210449283',
+        'is_custom' => false,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->getJson(route('foods.barcode', ['barcode' => '7622210449283']));
+
+    $response->assertOk()
+        ->assertJsonPath('food.barcode', '7622210449283');
+});
+

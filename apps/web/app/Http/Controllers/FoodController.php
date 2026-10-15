@@ -9,6 +9,7 @@ use App\Http\Requests\Food\StoreCustomFoodRequest;
 use App\Models\Food;
 use App\Models\User;
 use App\Services\FoodService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,6 +22,76 @@ class FoodController extends Controller
         protected CreateCustomFoodAction $createCustomFoodAction,
         protected DeleteCustomFoodAction $deleteCustomFoodAction,
     ) {}
+
+    /**
+     * Search foods across Open Food Facts and local database (JSON for AJAX/modals).
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $query = (string) $request->query('q', '');
+        $barcode = (string) $request->query('barcode', '');
+
+        /** @var User $user */
+        $user = $request->user();
+
+        if (! empty($barcode)) {
+            $lookup = $this->foodService->findByBarcode($barcode, $user);
+            if ($lookup) {
+                return response()->json([
+                    'items' => [$lookup->food],
+                    'source' => $lookup->source,
+                    'is_degraded' => $lookup->isDegraded,
+                    'total' => 1,
+                ]);
+            }
+
+            return response()->json([
+                'items' => [],
+                'source' => 'cache',
+                'is_degraded' => false,
+                'total' => 0,
+            ]);
+        }
+
+        if (strlen(trim($query)) < 2) {
+            return response()->json([
+                'items' => [],
+                'source' => 'cache',
+                'is_degraded' => false,
+                'total' => 0,
+            ]);
+        }
+
+        $result = $this->foodService->search(trim($query), $user, 1, 25);
+
+        return response()->json([
+            'items' => $result->items,
+            'source' => $result->source,
+            'is_degraded' => $result->isDegraded,
+            'total' => $result->total,
+        ]);
+    }
+
+    /**
+     * Direct barcode lookup (JSON response for modals/camera).
+     */
+    public function barcode(string $barcode, Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $lookup = $this->foodService->findByBarcode($barcode, $user);
+
+        if (! $lookup) {
+            return response()->json(['message' => 'Product not found.'], 404);
+        }
+
+        return response()->json([
+            'food' => $lookup->food,
+            'source' => $lookup->source,
+            'is_degraded' => $lookup->isDegraded,
+        ]);
+    }
 
     /**
      * Show food catalog, search, and custom foods manager.

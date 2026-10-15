@@ -216,6 +216,25 @@ class ExportService
         uasort($foodCounts, fn ($a, $b) => $b['count'] <=> $a['count']);
         $recentItems = array_slice(array_values($foodCounts), 0, 8);
 
+        $daysAdherent = 0;
+        foreach ($dailyRows as $row) {
+            if ($row['calories'] > 0 && $row['calories'] >= ($targetCalories * 0.9) && $row['calories'] <= ($targetCalories * 1.1)) {
+                $daysAdherent++;
+            }
+        }
+        $adherenceRate = $totalDaysWithEntries > 0
+            ? (int) round(($daysAdherent / $totalDaysWithEntries) * 100)
+            : 0;
+
+        $weightDelta = null;
+        if ($weightLogs->count() >= 2) {
+            $weightDelta = round((float) $weightLogs->last()->weight_kg - (float) $weightLogs->first()->weight_kg, 1);
+        }
+
+        $avgWater = $totalDaysWithEntries > 0
+            ? (int) round($waterLogs->sum('amount_ml') / $totalDaysWithEntries)
+            : 0;
+
         return [
             'user' => $user,
             'target' => $target,
@@ -225,11 +244,52 @@ class ExportService
             'avgProtein' => $totalProtein / $divisor,
             'avgCarbs' => $totalCarbs / $divisor,
             'avgFat' => $totalFat / $divisor,
+            'adherenceRate' => $adherenceRate,
+            'totalDaysWithEntries' => $totalDaysWithEntries,
+            'weightDelta' => $weightDelta,
+            'avgWater' => $avgWater,
             'dailyRows' => $dailyRows,
             'entries' => $entries,
             'waterLogs' => $waterLogs,
             'weightLogs' => $weightLogs,
             'recentItems' => $recentItems,
+        ];
+    }
+
+    /**
+     * Get user's executive tracking dashboard statistics for the last N days.
+     *
+     * @return array<string, mixed>
+     */
+    public function getUserStats(User $user, int $days = 30): array
+    {
+        $dateFrom = now()->subDays($days - 1)->format('Y-m-d');
+        $dateTo = now()->format('Y-m-d');
+        $data = $this->gatherExportData($user, $dateFrom, $dateTo);
+
+        $targetCalories = $data['target'] ? (float) $data['target']->calories : 2000.0;
+
+        $pCal = $data['avgProtein'] * 4;
+        $cCal = $data['avgCarbs'] * 4;
+        $fCal = $data['avgFat'] * 9;
+        $totalMacroCal = max(1.0, $pCal + $cCal + $fCal);
+
+        return [
+            'periodDays' => $days,
+            'totalDaysLogged' => $data['totalDaysWithEntries'],
+            'loggingRate' => (int) round(($data['totalDaysWithEntries'] / $days) * 100),
+            'avgCalories' => (int) round($data['avgCalories']),
+            'targetCalories' => (int) round($targetCalories),
+            'calorieVariance' => (int) round($data['avgCalories'] - $targetCalories),
+            'adherenceRate' => $data['adherenceRate'],
+            'avgProtein' => round($data['avgProtein'], 1),
+            'avgCarbs' => round($data['avgCarbs'], 1),
+            'avgFat' => round($data['avgFat'], 1),
+            'proteinPct' => (int) round(($pCal / $totalMacroCal) * 100),
+            'carbsPct' => (int) round(($cCal / $totalMacroCal) * 100),
+            'fatPct' => (int) round(($fCal / $totalMacroCal) * 100),
+            'weightDelta' => $data['weightDelta'],
+            'avgWater' => $data['avgWater'],
         ];
     }
 

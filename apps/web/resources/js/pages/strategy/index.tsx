@@ -4,11 +4,17 @@ import {
     ArrowDownRight,
     ArrowRight,
     ArrowUpRight,
+    Brain,
+    Calculator,
     CheckCircle2,
+    ChevronDown,
+    ChevronUp,
     Flame,
     History,
+    Info,
     RefreshCw,
     Scale,
+    ShieldCheck,
     Sparkles,
     TrendingUp,
     XCircle,
@@ -88,6 +94,7 @@ export default function StrategyIndex({
     const { auth } = usePage().props as any;
     const [isTriggering, setIsTriggering] = useState(false);
     const [isDeciding, setIsDeciding] = useState(false);
+    const [showMathExplainer, setShowMathExplainer] = useState(false);
 
     // Setup realtime subscription to listen for new adjustment proposals
     useEffect(() => {
@@ -165,18 +172,115 @@ export default function StrategyIndex({
                             />
                         </div>
                     </div>
-                    <Button
-                        variant="outline"
-                        onClick={handleTrigger}
-                        disabled={isTriggering}
-                        className="shrink-0 gap-2 self-start sm:self-auto"
-                    >
-                        <RefreshCw
-                            className={`h-4 w-4 ${isTriggering ? 'animate-spin' : ''}`}
-                        />
-                        {isTriggering ? 'Calculating...' : 'Recalculate Trend'}
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowMathExplainer(!showMathExplainer)}
+                            className="gap-2 text-xs"
+                        >
+                            <Brain className="h-4 w-4 text-emerald-600" />
+                            {showMathExplainer ? 'Hide Logic' : 'How the Engine Works'}
+                            {showMathExplainer ? (
+                                <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                            ) : (
+                                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                            )}
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            onClick={handleTrigger}
+                            disabled={isTriggering}
+                            className="shrink-0 gap-2"
+                        >
+                            <RefreshCw
+                                className={`h-4 w-4 ${isTriggering ? 'animate-spin' : ''}`}
+                            />
+                            {isTriggering ? 'Calculating...' : 'Recalculate Trend'}
+                        </Button>
+                    </div>
                 </div>
+
+                {/* Initial Calibration Mode Alert */}
+                {weightTrends.length < 4 && (
+                    <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-amber-800 dark:text-amber-200">
+                        <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                        <div>
+                            <span className="font-bold">Initial Calibration Phase ({weightTrends.length}/4 weigh-ins):</span>{' '}
+                            The adaptive engine requires a minimum of 4 weight logs across a 7-day period to establish high-confidence EWMA smoothed baselines. Target proposals are clamped with conservative bounds until baseline calibration is reached.
+                        </div>
+                    </div>
+                )}
+
+                {/* Mathematical Engine & Metabolic Model Explainer Card */}
+                {showMathExplainer && (
+                    <Card className="border-border/80 bg-muted/20">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center gap-2">
+                                <Calculator className="h-5 w-5 text-emerald-600" />
+                                <CardTitle className="text-base font-bold">
+                                    Adaptive Metabolic Engine Architecture
+                                </CardTitle>
+                            </div>
+                            <CardDescription>
+                                Transparent, peer-reviewed metabolic tracking using Exponentially Weighted Moving Averages (EWMA) and dynamic energy expenditure modeling.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4 text-xs">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                {/* Component 1: EWMA */}
+                                <div className="space-y-2 rounded-lg border border-border/60 bg-card p-3.5">
+                                    <div className="flex items-center gap-1.5 font-bold text-foreground">
+                                        <Scale className="h-4 w-4 text-primary" />
+                                        <span>1. EWMA Weight Smoothing</span>
+                                    </div>
+                                    <p className="text-muted-foreground">
+                                        Scale weight fluctuates by &plusmn;1&ndash;2.5 kg daily due to sodium, glycogen hydration, and digestive waste. We apply an exponential smoothing coefficient of &alpha; = 0.25:
+                                    </p>
+                                    <div className="rounded bg-muted/60 p-2 font-mono text-[11px] text-foreground">
+                                        EWMA_t = 0.25 &times; W_t + 0.75 &times; EWMA_(t-1)
+                                    </div>
+                                    <p className="text-[11px] text-muted-foreground">
+                                        Dampens transient water spikes to reveal genuine physiological tissue change over rolling 7-day windows.
+                                    </p>
+                                </div>
+
+                                {/* Component 2: TDEE */}
+                                <div className="space-y-2 rounded-lg border border-border/60 bg-card p-3.5">
+                                    <div className="flex items-center gap-1.5 font-bold text-foreground">
+                                        <Flame className="h-4 w-4 text-amber-500" />
+                                        <span>2. Empirical TDEE Derivation</span>
+                                    </div>
+                                    <p className="text-muted-foreground">
+                                        Instead of static estimations (Mifflin-St Jeor), your actual Total Daily Energy Expenditure is derived from empirical intake and trend mass delta:
+                                    </p>
+                                    <div className="rounded bg-muted/60 p-2 font-mono text-[11px] text-foreground">
+                                        TDEE = Avg_Intake - ((&Delta;EWMA &times; 7700) / 7)
+                                    </div>
+                                    <p className="text-[11px] text-muted-foreground">
+                                        7,700 kcal represents the standardized metabolic caloric density of 1 kg of adipose tissue.
+                                    </p>
+                                </div>
+
+                                {/* Component 3: Safety Guardrails */}
+                                <div className="space-y-2 rounded-lg border border-border/60 bg-card p-3.5">
+                                    <div className="flex items-center gap-1.5 font-bold text-foreground">
+                                        <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                                        <span>3. Deficit Clamping & Floors</span>
+                                    </div>
+                                    <p className="text-muted-foreground">
+                                        Algorithms can overreact to anomalous weeks. The coach enforces strict medical safety boundaries:
+                                    </p>
+                                    <ul className="space-y-1 list-disc pl-4 text-[11px] text-muted-foreground">
+                                        <li>Max weekly rate adjustment clamped to &plusmn;1.0 kg/wk (&le; 500 kcal shift).</li>
+                                        <li>Metabolic calorie floors: 1,200 kcal/day (female), 1,500 kcal/day (male).</li>
+                                        <li>Human-in-the-loop: proposals require explicit user confirmation.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Active Target Banner */}
                 {activeTarget && (
@@ -218,7 +322,7 @@ export default function StrategyIndex({
                                     <div className="text-xs font-medium text-muted-foreground">
                                         Protein Target
                                     </div>
-                                    <div className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                    <div className="mt-1 text-2xl font-bold text-blue-600 dark:text-blue-400">
                                         {Math.round(activeTarget.protein_g)}{' '}
                                         <span className="text-xs font-normal text-muted-foreground">
                                             g
@@ -240,7 +344,7 @@ export default function StrategyIndex({
                                     <div className="text-xs font-medium text-muted-foreground">
                                         Fat Target
                                     </div>
-                                    <div className="mt-1 text-2xl font-bold text-sky-600 dark:text-sky-400">
+                                    <div className="mt-1 text-2xl font-bold text-rose-600 dark:text-rose-400">
                                         {Math.round(activeTarget.fat_g)}{' '}
                                         <span className="text-xs font-normal text-muted-foreground">
                                             g
@@ -431,7 +535,7 @@ export default function StrategyIndex({
                                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                                 </>
                                             )}
-                                            <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                            <span className="font-bold text-blue-600 dark:text-blue-400">
                                                 {Math.round(
                                                     pendingAdjustment.proposed_protein_g,
                                                 )}{' '}
@@ -448,7 +552,7 @@ export default function StrategyIndex({
                                                 <>
                                                     <span className="text-muted-foreground line-through">
                                                         {Math.round(
-                                                            activeTarget.carbs_g,
+                                                             activeTarget.carbs_g,
                                                         )}{' '}
                                                         g
                                                     </span>
@@ -479,7 +583,7 @@ export default function StrategyIndex({
                                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                                 </>
                                             )}
-                                            <span className="font-bold text-sky-600 dark:text-sky-400">
+                                            <span className="font-bold text-rose-600 dark:text-rose-400">
                                                 {Math.round(
                                                     pendingAdjustment.proposed_fat_g,
                                                 )}{' '}

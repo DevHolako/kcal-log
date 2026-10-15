@@ -1,12 +1,17 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
+    Barcode,
     Camera,
     ChevronLeft,
     ChevronRight,
+    Clock,
     Cookie,
     Droplet,
+    Globe,
+    Loader2,
     Moon,
     Plus,
+    Search,
     Sparkles,
     Sun,
     Trash2,
@@ -134,6 +139,11 @@ export default function DiaryIndex({
         useState<FoodServingData | null>(null);
     const [quantity, setQuantity] = useState<number>(1);
     const [foodFilter, setFoodFilter] = useState('');
+    const [remoteResults, setRemoteResults] = useState<FoodItem[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [barcodeQuery, setBarcodeQuery] = useState('');
+    const [isBarcodeLoading, setIsBarcodeLoading] = useState(false);
+    const [barcodeError, setBarcodeError] = useState<string | null>(null);
 
     // Quick Add Dialog state
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
@@ -147,6 +157,69 @@ export default function DiaryIndex({
     const [visualizerMode, setVisualizerMode] = useState<'donut' | 'rings'>(
         'donut',
     );
+
+    // Debounced remote search across Open Food Facts & cached catalog
+    useEffect(() => {
+        const query = foodFilter.trim();
+        if (query.length < 2) {
+            setRemoteResults([]);
+            setIsSearching(false);
+            return;
+        }
+
+        setIsSearching(true);
+        const timer = setTimeout(() => {
+            fetch(`/foods/search?q=${encodeURIComponent(query)}`, {
+                headers: { Accept: 'application/json' },
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (Array.isArray(data.items)) {
+                        setRemoteResults(data.items);
+                    } else {
+                        setRemoteResults([]);
+                    }
+                })
+                .catch(() => {
+                    setRemoteResults([]);
+                })
+                .finally(() => {
+                    setIsSearching(false);
+                });
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [foodFilter]);
+
+    const handleBarcodeLookup = (code: string) => {
+        const trimmed = code.trim();
+        if (!trimmed) return;
+        setIsBarcodeLoading(true);
+        setBarcodeError(null);
+
+        fetch(`/foods/barcode/${encodeURIComponent(trimmed)}`, {
+            headers: { Accept: 'application/json' },
+        })
+            .then(async (res) => {
+                if (!res.ok) {
+                    throw new Error('Product not found for this barcode.');
+                }
+                return res.json();
+            })
+            .then((data) => {
+                if (data.food) {
+                    handleSelectFood(data.food);
+                } else {
+                    setBarcodeError('No product found for this barcode.');
+                }
+            })
+            .catch((err) => {
+                setBarcodeError(err.message || 'Lookup failed.');
+            })
+            .finally(() => {
+                setIsBarcodeLoading(false);
+            });
+    };
 
     const addFoodForm = useForm({
         food_id: 0,
@@ -182,6 +255,9 @@ export default function DiaryIndex({
         setSelectedServing(null);
         setQuantity(1);
         setFoodFilter('');
+        setRemoteResults([]);
+        setBarcodeQuery('');
+        setBarcodeError(null);
         setIsAddFoodOpen(true);
     };
 
@@ -762,15 +838,23 @@ export default function DiaryIndex({
 
                     {!selectedFood ? (
                         <div className="space-y-3 py-2">
+                            {/* Text Search & Camera Trigger */}
                             <div className="flex gap-2">
-                                <Input
-                                    placeholder="Filter recent items or search..."
-                                    value={foodFilter}
-                                    onChange={(e) =>
-                                        setFoodFilter(e.target.value)
-                                    }
-                                    className="flex-1"
-                                />
+                                <div className="relative flex-1">
+                                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search recent foods or Open Food Facts catalog..."
+                                        value={foodFilter}
+                                        onChange={(e) =>
+                                            setFoodFilter(e.target.value)
+                                        }
+                                        className="pr-8 pl-9"
+                                        autoFocus
+                                    />
+                                    {isSearching && (
+                                        <Loader2 className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                                    )}
+                                </div>
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -782,52 +866,306 @@ export default function DiaryIndex({
                                 </Button>
                             </div>
 
-                            <div className="max-h-60 space-y-1.5 divide-y divide-border/40 overflow-y-auto">
-                                {recentFoods
-                                    .filter(
-                                        (f) =>
-                                            f.name
+                            {/* Direct Numerical Barcode Input */}
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleBarcodeLookup(barcodeQuery);
+                                }}
+                                className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-2"
+                            >
+                                <Barcode className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                <Input
+                                    placeholder="Or enter barcode number (e.g. 7622210449283)..."
+                                    value={barcodeQuery}
+                                    onChange={(e) =>
+                                        setBarcodeQuery(e.target.value)
+                                    }
+                                    className="h-8 flex-1 font-mono text-xs"
+                                />
+                                <Button
+                                    type="submit"
+                                    size="sm"
+                                    variant="secondary"
+                                    disabled={
+                                        isBarcodeLoading || !barcodeQuery.trim()
+                                    }
+                                    className="h-8 shrink-0 text-xs"
+                                >
+                                    {isBarcodeLoading ? (
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                        'Lookup'
+                                    )}
+                                </Button>
+                            </form>
+                            {barcodeError && (
+                                <p className="text-xs text-destructive">
+                                    {barcodeError}
+                                </p>
+                            )}
+
+                            {/* Search Results Container */}
+                            <div className="max-h-64 space-y-3 overflow-y-auto pr-1">
+                                {/* Filtered Recent Foods */}
+                                {recentFoods.filter(
+                                    (f) =>
+                                        f.name
+                                            .toLowerCase()
+                                            .includes(
+                                                foodFilter.toLowerCase(),
+                                            ) ||
+                                        (f.brand &&
+                                            f.brand
                                                 .toLowerCase()
                                                 .includes(
                                                     foodFilter.toLowerCase(),
-                                                ) ||
-                                            (f.brand &&
-                                                f.brand
-                                                    .toLowerCase()
-                                                    .includes(
-                                                        foodFilter.toLowerCase(),
-                                                    )),
-                                    )
-                                    .map((food) => (
-                                        <button
-                                            key={food.id}
-                                            type="button"
-                                            onClick={() =>
-                                                handleSelectFood(food)
-                                            }
-                                            className="group flex w-full items-center justify-between rounded-md p-2.5 text-left transition-colors hover:bg-muted/50"
-                                        >
-                                            <div>
-                                                <div className="text-sm font-medium transition-colors group-hover:text-primary">
-                                                    {food.name}
-                                                </div>
-                                                <div className="text-xs text-muted-foreground">
-                                                    {food.brand || 'Generic'}{' '}
-                                                    &bull;{' '}
-                                                    {Number(food.calories)} kcal
-                                                    per{' '}
-                                                    {Number(food.serving_size)}
-                                                    {food.serving_unit}
-                                                </div>
-                                            </div>
-                                            <Badge
-                                                variant="outline"
-                                                className="text-xs"
-                                            >
-                                                Select
-                                            </Badge>
-                                        </button>
-                                    ))}
+                                                )),
+                                ).length > 0 && (
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center gap-1.5 px-1 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                                            <Clock className="h-3 w-3" />
+                                            Recent & Logged Foods
+                                        </div>
+                                        <div className="space-y-1">
+                                            {recentFoods
+                                                .filter(
+                                                    (f) =>
+                                                        f.name
+                                                            .toLowerCase()
+                                                            .includes(
+                                                                foodFilter.toLowerCase(),
+                                                            ) ||
+                                                        (f.brand &&
+                                                            f.brand
+                                                                .toLowerCase()
+                                                                .includes(
+                                                                    foodFilter.toLowerCase(),
+                                                                )),
+                                                )
+                                                .map((food) => (
+                                                    <button
+                                                        key={`recent-${food.id}`}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleSelectFood(
+                                                                food,
+                                                            )
+                                                        }
+                                                        className="group flex w-full items-center justify-between rounded-lg border border-border/40 p-2 text-left transition-colors hover:border-primary/50 hover:bg-muted/50"
+                                                    >
+                                                        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                                                            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border/60 bg-muted/40">
+                                                                {food.image_url ? (
+                                                                    <img
+                                                                        src={
+                                                                            food.image_url
+                                                                        }
+                                                                        alt={
+                                                                            food.name
+                                                                        }
+                                                                        className="h-full w-full object-contain p-0.5"
+                                                                        loading="lazy"
+                                                                        onError={(
+                                                                            e,
+                                                                        ) => {
+                                                                            (
+                                                                                e.currentTarget as HTMLElement
+                                                                            ).style.display =
+                                                                                'none';
+                                                                        }}
+                                                                    />
+                                                                ) : (
+                                                                    <Utensils className="h-4 w-4 text-muted-foreground/50" />
+                                                                )}
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <span className="line-clamp-1 text-sm font-medium transition-colors group-hover:text-primary">
+                                                                        {
+                                                                            food.name
+                                                                        }
+                                                                    </span>
+                                                                    {food.nutri_score && (
+                                                                        <span
+                                                                            className={`shrink-0 rounded px-1 text-[9px] font-bold uppercase ${
+                                                                                food.nutri_score.toLowerCase() ===
+                                                                                'a'
+                                                                                    ? 'bg-emerald-600 text-white'
+                                                                                    : food.nutri_score.toLowerCase() ===
+                                                                                          'b'
+                                                                                      ? 'bg-green-500 text-white'
+                                                                                      : food.nutri_score.toLowerCase() ===
+                                                                                            'c'
+                                                                                        ? 'bg-yellow-500 text-black'
+                                                                                        : food.nutri_score.toLowerCase() ===
+                                                                                              'd'
+                                                                                          ? 'bg-orange-500 text-white'
+                                                                                          : 'bg-red-600 text-white'
+                                                                            }`}
+                                                                        >
+                                                                            {
+                                                                                food.nutri_score
+                                                                            }
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="line-clamp-1 text-xs text-muted-foreground">
+                                                                    {food.brand ||
+                                                                        'Generic'}{' '}
+                                                                    &bull;{' '}
+                                                                    {Math.round(
+                                                                        Number(
+                                                                            food.calories,
+                                                                        ),
+                                                                    )}{' '}
+                                                                    kcal /{' '}
+                                                                    {Number(
+                                                                        food.serving_size,
+                                                                    )}
+                                                                    {
+                                                                        food.serving_unit
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="ml-2 shrink-0 text-xs"
+                                                        >
+                                                            Select
+                                                        </Badge>
+                                                    </button>
+                                                ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Open Food Facts Remote Search Results */}
+                                {remoteResults.length > 0 && (
+                                    <div className="space-y-1.5 pt-1">
+                                        <div className="flex items-center gap-1.5 px-1 text-[11px] font-semibold tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
+                                            <Globe className="h-3 w-3" />
+                                            Open Food Facts Catalog (
+                                            {remoteResults.length})
+                                        </div>
+                                        <div className="space-y-1">
+                                            {remoteResults.map((food) => (
+                                                <button
+                                                    key={`off-${food.id}`}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleSelectFood(food)
+                                                    }
+                                                    className="group flex w-full items-center justify-between rounded-lg border border-border/40 p-2 text-left transition-colors hover:border-emerald-500/50 hover:bg-muted/50"
+                                                >
+                                                    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                                                        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border/60 bg-muted/40">
+                                                            {food.image_url ? (
+                                                                <img
+                                                                    src={
+                                                                        food.image_url
+                                                                    }
+                                                                    alt={
+                                                                        food.name
+                                                                    }
+                                                                    className="h-full w-full object-contain p-0.5"
+                                                                    loading="lazy"
+                                                                    onError={(
+                                                                        e,
+                                                                    ) => {
+                                                                        (
+                                                                            e.currentTarget as HTMLElement
+                                                                        ).style.display =
+                                                                            'none';
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <Utensils className="h-4 w-4 text-muted-foreground/50" />
+                                                            )}
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="line-clamp-1 text-sm font-medium transition-colors group-hover:text-primary">
+                                                                    {food.name}
+                                                                </span>
+                                                                {food.nutri_score && (
+                                                                    <span
+                                                                        className={`shrink-0 rounded px-1 text-[9px] font-bold uppercase ${
+                                                                            food.nutri_score.toLowerCase() ===
+                                                                            'a'
+                                                                                ? 'bg-emerald-600 text-white'
+                                                                                : food.nutri_score.toLowerCase() ===
+                                                                                      'b'
+                                                                                  ? 'bg-green-500 text-white'
+                                                                                  : food.nutri_score.toLowerCase() ===
+                                                                                        'c'
+                                                                                    ? 'bg-yellow-500 text-black'
+                                                                                    : food.nutri_score.toLowerCase() ===
+                                                                                          'd'
+                                                                                      ? 'bg-orange-500 text-white'
+                                                                                      : 'bg-red-600 text-white'
+                                                                        }`}
+                                                                    >
+                                                                        {
+                                                                            food.nutri_score
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="line-clamp-1 text-xs text-muted-foreground">
+                                                                {food.brand ||
+                                                                    'Generic'}{' '}
+                                                                &bull;{' '}
+                                                                {Math.round(
+                                                                    Number(
+                                                                        food.calories,
+                                                                    ),
+                                                                )}{' '}
+                                                                kcal /{' '}
+                                                                {Number(
+                                                                    food.serving_size,
+                                                                )}
+                                                                {
+                                                                    food.serving_unit
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="ml-2 shrink-0 border-emerald-500/30 text-xs text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
+                                                    >
+                                                        Select
+                                                    </Badge>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {recentFoods.filter(
+                                    (f) =>
+                                        f.name
+                                            .toLowerCase()
+                                            .includes(
+                                                foodFilter.toLowerCase(),
+                                            ) ||
+                                        (f.brand &&
+                                            f.brand
+                                                .toLowerCase()
+                                                .includes(
+                                                    foodFilter.toLowerCase(),
+                                                )),
+                                ).length === 0 &&
+                                    remoteResults.length === 0 &&
+                                    !isSearching && (
+                                        <div className="py-8 text-center text-sm text-muted-foreground">
+                                            {foodFilter.trim().length >= 2
+                                                ? 'No foods found in recent items or Open Food Facts. Try another keyword or scan the barcode.'
+                                                : 'No recent foods logged yet. Type product name to search Open Food Facts catalog.'}
+                                        </div>
+                                    )}
                             </div>
                         </div>
                     ) : (
