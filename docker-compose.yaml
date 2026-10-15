@@ -60,6 +60,9 @@ services:
       - kcal_network
 
   horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: kcal-log-web:latest
     command: ["php", "artisan", "horizon"]
     restart: unless-stopped
@@ -102,6 +105,9 @@ services:
       - kcal_network
 
   reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: kcal-log-web:latest
     command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=9080"]
     restart: unless-stopped
@@ -135,6 +141,9 @@ services:
       - kcal_network
 
   scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: kcal-log-web:latest
     command: ["php", "artisan", "schedule:work"]
     restart: unless-stopped
