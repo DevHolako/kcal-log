@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        
         $this->configureDefaults();
 
         Gate::define('viewApiDocs', fn (?User $user = null) => true);
@@ -35,6 +36,11 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configureDefaults(): void
     {
+
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+        
         Date::use(CarbonImmutable::class);
 
         DB::prohibitDestructiveCommands(
