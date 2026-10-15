@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 set -e
 
-# Cache configuration, routes, and views if in production and not disabled
-if [ "$APP_ENV" = "production" ] && [ "$SKIP_OPTIMIZATIONS" != "true" ]; then
+# Cache configuration, routes, and views if in production, primary web role, and not disabled
+if [ "$APP_ENV" = "production" ] && [ "$SKIP_OPTIMIZATIONS" != "true" ] && { [ "$1" = "frankenphp" ] || [ "$ROLE" = "web" ]; }; then
     echo "⚡ Optimizing Laravel production caches..."
     php artisan config:cache || true
     php artisan route:cache || true
@@ -10,8 +10,14 @@ if [ "$APP_ENV" = "production" ] && [ "$SKIP_OPTIMIZATIONS" != "true" ]; then
     php artisan event:cache || true
 fi
 
-# Run database migrations if flag enabled
-if [ "$RUN_MIGRATIONS" = "true" ]; then
+# Ensure storage symlink is active
+if [ "$1" = "frankenphp" ] || [ "$ROLE" = "web" ] || [ "$LINK_STORAGE" = "true" ]; then
+    echo "🔗 Ensuring storage symlink..."
+    php artisan storage:link --force || true
+fi
+
+# Run database migrations only on primary web container if flag enabled
+if [ "$RUN_MIGRATIONS" = "true" ] && { [ "$1" = "frankenphp" ] || [ "$ROLE" = "web" ]; }; then
     echo "📦 Running database migrations..."
     php artisan migrate --force
 fi

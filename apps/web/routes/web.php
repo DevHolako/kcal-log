@@ -23,11 +23,13 @@ Route::middleware(['auth', 'verified', EnsureOnboardingIsComplete::class])->grou
     // Daily Nutrition Diary & Logging
     Route::get('diary', [WebDiaryController::class, 'index'])->name('diary.index');
     Route::post('diary', [WebDiaryController::class, 'store'])->name('diary.store');
-    Route::put('diary/{entry}', [WebDiaryController::class, 'update'])->name('diary.update');
-    Route::delete('diary/{entry}', [WebDiaryController::class, 'destroy'])->name('diary.destroy');
     Route::post('diary/quick-add', [WebDiaryController::class, 'quickAdd'])->name('diary.quick-add');
     Route::post('diary/water', [WebDiaryController::class, 'storeWater'])->name('diary.water.store');
     Route::delete('diary/water/{waterLog}', [WebDiaryController::class, 'destroyWater'])->name('diary.water.destroy');
+    Route::post('diary/weight', [WebDiaryController::class, 'storeWeight'])->name('diary.weight.store');
+    Route::delete('diary/weight', [WebDiaryController::class, 'destroyWeight'])->name('diary.weight.destroy');
+    Route::put('diary/{entry}', [WebDiaryController::class, 'update'])->name('diary.update');
+    Route::delete('diary/{entry}', [WebDiaryController::class, 'destroy'])->name('diary.destroy');
 
     // Food Catalog & Management
     Route::get('foods/search', [WebFoodController::class, 'search'])->name('foods.search');

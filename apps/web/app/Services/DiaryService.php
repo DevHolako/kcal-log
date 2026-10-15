@@ -541,4 +541,60 @@ class DiaryService
 
         return $createdEntries;
     }
+
+    /**
+     * Log or update daily bodyweight for a specific date.
+     */
+    public function logWeight(User $user, string $date, float $weightKg, ?string $note = null): WeightLog
+    {
+        $dateFormatted = substr($date, 0, 10);
+
+        /** @var WeightLog|null $existing */
+        $existing = WeightLog::where('user_id', $user->id)
+            ->whereDate('date', $dateFormatted)
+            ->first();
+
+        if ($existing) {
+            $existing->update([
+                'weight_kg' => round($weightKg, 2),
+                'note' => $note,
+                'source' => 'manual',
+            ]);
+            $weightLog = $existing;
+        } else {
+            /** @var WeightLog $weightLog */
+            $weightLog = WeightLog::create([
+                'user_id' => $user->id,
+                'date' => $dateFormatted,
+                'weight_kg' => round($weightKg, 2),
+                'note' => $note,
+                'source' => 'manual',
+            ]);
+        }
+
+        DiaryUpdated::dispatch($user->id, $dateFormatted, 'weight_logged', [
+            'weight_kg' => (float) $weightLog->weight_kg,
+        ]);
+
+        return $weightLog;
+    }
+
+    /**
+     * Delete daily bodyweight for a specific date.
+     */
+    public function deleteWeight(User $user, string $date): bool
+    {
+        $dateFormatted = substr($date, 0, 10);
+
+        $deleted = (bool) WeightLog::where('user_id', $user->id)
+            ->whereDate('date', $dateFormatted)
+            ->delete();
+
+        if ($deleted) {
+            DiaryUpdated::dispatch($user->id, $dateFormatted, 'weight_deleted', []);
+        }
+
+        return $deleted;
+    }
 }
+

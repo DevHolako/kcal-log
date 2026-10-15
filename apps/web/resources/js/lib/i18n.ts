@@ -98,6 +98,16 @@ export const translations: Record<Locale, Record<string, string>> = {
         'diary.weight_tracking': 'Weight Tracking',
         'diary.record_weight': 'Log Body Weight',
         'diary.weight_placeholder': 'e.g. 78.5',
+        'diary.weigh_in': 'Morning Weigh-In',
+        'diary.log_weight': 'Log Weight',
+        'diary.update_weight': 'Update Weight',
+        'diary.current_weight': 'Current Weight',
+        'diary.not_logged': 'Not logged yet',
+        'diary.weight_kg': 'Weight (kg)',
+        'diary.weight_note': 'Notes (optional)',
+        'diary.delete_weight': 'Delete weigh-in',
+        'diary.confirm_delete_weight':
+            "Are you sure you want to delete today's weight log?",
         'diary.recent_foods': 'Recent & Logged Foods',
         'diary.open_food_facts_catalog': 'Open Food Facts Catalog',
         'diary.no_foods_in_slot': 'No food items logged in this meal slot yet.',
@@ -182,6 +192,20 @@ export const translations: Record<Locale, Record<string, string>> = {
         'recipes.add_ingredient': 'Add Ingredient',
         'recipes.search_ingredient': 'Type food name to search...',
         'recipes.add_this_ingredient': 'Add This Ingredient',
+        'recipes.grocery_list': 'Grocery List',
+        'recipes.grocery_list_desc':
+            'Generate a consolidated grocery checklist from your meal prep kits and custom recipes.',
+        'recipes.select_meals': 'Select Meals & Portions',
+        'recipes.servings': 'Servings',
+        'recipes.cat_protein': '🥩 Meats, Poultry & Protein',
+        'recipes.cat_produce': '🥦 Fresh Produce & Vegetables',
+        'recipes.cat_dairy': '🥛 Dairy & Eggs',
+        'recipes.cat_pantry': '🍚 Grains, Oils & Pantry',
+        'recipes.copy_list': 'Copy Checklist',
+        'recipes.copied': 'Copied to clipboard!',
+        'recipes.clear_list': 'Clear selection',
+        'recipes.empty_grocery':
+            'Select at least one recipe or starter kit to generate your grocery list.',
 
         // Adaptive Strategy
         'strategy.title': 'Adaptive Nutrition Strategy',
@@ -351,6 +375,16 @@ export const translations: Record<Locale, Record<string, string>> = {
         'diary.weight_tracking': 'Suivi du poids',
         'diary.record_weight': 'Enregistrer le poids',
         'diary.weight_placeholder': 'ex. 78,5',
+        'diary.weigh_in': 'Pesée du matin',
+        'diary.log_weight': 'Enregistrer le poids',
+        'diary.update_weight': 'Modifier le poids',
+        'diary.current_weight': 'Poids actuel',
+        'diary.not_logged': 'Pas encore pesé',
+        'diary.weight_kg': 'Poids (kg)',
+        'diary.weight_note': 'Remarques (optionnel)',
+        'diary.delete_weight': 'Supprimer la pesée',
+        'diary.confirm_delete_weight':
+            'Voulez-vous supprimer la pesée de ce jour ?',
         'diary.recent_foods': 'Aliments récents et favoris',
         'diary.open_food_facts_catalog': 'Catalogue Open Food Facts',
         'diary.no_foods_in_slot':
@@ -438,6 +472,20 @@ export const translations: Record<Locale, Record<string, string>> = {
         'recipes.add_ingredient': 'Ajouter l’ingrédient',
         'recipes.search_ingredient': 'Rechercher un ingrédient...',
         'recipes.add_this_ingredient': 'Ajouter cet ingrédient',
+        'recipes.grocery_list': 'Liste de courses',
+        'recipes.grocery_list_desc':
+            'Générez une liste de courses consolidée à partir de vos repas préparés et recettes.',
+        'recipes.select_meals': 'Sélectionner les repas et portions',
+        'recipes.servings': 'Portions',
+        'recipes.cat_protein': '🥩 Viandes, volailles & protéines',
+        'recipes.cat_produce': '🥦 Légumes frais & fruits',
+        'recipes.cat_dairy': '🥛 Produits laitiers & œufs',
+        'recipes.cat_pantry': '🍚 Céréales, huiles & épicerie',
+        'recipes.copy_list': 'Copier la liste',
+        'recipes.copied': 'Copié dans le presse-papiers !',
+        'recipes.clear_list': 'Effacer la sélection',
+        'recipes.empty_grocery':
+            'Sélectionnez au moins une recette ou un kit pour générer votre liste de courses.',
 
         // Adaptive Strategy
         'strategy.title': 'Stratégie nutritionnelle adaptative',

@@ -1,11 +1,14 @@
 import { Head, router } from '@inertiajs/react';
 import {
     CalendarPlus,
+    Check,
     ChefHat,
     Clock,
+    Copy,
     Flame,
     Loader2,
     Plus,
+    ShoppingBag,
     Sparkles,
     Trash2,
     Utensils,
@@ -289,6 +292,160 @@ export default function RecipesIndex({
     const [isLogging, setIsLogging] = useState(false);
     const [isSavingRecipe, setIsSavingRecipe] = useState(false);
 
+    // Grocery List Generator state
+    const [groceryModalOpen, setGroceryModalOpen] = useState(false);
+    const [selectedKitsForGrocery, setSelectedKitsForGrocery] = useState<
+        Record<string, number>
+    >({ 'kit-1': 1, 'kit-2': 1 });
+    const [checkedGroceryItems, setCheckedGroceryItems] = useState<
+        Record<string, boolean>
+    >({});
+    const [copiedGrocery, setCopiedGrocery] = useState(false);
+
+    // Compute consolidated grocery items
+    const consolidatedGroceryList = useMemo(() => {
+        const ingredientsMap: Record<
+            string,
+            {
+                category: 'protein' | 'produce' | 'dairy' | 'pantry';
+                name: string;
+                amount: string;
+            }
+        > = {};
+
+        const categorize = (
+            text: string,
+        ): 'protein' | 'produce' | 'dairy' | 'pantry' => {
+            const lower = text.toLowerCase();
+            if (
+                lower.includes('chicken') ||
+                lower.includes('beef') ||
+                lower.includes('salmon') ||
+                lower.includes('turkey') ||
+                lower.includes('sausage') ||
+                lower.includes('egg') ||
+                lower.includes('whey') ||
+                lower.includes('protein') ||
+                lower.includes('tuna') ||
+                lower.includes('shrimp')
+            ) {
+                return 'protein';
+            }
+            if (
+                lower.includes('broccoli') ||
+                lower.includes('berries') ||
+                lower.includes('sweet potato') ||
+                lower.includes('potato') ||
+                lower.includes('pepper') ||
+                lower.includes('onion') ||
+                lower.includes('tomato') ||
+                lower.includes('cucumber') ||
+                lower.includes('avocado') ||
+                lower.includes('spinach') ||
+                lower.includes('lettuce') ||
+                lower.includes('lemon') ||
+                lower.includes('garlic')
+            ) {
+                return 'produce';
+            }
+            if (
+                lower.includes('milk') ||
+                lower.includes('cheddar') ||
+                lower.includes('cheese') ||
+                lower.includes('yogurt') ||
+                lower.includes('butter')
+            ) {
+                return 'dairy';
+            }
+            return 'pantry';
+        };
+
+        // 1. Process Starter Kits
+        Object.entries(selectedKitsForGrocery).forEach(
+            ([kitId, multiplier]) => {
+                if (multiplier <= 0) return;
+                const kit = STARTER_MEAL_PREP_KITS.find((k) => k.id === kitId);
+                if (!kit) return;
+
+                kit.ingredients.forEach((ing) => {
+                    const cat = categorize(ing);
+                    const key = `${cat}_${ing.toLowerCase().replace(/[^a-z]/g, '')}`;
+                    if (!ingredientsMap[key]) {
+                        ingredientsMap[key] = {
+                            category: cat,
+                            name: ing,
+                            amount: multiplier > 1 ? `(${multiplier}x)` : '',
+                        };
+                    }
+                });
+            },
+        );
+
+        // 2. Group into categories
+        const grouped: Record<
+            'protein' | 'produce' | 'dairy' | 'pantry',
+            Array<{ id: string; name: string; amount: string }>
+        > = {
+            protein: [],
+            produce: [],
+            dairy: [],
+            pantry: [],
+        };
+
+        Object.entries(ingredientsMap).forEach(([id, item]) => {
+            grouped[item.category].push({
+                id,
+                name: item.name,
+                amount: item.amount,
+            });
+        });
+
+        return grouped;
+    }, [selectedKitsForGrocery]);
+
+    const handleToggleKitForGrocery = (kitId: string) => {
+        setSelectedKitsForGrocery((prev) => {
+            const next = { ...prev };
+            if (next[kitId]) {
+                delete next[kitId];
+            } else {
+                next[kitId] = 1;
+            }
+            return next;
+        });
+    };
+
+    const handleCopyGroceryList = () => {
+        const lines: string[] = ['🛒 Meal Prep Grocery List\n'];
+        const cats: Array<{
+            key: 'protein' | 'produce' | 'dairy' | 'pantry';
+            label: string;
+        }> = [
+            { key: 'protein', label: '🥩 Meats & Protein' },
+            { key: 'produce', label: '🥦 Fresh Produce' },
+            { key: 'dairy', label: '🥛 Dairy & Eggs' },
+            { key: 'pantry', label: '🍚 Grains & Pantry' },
+        ];
+
+        cats.forEach(({ key, label }) => {
+            const items = consolidatedGroceryList[key];
+            if (items.length > 0) {
+                lines.push(`\n${label}:`);
+                items.forEach((item) => {
+                    const checked = checkedGroceryItems[item.id]
+                        ? '[x]'
+                        : '[ ]';
+                    lines.push(`${checked} ${item.name} ${item.amount}`);
+                });
+            }
+        });
+
+        void navigator.clipboard.writeText(lines.join('\n')).then(() => {
+            setCopiedGrocery(true);
+            setTimeout(() => setCopiedGrocery(false), 2000);
+        });
+    };
+
     // Filter available foods for ingredient picker
     const filteredFoods = useMemo(() => {
         if (!foodSearchQuery.trim()) return availableFoods.slice(0, 8);
@@ -522,13 +679,23 @@ export default function RecipesIndex({
                     </p>
                 </div>
 
-                <Button
-                    onClick={() => setCreateModalOpen(true)}
-                    className="gap-2 bg-emerald-600 text-white shadow-xs hover:bg-emerald-700"
-                >
-                    <Plus className="h-4 w-4" />
-                    {t('recipes.create_recipe')}
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => setGroceryModalOpen(true)}
+                        className="gap-2 border-emerald-600/30 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                    >
+                        <ShoppingBag className="h-4 w-4" />
+                        {t('recipes.grocery_list')}
+                    </Button>
+                    <Button
+                        onClick={() => setCreateModalOpen(true)}
+                        className="gap-2 bg-emerald-600 text-white shadow-xs hover:bg-emerald-700"
+                    >
+                        <Plus className="h-4 w-4" />
+                        {t('recipes.create_recipe')}
+                    </Button>
+                </div>
             </div>
 
             {status && (
@@ -1621,6 +1788,204 @@ export default function RecipesIndex({
                             </DialogFooter>
                         </form>
                     )}
+                </DialogContent>
+            </Dialog>
+            {/* Meal Prep Grocery List Modal */}
+            <Dialog open={groceryModalOpen} onOpenChange={setGroceryModalOpen}>
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <ShoppingBag className="h-5 w-5 text-emerald-600" />
+                            {t('recipes.grocery_list')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t('recipes.grocery_list_desc')}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-2">
+                        {/* Meal Selection Cards */}
+                        <div className="space-y-2">
+                            <Label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                {t('recipes.select_meals')}
+                            </Label>
+                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                {STARTER_MEAL_PREP_KITS.map((kit) => {
+                                    const isSelected =
+                                        !!selectedKitsForGrocery[kit.id];
+                                    const count =
+                                        selectedKitsForGrocery[kit.id] || 0;
+                                    return (
+                                        <div
+                                            key={kit.id}
+                                            onClick={() =>
+                                                handleToggleKitForGrocery(
+                                                    kit.id,
+                                                )
+                                            }
+                                            className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 transition-all ${
+                                                isSelected
+                                                    ? 'border-emerald-500/50 bg-emerald-500/10 shadow-2xs'
+                                                    : 'border-border bg-card/60 hover:border-border/80'
+                                            }`}
+                                        >
+                                            <div className="min-w-0 flex-1 pr-2">
+                                                <p className="truncate text-xs font-semibold text-foreground">
+                                                    {kit.name}
+                                                </p>
+                                                <p className="text-[11px] text-muted-foreground">
+                                                    {kit.servings}{' '}
+                                                    {t('recipes.servings')}
+                                                </p>
+                                            </div>
+                                            <div
+                                                className="flex items-center gap-1.5"
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                            >
+                                                {isSelected ? (
+                                                    <div className="flex items-center rounded-lg border border-emerald-500/30 bg-background px-1.5 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                                                        <span>{count}x</span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        + Add
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Consolidated Categorized Grocery Items */}
+                        <div className="space-y-3 rounded-xl border border-border bg-muted/15 p-3.5">
+                            {[
+                                {
+                                    key: 'protein' as const,
+                                    label: t('recipes.cat_protein'),
+                                },
+                                {
+                                    key: 'produce' as const,
+                                    label: t('recipes.cat_produce'),
+                                },
+                                {
+                                    key: 'dairy' as const,
+                                    label: t('recipes.cat_dairy'),
+                                },
+                                {
+                                    key: 'pantry' as const,
+                                    label: t('recipes.cat_pantry'),
+                                },
+                            ].map(({ key, label }) => {
+                                const items = consolidatedGroceryList[key];
+                                if (items.length === 0) return null;
+                                return (
+                                    <div key={key} className="space-y-1.5">
+                                        <p className="text-xs font-bold text-foreground">
+                                            {label}
+                                        </p>
+                                        <div className="space-y-1">
+                                            {items.map((item) => {
+                                                const isChecked =
+                                                    !!checkedGroceryItems[
+                                                        item.id
+                                                    ];
+                                                return (
+                                                    <label
+                                                        key={item.id}
+                                                        className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1 transition-colors hover:bg-muted/40"
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isChecked}
+                                                            onChange={() => {
+                                                                setCheckedGroceryItems(
+                                                                    (prev) => ({
+                                                                        ...prev,
+                                                                        [item.id]:
+                                                                            !prev[
+                                                                                item
+                                                                                    .id
+                                                                            ],
+                                                                    }),
+                                                                );
+                                                            }}
+                                                            className="h-4 w-4 rounded-sm border-border text-emerald-600 focus:ring-emerald-500"
+                                                        />
+                                                        <span
+                                                            className={`text-xs ${
+                                                                isChecked
+                                                                    ? 'text-muted-foreground line-through'
+                                                                    : 'font-medium text-foreground'
+                                                            }`}
+                                                        >
+                                                            {item.name}{' '}
+                                                            {item.amount}
+                                                        </span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {Object.values(consolidatedGroceryList).every(
+                                (arr) => arr.length === 0,
+                            ) && (
+                                <p className="py-4 text-center text-xs text-muted-foreground">
+                                    {t('recipes.empty_grocery')}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <DialogFooter className="flex items-center justify-between sm:justify-between">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                setSelectedKitsForGrocery({});
+                                setCheckedGroceryItems({});
+                            }}
+                            className="text-xs text-muted-foreground hover:text-foreground"
+                        >
+                            {t('recipes.clear_list')}
+                        </Button>
+
+                        <div className="flex gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setGroceryModalOpen(false)}
+                            >
+                                {t('action.close')}
+                            </Button>
+                            <Button
+                                type="button"
+                                size="sm"
+                                onClick={handleCopyGroceryList}
+                                className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700"
+                            >
+                                {copiedGrocery ? (
+                                    <>
+                                        <Check className="h-4 w-4" />
+                                        {t('recipes.copied')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy className="h-4 w-4" />
+                                        {t('recipes.copy_list')}
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

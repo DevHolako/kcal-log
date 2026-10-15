@@ -12,6 +12,7 @@ import {
     Moon,
     Plus,
     Search,
+    Scale,
     Sparkles,
     Sun,
     Trash2,
@@ -159,6 +160,83 @@ export default function DiaryIndex({
     const [visualizerMode, setVisualizerMode] = useState<'donut' | 'rings'>(
         'donut',
     );
+
+    // Weight Logging state
+    const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
+    const [weightInput, setWeightInput] = useState<string>(
+        summary.weight_kg !== null ? summary.weight_kg.toString() : '',
+    );
+    const [weightNote, setWeightNote] = useState<string>('');
+    const [isWeightSubmitting, setIsWeightSubmitting] = useState(false);
+    const [confirmDeleteWeight, setConfirmDeleteWeight] = useState(false);
+
+    useEffect(() => {
+        setWeightInput(
+            summary.weight_kg !== null ? summary.weight_kg.toString() : '',
+        );
+        setConfirmDeleteWeight(false);
+    }, [summary.weight_kg, selectedDate]);
+
+    const handleQuickWeightAdjust = (delta: number) => {
+        const current =
+            summary.weight_kg !== null
+                ? summary.weight_kg
+                : weightInput
+                  ? parseFloat(weightInput)
+                  : 75.0;
+        const next = Math.max(
+            20,
+            Math.min(400, Math.round((current + delta) * 10) / 10),
+        );
+        setIsWeightSubmitting(true);
+        router.post(
+            '/diary/weight',
+            {
+                date: selectedDate,
+                weight_kg: next,
+            },
+            {
+                preserveScroll: true,
+                onFinish: () => setIsWeightSubmitting(false),
+            },
+        );
+    };
+
+    const handleSaveWeight = (e: React.FormEvent) => {
+        e.preventDefault();
+        const parsed = parseFloat(weightInput);
+        if (isNaN(parsed) || parsed < 20 || parsed > 400) return;
+
+        setIsWeightSubmitting(true);
+        router.post(
+            '/diary/weight',
+            {
+                date: selectedDate,
+                weight_kg: parsed,
+                note: weightNote.trim() ? weightNote.trim() : undefined,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => setIsWeightModalOpen(false),
+                onFinish: () => setIsWeightSubmitting(false),
+            },
+        );
+    };
+
+    const handleDeleteWeight = () => {
+        setIsWeightSubmitting(true);
+        router.delete('/diary/weight', {
+            data: { date: selectedDate },
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsWeightModalOpen(false);
+                setWeightInput('');
+                setWeightNote('');
+                setConfirmDeleteWeight(false);
+            },
+            onFinish: () => setIsWeightSubmitting(false),
+        });
+    };
 
     // Debounced remote search across Open Food Facts & cached catalog
     useEffect(() => {
@@ -777,52 +855,134 @@ export default function DiaryIndex({
                 )}
             </div>
 
-            {/* Water Tracker Widget */}
-            <Card className="overflow-hidden rounded-2xl border border-sky-500/25 bg-card shadow-2xs transition-all hover:border-sky-500/40 hover:shadow-xs">
-                <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 bg-gradient-to-r from-sky-500/10 via-sky-500/[0.03] to-transparent px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                        <div className="rounded-lg bg-sky-500/15 p-1.5 text-sky-500 shadow-2xs">
-                            <Droplet className="h-4 w-4 fill-sky-500 text-sky-500" />
+            {/* Daily Habits & Biomarkers: Water & Morning Weigh-In */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {/* Water Tracker Widget */}
+                <Card className="overflow-hidden rounded-2xl border border-sky-500/25 bg-card shadow-2xs transition-all hover:border-sky-500/40 hover:shadow-xs">
+                    <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 bg-gradient-to-r from-sky-500/10 via-sky-500/[0.03] to-transparent px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                            <div className="rounded-lg bg-sky-500/15 p-1.5 text-sky-500 shadow-2xs">
+                                <Droplet className="h-4 w-4 fill-sky-500 text-sky-500" />
+                            </div>
+                            <CardTitle className="text-base font-semibold">
+                                {t('diary.water_intake')}
+                            </CardTitle>
+                            <Badge
+                                variant="outline"
+                                className="ml-1 border-sky-500/25 bg-sky-500/10 font-mono text-xs font-bold text-sky-800 dark:text-sky-300"
+                            >
+                                {summary.water_ml} / {summary.target_water_ml}{' '}
+                                ml
+                            </Badge>
                         </div>
-                        <CardTitle className="text-base font-semibold">
-                            Water Tracking
-                        </CardTitle>
-                        <Badge
-                            variant="outline"
-                            className="ml-1 border-sky-500/25 bg-sky-500/10 font-mono text-xs font-bold text-sky-800 dark:text-sky-300"
-                        >
-                            {summary.water_ml} / {summary.target_water_ml} ml
-                        </Badge>
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleLogWater(250)}
-                            className="h-7 border-sky-500/30 text-xs font-semibold text-sky-800 shadow-2xs hover:bg-sky-500/10 dark:text-sky-200"
-                        >
-                            +250 ml
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleLogWater(500)}
-                            className="h-7 border-sky-500/30 text-xs font-semibold text-sky-800 shadow-2xs hover:bg-sky-500/10 dark:text-sky-200"
-                        >
-                            +500 ml
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleLogWater(750)}
-                            className="h-7 border-sky-500/30 text-xs font-semibold text-sky-800 shadow-2xs hover:bg-sky-500/10 dark:text-sky-200"
-                        >
-                            +750 ml
-                        </Button>
-                    </div>
-                </CardHeader>
-            </Card>
+                        <div className="flex items-center gap-1.5">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleLogWater(250)}
+                                className="h-7 border-sky-500/30 px-2 text-xs font-semibold text-sky-800 shadow-2xs hover:bg-sky-500/10 dark:text-sky-200"
+                            >
+                                +250 ml
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleLogWater(500)}
+                                className="h-7 border-sky-500/30 px-2 text-xs font-semibold text-sky-800 shadow-2xs hover:bg-sky-500/10 dark:text-sky-200"
+                            >
+                                +500 ml
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleLogWater(750)}
+                                className="h-7 border-sky-500/30 px-2 text-xs font-semibold text-sky-800 shadow-2xs hover:bg-sky-500/10 dark:text-sky-200"
+                            >
+                                +750 ml
+                            </Button>
+                        </div>
+                    </CardHeader>
+                </Card>
+
+                {/* Morning Weigh-In Widget */}
+                <Card className="overflow-hidden rounded-2xl border border-emerald-500/25 bg-card shadow-2xs transition-all hover:border-emerald-500/40 hover:shadow-xs">
+                    <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 bg-gradient-to-r from-emerald-500/10 via-emerald-500/[0.03] to-transparent px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                            <div className="rounded-lg bg-emerald-500/15 p-1.5 text-emerald-500 shadow-2xs">
+                                <Scale className="h-4 w-4 text-emerald-500" />
+                            </div>
+                            <CardTitle className="text-base font-semibold">
+                                {t('diary.weigh_in')}
+                            </CardTitle>
+                            {summary.weight_kg !== null ? (
+                                <Badge
+                                    variant="outline"
+                                    className="ml-1 border-emerald-500/25 bg-emerald-500/10 font-mono text-xs font-bold text-emerald-800 dark:text-emerald-300"
+                                >
+                                    {summary.weight_kg} kg
+                                </Badge>
+                            ) : (
+                                <Badge
+                                    variant="outline"
+                                    className="ml-1 border-muted bg-muted/40 text-xs font-medium text-muted-foreground"
+                                >
+                                    {t('diary.not_logged')}
+                                </Badge>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                            {summary.weight_kg !== null ? (
+                                <>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={isWeightSubmitting}
+                                        onClick={() =>
+                                            handleQuickWeightAdjust(-0.1)
+                                        }
+                                        className="h-7 border-emerald-500/30 px-2 text-xs font-semibold text-emerald-800 shadow-2xs hover:bg-emerald-500/10 dark:text-emerald-200"
+                                    >
+                                        -0.1 kg
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={isWeightSubmitting}
+                                        onClick={() =>
+                                            handleQuickWeightAdjust(0.1)
+                                        }
+                                        className="h-7 border-emerald-500/30 px-2 text-xs font-semibold text-emerald-800 shadow-2xs hover:bg-emerald-500/10 dark:text-emerald-200"
+                                    >
+                                        +0.1 kg
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                            setIsWeightModalOpen(true)
+                                        }
+                                        className="h-7 border-emerald-500/30 px-2.5 text-xs font-semibold text-emerald-800 shadow-2xs hover:bg-emerald-500/10 dark:text-emerald-200"
+                                    >
+                                        {t('diary.update_weight')}
+                                    </Button>
+                                </>
+                            ) : (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setIsWeightModalOpen(true)}
+                                    className="h-7 border-emerald-500/30 px-3 text-xs font-semibold text-emerald-800 shadow-2xs hover:bg-emerald-500/10 dark:text-emerald-200"
+                                >
+                                    <Plus className="mr-1 h-3.5 w-3.5" />
+                                    {t('diary.log_weight')}
+                                </Button>
+                            )}
+                        </div>
+                    </CardHeader>
+                </Card>
+            </div>
 
             {/* Add Food Dialog */}
             <Dialog open={isAddFoodOpen} onOpenChange={setIsAddFoodOpen}>
@@ -1545,6 +1705,180 @@ export default function DiaryIndex({
                             Close
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Morning Weigh-In Dialog */}
+            <Dialog
+                open={isWeightModalOpen}
+                onOpenChange={setIsWeightModalOpen}
+            >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Scale className="h-5 w-5 text-emerald-500" />
+                            {t('diary.weigh_in')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t('diary.record_weight')}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form
+                        onSubmit={handleSaveWeight}
+                        className="space-y-4 py-2"
+                    >
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="weight_kg">
+                                    {t('diary.weight_kg')}
+                                </Label>
+                                <span className="font-mono text-xs text-muted-foreground">
+                                    {selectedDate}
+                                </span>
+                            </div>
+                            <div className="relative">
+                                <Input
+                                    id="weight_kg"
+                                    type="number"
+                                    step="0.1"
+                                    min="20"
+                                    max="400"
+                                    required
+                                    placeholder={t('diary.weight_placeholder')}
+                                    value={weightInput}
+                                    onChange={(e) =>
+                                        setWeightInput(e.target.value)
+                                    }
+                                    className="pr-12 text-lg font-bold"
+                                />
+                                <span className="absolute top-1/2 right-3 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
+                                    kg
+                                </span>
+                            </div>
+
+                            {/* Quick Increment Steppers */}
+                            <div className="flex items-center justify-between gap-1.5 pt-1">
+                                {[-0.5, -0.1, 0.1, 0.5].map((delta) => (
+                                    <Button
+                                        key={delta}
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            const current = weightInput
+                                                ? parseFloat(weightInput)
+                                                : 75.0;
+                                            const next = Math.max(
+                                                20,
+                                                Math.min(
+                                                    400,
+                                                    Math.round(
+                                                        (current + delta) * 10,
+                                                    ) / 10,
+                                                ),
+                                            );
+                                            setWeightInput(next.toString());
+                                        }}
+                                        className="h-7 flex-1 text-xs font-semibold"
+                                    >
+                                        {delta > 0 ? `+${delta}` : delta}
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="weight_note">
+                                {t('diary.weight_note')}
+                            </Label>
+                            <Input
+                                id="weight_note"
+                                type="text"
+                                placeholder={t('diary.description_placeholder')}
+                                value={weightNote}
+                                onChange={(e) => setWeightNote(e.target.value)}
+                            />
+                        </div>
+
+                        {confirmDeleteWeight && (
+                            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                                <p className="font-semibold">
+                                    {t('diary.confirm_delete_weight')}
+                                </p>
+                                <div className="mt-2 flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={handleDeleteWeight}
+                                        disabled={isWeightSubmitting}
+                                        className="h-7 text-xs"
+                                    >
+                                        {t('action.delete')}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                            setConfirmDeleteWeight(false)
+                                        }
+                                        className="h-7 text-xs"
+                                    >
+                                        {t('action.cancel')}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        <DialogFooter className="flex items-center justify-between pt-2 sm:justify-between">
+                            <div>
+                                {summary.weight_kg !== null &&
+                                    !confirmDeleteWeight && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                                setConfirmDeleteWeight(true)
+                                            }
+                                            disabled={isWeightSubmitting}
+                                            className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                        >
+                                            <Trash2 className="mr-1 h-3.5 w-3.5" />
+                                            {t('action.delete')}
+                                        </Button>
+                                    )}
+                            </div>
+
+                            <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setIsWeightModalOpen(false);
+                                        setConfirmDeleteWeight(false);
+                                    }}
+                                >
+                                    {t('action.cancel')}
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    size="sm"
+                                    disabled={
+                                        isWeightSubmitting || !weightInput
+                                    }
+                                >
+                                    {isWeightSubmitting ? (
+                                        <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                                    ) : null}
+                                    {t('action.save')}
+                                </Button>
+                            </div>
+                        </DialogFooter>
+                    </form>
                 </DialogContent>
             </Dialog>
 

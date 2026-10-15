@@ -15,6 +15,7 @@ use App\DTOs\Diary\UpdateFoodLogDTO;
 use App\Http\Requests\Diary\QuickAddRequest;
 use App\Http\Requests\Diary\StoreDiaryEntryRequest;
 use App\Http\Requests\Diary\StoreWaterLogRequest;
+use App\Http\Requests\Diary\StoreWeightLogRequest;
 use App\Http\Requests\Diary\UpdateDiaryEntryRequest;
 use App\Models\DiaryEntry;
 use App\Models\Food;
@@ -146,4 +147,37 @@ class DiaryController extends Controller
 
         return back()->with('status', 'Water log removed.');
     }
+
+    /**
+     * Log daily bodyweight in kg.
+     */
+    public function storeWeight(StoreWeightLogRequest $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $this->diaryService->logWeight(
+            $user,
+            (string) $request->validated('date'),
+            (float) $request->validated('weight_kg'),
+            $request->validated('note')
+        );
+
+        return back()->with('status', 'Daily weight logged.');
+    }
+
+    /**
+     * Remove daily bodyweight log for a specific date.
+     */
+    public function destroyWeight(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $date = (string) $request->input('date', now()->format('Y-m-d'));
+        $this->diaryService->deleteWeight($user, $date);
+
+        return back()->with('status', 'Weight log removed.');
+    }
 }
+

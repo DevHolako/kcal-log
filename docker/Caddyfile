@@ -8,6 +8,14 @@
     root * /app/apps/web/public
     encode zstd gzip
 
+    # Reverse proxy Reverb WebSockets
+    @websockets {
+        path /app/*
+    }
+    handle @websockets {
+        reverse_proxy {$REVERB_HOST:reverb}:{$REVERB_SERVER_PORT:9080}
+    }
+
     # Static Asset Caching
     @static {
         file

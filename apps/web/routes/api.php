@@ -57,11 +57,13 @@ Route::prefix('v1')->group(function () {
         // Daily Nutrition Diary & Meal Logging
         Route::get('diary', [DiaryController::class, 'index'])->name('api.v1.diary.index');
         Route::post('diary', [DiaryController::class, 'store'])->name('api.v1.diary.store');
-        Route::put('diary/{entry}', [DiaryController::class, 'update'])->name('api.v1.diary.update');
-        Route::delete('diary/{entry}', [DiaryController::class, 'destroy'])->name('api.v1.diary.destroy');
         Route::post('diary/quick-add', [DiaryController::class, 'quickAdd'])->name('api.v1.diary.quick-add');
         Route::post('diary/water', [DiaryController::class, 'storeWater'])->name('api.v1.diary.water.store');
         Route::delete('diary/water/{waterLog}', [DiaryController::class, 'destroyWater'])->name('api.v1.diary.water.destroy');
+        Route::post('diary/weight', [DiaryController::class, 'storeWeight'])->name('api.v1.diary.weight.store');
+        Route::delete('diary/weight', [DiaryController::class, 'destroyWeight'])->name('api.v1.diary.weight.destroy');
+        Route::put('diary/{entry}', [DiaryController::class, 'update'])->name('api.v1.diary.update');
+        Route::delete('diary/{entry}', [DiaryController::class, 'destroy'])->name('api.v1.diary.destroy');
 
         // Recipes & Multi-Ingredient Meals
         Route::get('recipes', [\App\Http\Controllers\Api\V1\RecipeController::class, 'index'])->name('api.v1.recipes.index');
