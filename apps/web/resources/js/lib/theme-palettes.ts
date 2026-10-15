@@ -20,148 +20,154 @@ export interface ThemePalette {
 
 export const PALETTE_PRESETS: ThemePalette[] = [
     {
-        id: 'indigo',
-        name: 'Electric Indigo',
-        description: 'Modern high-tech fitness like Linear & Cronometer',
-        primary: '#6366f1',
+        id: 'macrofactor',
+        name: 'MacroFactor Elite',
+        description:
+            'Evidence-based nutrition aesthetic with precision Malin blue',
+        primary: '#679ffa',
         primaryForeground: '#ffffff',
-        backgroundLight: '#f5f7ff',
-        backgroundDark: '#0c0f1d',
+        backgroundLight: '#fbfbfd',
+        backgroundDark: '#181b20',
         cardLight: '#ffffff',
-        cardDark: '#13182c',
-        plateBgTint: 'rgba(99, 102, 241, 0.05)',
+        cardDark: '#22262e',
+        plateBgTint: 'rgba(103, 159, 250, 0.06)',
         macroCalories: '#f97316', // Coral
-        macroProtein: '#0ea5e9', // Sky Blue
-        macroCarbs: '#f59e0b', // Amber
-        macroFat: '#8b5cf6', // Violet
+        macroProtein: '#38bdf8', // Cyan
+        macroCarbs: '#fbbf24', // Amber
+        macroFat: '#fb7185', // Rose
         macroWater: '#06b6d4',
     },
     {
         id: 'coral',
-        name: 'Sunset Coral',
-        description: 'Warm metabolic energy inspired by Strava & Nike',
-        primary: '#f43f5e',
-        primaryForeground: '#ffffff',
-        backgroundLight: '#fff7f5',
-        backgroundDark: '#180b0f',
-        cardLight: '#ffffff',
-        cardDark: '#241218',
-        plateBgTint: 'rgba(244, 63, 94, 0.05)',
-        macroCalories: '#ea580c',
-        macroProtein: '#3b82f6',
-        macroCarbs: '#eab308',
-        macroFat: '#ec4899',
-        macroWater: '#06b6d4',
-    },
-    {
-        id: 'cobalt',
-        name: 'Royal Cobalt',
+        name: 'Sunset Coral (Oura)',
         description:
-            'Athletic precision and clinical clarity like Garmin & Whoop',
-        primary: '#2563eb',
+            'Circadian warmth & metabolic flow inspired by Oura Ring & Strava',
+        primary: '#fc6558',
         primaryForeground: '#ffffff',
-        backgroundLight: '#f0f7ff',
-        backgroundDark: '#091124',
+        backgroundLight: '#f7f5f0',
+        backgroundDark: '#151619',
         cardLight: '#ffffff',
-        cardDark: '#101b36',
-        plateBgTint: 'rgba(37, 99, 235, 0.05)',
-        macroCalories: '#f59e0b',
-        macroProtein: '#0284c7',
-        macroCarbs: '#10b981',
-        macroFat: '#f43f5e',
+        cardDark: '#1f2126',
+        plateBgTint: 'rgba(252, 101, 88, 0.06)',
+        macroCalories: '#fc6558',
+        macroProtein: '#5ea7db', // Ensō Blue
+        macroCarbs: '#d99b43', // Sand Gold
+        macroFat: '#be4a6e', // Nordic Plum
         macroWater: '#06b6d4',
     },
     {
-        id: 'amber',
-        name: 'Titanium Amber',
-        description: 'Minimalist luxury and calm elegance like Oura Ring',
-        primary: '#d97706',
-        primaryForeground: '#ffffff',
-        backgroundLight: '#faf8f3',
-        backgroundDark: '#17130b',
+        id: 'whoop',
+        name: 'WHOOP Cyber-Pulse',
+        description:
+            'High-strain athletic telemetry with neon Action Teal & dark carbon',
+        primary: '#00f19f',
+        primaryForeground: '#0b0d10',
+        backgroundLight: '#f4f6f8',
+        backgroundDark: '#0b0d10',
         cardLight: '#ffffff',
-        cardDark: '#241c10',
-        plateBgTint: 'rgba(217, 119, 6, 0.05)',
-        macroCalories: '#f59e0b',
-        macroProtein: '#3b82f6',
-        macroCarbs: '#d97706',
-        macroFat: '#e11d48',
-        macroWater: '#0ea5e9',
+        cardDark: '#15181e',
+        plateBgTint: 'rgba(0, 241, 159, 0.08)',
+        macroCalories: '#ff5e00', // Peak Orange
+        macroProtein: '#2563eb', // Royal Blue
+        macroCarbs: '#f59e0b', // Power Gold
+        macroFat: '#c91235', // Strain Red
+        macroWater: '#06b6d4',
     },
     {
-        id: 'orchid',
-        name: 'Cyber Orchid',
-        description: 'Futuristic neon synthwave with high-contrast pop',
-        primary: '#a855f7',
+        id: 'apple-fitness',
+        name: 'Apple Fitness Rings',
+        description:
+            'Iconic activity rings with vibrant Move, Stand & Exercise neon',
+        primary: '#ff2d55',
         primaryForeground: '#ffffff',
-        backgroundLight: '#faf5ff',
-        backgroundDark: '#140922',
+        backgroundLight: '#f6f7fb',
+        backgroundDark: '#0c0d10',
         cardLight: '#ffffff',
-        cardDark: '#1e1033',
-        plateBgTint: 'rgba(168, 85, 247, 0.05)',
-        macroCalories: '#f43f5e',
-        macroProtein: '#06b6d4',
-        macroCarbs: '#f59e0b',
-        macroFat: '#d946ef',
+        cardDark: '#17181f',
+        plateBgTint: 'rgba(255, 45, 85, 0.06)',
+        macroCalories: '#ff2d55', // Move Red
+        macroProtein: '#0a84ff', // Stand Cyan
+        macroCarbs: '#32d74b', // Exercise Green
+        macroFat: '#bf5af2', // Mindfulness Purple
+        macroWater: '#06b6d4',
+    },
+    {
+        id: 'eco-wellness',
+        name: 'Biophilic Eco-Wellness',
+        description:
+            'Calming botanical earth tones inspired by clean organic longevity',
+        primary: '#5b9a77',
+        primaryForeground: '#ffffff',
+        backgroundLight: '#f3f6f3',
+        backgroundDark: '#0e1712',
+        cardLight: '#ffffff',
+        cardDark: '#16231b',
+        plateBgTint: 'rgba(91, 154, 119, 0.08)',
+        macroCalories: '#d97757', // Terracotta
+        macroProtein: '#3b82a6', // River Slate
+        macroCarbs: '#d4a359', // Golden Wheat
+        macroFat: '#8b5e3c', // Nutmeg Bark
+        macroWater: '#06b6d4',
+    },
+    {
+        id: 'synthwave',
+        name: 'Bento Synthwave',
+        description:
+            'Electric neon violet cyberpunk glow with high-contrast vibrancy',
+        primary: '#8b5cf6',
+        primaryForeground: '#ffffff',
+        backgroundLight: '#f7f6fc',
+        backgroundDark: '#0e0c15',
+        cardLight: '#ffffff',
+        cardDark: '#181524',
+        plateBgTint: 'rgba(139, 92, 246, 0.07)',
+        macroCalories: '#ff6b4a', // Solar Neon
+        macroProtein: '#00f0ff', // Cyan Glow
+        macroCarbs: '#ffc83b', // Amber Spark
+        macroFat: '#e024c3', // Cyber Magenta
         macroWater: '#38bdf8',
     },
     {
-        id: 'arctic',
-        name: 'Arctic Frost',
-        description: 'Cool Scandinavian minimalism with crisp glacier tones',
+        id: 'clinical',
+        name: 'Clinical HealthTech',
+        description:
+            'Crisp medical precision inspired by continuous metabolic tracking',
         primary: '#0284c7',
         primaryForeground: '#ffffff',
-        backgroundLight: '#f0f9ff',
-        backgroundDark: '#071520',
+        backgroundLight: '#f8fafc',
+        backgroundDark: '#0a111e',
         cardLight: '#ffffff',
-        cardDark: '#0d2030',
-        plateBgTint: 'rgba(2, 132, 199, 0.05)',
-        macroCalories: '#f97316',
-        macroProtein: '#0ea5e9',
-        macroCarbs: '#14b8a6',
-        macroFat: '#6366f1',
-        macroWater: '#38bdf8',
-    },
-    {
-        id: 'crimson',
-        name: 'Crimson Flame',
-        description:
-            'High-intensity passion and bold drive for aggressive training',
-        primary: '#e11d48',
-        primaryForeground: '#ffffff',
-        backgroundLight: '#fff4f6',
-        backgroundDark: '#1c070c',
-        cardLight: '#ffffff',
-        cardDark: '#2a0c13',
-        plateBgTint: 'rgba(225, 29, 72, 0.05)',
+        cardDark: '#121e33',
+        plateBgTint: 'rgba(2, 132, 199, 0.06)',
         macroCalories: '#ea580c',
-        macroProtein: '#2563eb',
-        macroCarbs: '#f59e0b',
-        macroFat: '#be123c',
+        macroProtein: '#0284c7',
+        macroCarbs: '#10b981',
+        macroFat: '#9333ea',
         macroWater: '#06b6d4',
     },
     {
-        id: 'espresso',
-        name: 'Warm Espresso',
-        description: 'Artisanal coffee and warm earthy organic tones',
-        primary: '#78350f',
+        id: 'cortado',
+        name: 'Warm Cortado Espresso',
+        description:
+            'Rich roasted espresso & warm golden oat parchment comfort',
+        primary: '#b45309',
         primaryForeground: '#ffffff',
-        backgroundLight: '#fcf7f2',
-        backgroundDark: '#170e08',
+        backgroundLight: '#faf6f0',
+        backgroundDark: '#17100b',
         cardLight: '#ffffff',
-        cardDark: '#23160e',
-        plateBgTint: 'rgba(120, 53, 15, 0.05)',
-        macroCalories: '#ea580c',
-        macroProtein: '#0284c7',
-        macroCarbs: '#d97706',
-        macroFat: '#be185d',
+        cardDark: '#241b14',
+        plateBgTint: 'rgba(180, 83, 9, 0.06)',
+        macroCalories: '#d97706',
+        macroProtein: '#3b82f6',
+        macroCarbs: '#eab308',
+        macroFat: '#9f1239',
         macroWater: '#06b6d4',
     },
 ];
 
 const STORAGE_KEY = 'kcal_palette_choice';
 const CUSTOM_STORAGE_KEY = 'kcal_palette_custom';
-const DEFAULT_PALETTE_ID = 'indigo';
+const DEFAULT_PALETTE_ID = 'macrofactor';
 
 export function getStoredPalette(): ThemePalette {
     if (typeof window === 'undefined') {
@@ -182,6 +188,11 @@ export function getStoredPalette(): ThemePalette {
         } catch {
             // fallback
         }
+    }
+
+    // Migrate old 'indigo' default to 'macrofactor'
+    if (storedId === 'indigo') {
+        return PALETTE_PRESETS[0];
     }
 
     const found = PALETTE_PRESETS.find((p) => p.id === storedId);
