@@ -26,46 +26,6 @@ interface RingConfig {
     data: MacroRingData;
 }
 
-const cardThemes: Record<
-    'calories' | 'protein' | 'carbs' | 'fat',
-    {
-        border: string;
-        bg: string;
-        badge: string;
-        text: string;
-        barBg: string;
-    }
-> = {
-    calories: {
-        border: 'border-emerald-500/25 dark:border-emerald-500/35 hover:border-emerald-500/60',
-        bg: 'bg-emerald-500/[0.05] dark:bg-emerald-500/[0.09]',
-        badge: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
-        text: 'text-emerald-950 dark:text-emerald-100',
-        barBg: 'bg-emerald-500/20',
-    },
-    protein: {
-        border: 'border-blue-500/25 dark:border-blue-500/35 hover:border-blue-500/60',
-        bg: 'bg-blue-500/[0.05] dark:bg-blue-500/[0.09]',
-        badge: 'bg-blue-500/15 text-blue-800 dark:text-blue-300',
-        text: 'text-blue-950 dark:text-blue-100',
-        barBg: 'bg-blue-500/20',
-    },
-    carbs: {
-        border: 'border-amber-500/25 dark:border-amber-500/35 hover:border-amber-500/60',
-        bg: 'bg-amber-500/[0.05] dark:bg-amber-500/[0.09]',
-        badge: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
-        text: 'text-amber-950 dark:text-amber-100',
-        barBg: 'bg-amber-500/20',
-    },
-    fat: {
-        border: 'border-rose-500/25 dark:border-rose-500/35 hover:border-rose-500/60',
-        bg: 'bg-rose-500/[0.05] dark:bg-rose-500/[0.09]',
-        badge: 'bg-rose-500/15 text-rose-800 dark:text-rose-300',
-        text: 'text-rose-950 dark:text-rose-100',
-        barBg: 'bg-rose-500/20',
-    },
-};
-
 export default function ConcentricMacroRings({
     calories,
     protein,
@@ -219,24 +179,27 @@ export default function ConcentricMacroRings({
                             : t('status.remaining')}
                     </span>
                     <span
-                        className={cn(
-                            'text-2xl font-black tracking-tight tabular-nums',
-                            isCalOver
-                                ? 'text-status-error'
-                                : 'text-macro-calories',
-                        )}
+                        className="text-2xl font-black tracking-tight tabular-nums"
+                        style={{
+                            color: isCalOver
+                                ? 'var(--color-status-error, #ef4444)'
+                                : 'var(--color-primary)',
+                        }}
                     >
                         {calTarget > 0
                             ? formatNumber(Math.abs(calRemaining))
                             : '--'}
                     </span>
-                    <span className="text-[11px] font-semibold text-emerald-600/80 dark:text-emerald-400/80">
+                    <span
+                        className="text-[11px] font-semibold"
+                        style={{ color: 'var(--color-primary)' }}
+                    >
                         kcal
                     </span>
                 </div>
             </div>
 
-            {/* Accessible Legend & Independent Metrics Grid with Colorful Surfaces */}
+            {/* Accessible Legend & Independent Metrics Grid with Dynamic Palette Surfaces */}
             <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
                 {rings.map((ring) => {
                     const consumed = Math.round(ring.data.consumed);
@@ -249,23 +212,26 @@ export default function ConcentricMacroRings({
                         ? Math.round((consumed / target) * 100)
                         : null;
                     const isOver = isConfigured && consumed > target;
-                    const theme = cardThemes[ring.id];
 
                     return (
                         <div
                             key={ring.id}
-                            className={cn(
-                                'flex flex-col justify-between rounded-xl border p-3 shadow-2xs transition-all hover:shadow-xs',
-                                theme.bg,
-                                theme.border,
-                            )}
+                            className="flex flex-col justify-between rounded-xl border p-3 shadow-2xs transition-all hover:scale-[1.01]"
+                            style={{
+                                borderColor: `color-mix(in srgb, ${ring.colorVar} 25%, transparent)`,
+                                backgroundColor: `color-mix(in srgb, ${ring.colorVar} 4%, transparent)`,
+                            }}
                         >
                             <div className="flex items-center justify-between gap-1">
-                                <span className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                                <span
+                                    className="flex items-center gap-1.5 text-xs font-bold"
+                                    style={{ color: ring.colorVar }}
+                                >
                                     <span
                                         className="h-2.5 w-2.5 shrink-0 rounded-full shadow-2xs"
                                         style={{
                                             backgroundColor: ring.colorVar,
+                                            boxShadow: `0 0 6px ${ring.colorVar}`,
                                         }}
                                         aria-hidden="true"
                                     />
@@ -273,12 +239,13 @@ export default function ConcentricMacroRings({
                                 </span>
                                 {percent !== null && (
                                     <span
-                                        className={cn(
-                                            'rounded-md px-1.5 py-0.5 text-[10px] font-bold tabular-nums',
-                                            isOver
-                                                ? 'bg-red-500/15 text-status-error'
-                                                : theme.badge,
-                                        )}
+                                        className="rounded-md px-1.5 py-0.5 text-[10px] font-bold tabular-nums"
+                                        style={{
+                                            backgroundColor: `color-mix(in srgb, ${isOver ? 'var(--color-status-error, #ef4444)' : ring.colorVar} 15%, transparent)`,
+                                            color: isOver
+                                                ? 'var(--color-status-error, #ef4444)'
+                                                : ring.colorVar,
+                                        }}
                                     >
                                         {percent}%
                                     </span>
@@ -286,10 +253,10 @@ export default function ConcentricMacroRings({
                             </div>
 
                             <div className="mt-2.5 flex items-baseline justify-between">
-                                <span className="text-xl font-bold tracking-tight text-foreground tabular-nums">
+                                <span className="font-mono text-xl font-extrabold tracking-tight text-foreground tabular-nums">
                                     {formatNumber(consumed)}
                                 </span>
-                                <span className="text-xs font-medium text-muted-foreground tabular-nums">
+                                <span className="font-mono text-xs text-muted-foreground tabular-nums">
                                     /{' '}
                                     {isConfigured
                                         ? `${formatNumber(target)} ${unit}`
@@ -299,10 +266,10 @@ export default function ConcentricMacroRings({
 
                             {/* Mini Progress Bar with Nutrient Track */}
                             <div
-                                className={cn(
-                                    'mt-2.5 h-1.5 w-full overflow-hidden rounded-full',
-                                    theme.barBg,
-                                )}
+                                className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full"
+                                style={{
+                                    backgroundColor: `color-mix(in srgb, ${ring.colorVar} 18%, transparent)`,
+                                }}
                             >
                                 <div
                                     className="h-full rounded-full transition-all duration-500 ease-out"

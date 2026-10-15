@@ -379,18 +379,18 @@ export default function DiaryIndex({
                 <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-96 -translate-x-1/2 rounded-full bg-primary/[0.08] blur-3xl dark:bg-primary/[0.12]" />
                 <CardContent className="relative space-y-5 p-5">
                     {/* Header View Switcher */}
-                    <div className="flex items-center justify-between border-b border-border/50 pb-2">
-                        <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                    <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                        <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
                             Macronutrient Breakdown
                         </span>
-                        <div className="flex items-center rounded-lg bg-muted/60 p-0.5 text-xs font-semibold">
+                        <div className="flex items-center rounded-lg border border-border/60 bg-muted/50 p-0.5 text-xs font-semibold">
                             <button
                                 type="button"
                                 onClick={() => setVisualizerMode('donut')}
                                 className={cn(
-                                    'rounded-md px-2.5 py-1 transition-colors',
+                                    'rounded-md px-3 py-1 transition-all',
                                     visualizerMode === 'donut'
-                                        ? 'bg-card text-foreground shadow-2xs'
+                                        ? 'bg-card font-bold text-foreground shadow-2xs'
                                         : 'text-muted-foreground hover:text-foreground',
                                 )}
                             >
@@ -400,9 +400,9 @@ export default function DiaryIndex({
                                 type="button"
                                 onClick={() => setVisualizerMode('rings')}
                                 className={cn(
-                                    'rounded-md px-2.5 py-1 transition-colors',
+                                    'rounded-md px-3 py-1 transition-all',
                                     visualizerMode === 'rings'
-                                        ? 'bg-card text-foreground shadow-2xs'
+                                        ? 'bg-card font-bold text-foreground shadow-2xs'
                                         : 'text-muted-foreground hover:text-foreground',
                                 )}
                             >
@@ -463,17 +463,19 @@ export default function DiaryIndex({
 
                     {/* Micronutrient Summary Quick-Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/50 pt-3 text-xs text-muted-foreground">
-                        <div className="flex flex-wrap items-center gap-4">
-                            <span>
+                        <div className="flex flex-wrap items-center gap-2.5">
+                            <span className="rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1">
                                 Fiber:{' '}
-                                <strong className="text-foreground">
+                                <strong className="font-mono text-foreground">
                                     {Math.round(summary.total_fiber || 0)}g
                                 </strong>{' '}
-                                / {Math.round(summary.target_fiber || 30)}g
+                                <span className="text-muted-foreground">
+                                    / {Math.round(summary.target_fiber || 30)}g
+                                </span>
                             </span>
-                            <span>
+                            <span className="rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1">
                                 Net Carbs:{' '}
-                                <strong className="text-foreground">
+                                <strong className="font-mono text-foreground">
                                     {Math.max(
                                         0,
                                         Math.round(
@@ -484,9 +486,9 @@ export default function DiaryIndex({
                                     g
                                 </strong>
                             </span>
-                            <span>
+                            <span className="rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1">
                                 Sodium:{' '}
-                                <strong className="text-foreground">
+                                <strong className="font-mono text-foreground">
                                     {summary.total_sodium_mg ??
                                         Math.round(
                                             (summary.total_sodium || 0) * 1000,
@@ -500,7 +502,7 @@ export default function DiaryIndex({
                             variant="ghost"
                             size="sm"
                             onClick={() => setMicroModalOpen(true)}
-                            className="h-7 gap-1.5 px-2 text-xs font-semibold text-primary hover:bg-primary/10 hover:text-primary dark:text-primary"
+                            className="h-7 gap-1.5 px-2.5 text-xs font-semibold text-primary hover:bg-primary/10 hover:text-primary dark:text-primary"
                         >
                             <Sparkles className="h-3.5 w-3.5 text-primary" />
                             Detailed Micronutrients

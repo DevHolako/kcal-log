@@ -223,8 +223,20 @@ export function applyPaletteToDOM(palette: ThemePalette): void {
     --color-primary: ${palette.primary};
     --color-primary-foreground: ${palette.primaryForeground};
     --ring: ${palette.primary};
+    --sidebar: ${bgLight};
+    --color-sidebar: ${bgLight};
+    --sidebar-foreground: #0f172a;
+    --color-sidebar-foreground: #0f172a;
     --sidebar-primary: ${palette.primary};
     --sidebar-primary-foreground: ${palette.primaryForeground};
+    --sidebar-accent: ${palette.primary}14;
+    --color-sidebar-accent: ${palette.primary}14;
+    --sidebar-accent-foreground: ${palette.primary};
+    --color-sidebar-accent-foreground: ${palette.primary};
+    --sidebar-border: rgba(0, 0, 0, 0.08);
+    --color-sidebar-border: rgba(0, 0, 0, 0.08);
+    --sidebar-ring: ${palette.primary};
+    --color-sidebar-ring: ${palette.primary};
 
     --background: ${bgLight};
     --color-background: ${bgLight};
@@ -262,8 +274,20 @@ export function applyPaletteToDOM(palette: ThemePalette): void {
     --color-primary: ${palette.primary};
     --color-primary-foreground: ${palette.primaryForeground};
     --ring: ${palette.primary};
+    --sidebar: ${bgDark};
+    --color-sidebar: ${bgDark};
+    --sidebar-foreground: #f8fafc;
+    --color-sidebar-foreground: #f8fafc;
     --sidebar-primary: ${palette.primary};
     --sidebar-primary-foreground: ${palette.primaryForeground};
+    --sidebar-accent: ${palette.primary}20;
+    --color-sidebar-accent: ${palette.primary}20;
+    --sidebar-accent-foreground: ${palette.primary};
+    --color-sidebar-accent-foreground: ${palette.primary};
+    --sidebar-border: rgba(255, 255, 255, 0.08);
+    --color-sidebar-border: rgba(255, 255, 255, 0.08);
+    --sidebar-ring: ${palette.primary};
+    --color-sidebar-ring: ${palette.primary};
 
     --background: ${bgDark};
     --color-background: ${bgDark};
@@ -315,6 +339,10 @@ export function applyPaletteToDOM(palette: ThemePalette): void {
     root.style.removeProperty('--color-background');
     root.style.removeProperty('--card');
     root.style.removeProperty('--color-card');
+    root.style.removeProperty('--sidebar');
+    root.style.removeProperty('--color-sidebar');
+    root.style.removeProperty('--sidebar-border');
+    root.style.removeProperty('--color-sidebar-border');
 
     root.style.setProperty('--macro-calories', palette.macroCalories);
     root.style.setProperty('--color-macro-calories', palette.macroCalories);
