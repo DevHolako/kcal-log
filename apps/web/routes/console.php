@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('adaptive:calculate')->weeklyOn(1, '04:00');
+Schedule::command('off:sync')->dailyAt('02:00');
