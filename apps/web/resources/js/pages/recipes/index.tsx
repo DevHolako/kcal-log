@@ -565,7 +565,8 @@ export default function RecipesIndex({
                     }`}
                 >
                     <Sparkles className="h-4 w-4 text-amber-500" />
-                    {t('recipes.tab_starter_kits')} ({STARTER_MEAL_PREP_KITS.length})
+                    {t('recipes.tab_starter_kits')} (
+                    {STARTER_MEAL_PREP_KITS.length})
                 </button>
             </div>
 
@@ -588,14 +589,16 @@ export default function RecipesIndex({
                                     onClick={() => setCreateModalOpen(true)}
                                     className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
                                 >
-                                    <Plus className="h-4 w-4" /> {t('recipes.create_recipe')}
+                                    <Plus className="h-4 w-4" />{' '}
+                                    {t('recipes.create_recipe')}
                                 </Button>
                                 <Button
                                     variant="outline"
                                     onClick={() => setActiveTab('starter-kits')}
                                     className="gap-2"
                                 >
-                                    <Sparkles className="h-4 w-4 text-amber-500" /> {t('recipes.browse_kits')}
+                                    <Sparkles className="h-4 w-4 text-amber-500" />{' '}
+                                    {t('recipes.browse_kits')}
                                 </Button>
                             </div>
                         </div>
@@ -607,21 +610,26 @@ export default function RecipesIndex({
                                         ? Number(recipe.servings)
                                         : 1;
                                 const calsPerServing = Math.round(
-                                    Number(recipe.total_calories) / servingsCount,
+                                    Number(recipe.total_calories) /
+                                        servingsCount,
                                 );
                                 const proPerServing =
                                     Math.round(
-                                        (Number(recipe.total_protein) / servingsCount) *
+                                        (Number(recipe.total_protein) /
+                                            servingsCount) *
                                             10,
                                     ) / 10;
                                 const carbPerServing =
                                     Math.round(
-                                        (Number(recipe.total_carbs) / servingsCount) *
+                                        (Number(recipe.total_carbs) /
+                                            servingsCount) *
                                             10,
                                     ) / 10;
                                 const fatPerServing =
                                     Math.round(
-                                        (Number(recipe.total_fat) / servingsCount) * 10,
+                                        (Number(recipe.total_fat) /
+                                            servingsCount) *
+                                            10,
                                     ) / 10;
 
                                 return (
@@ -646,7 +654,8 @@ export default function RecipesIndex({
                                                     className="shrink-0 text-xs font-medium"
                                                 >
                                                     {recipe.servings}{' '}
-                                                    {Number(recipe.servings) === 1
+                                                    {Number(recipe.servings) ===
+                                                    1
                                                         ? 'serving'
                                                         : 'servings'}
                                                 </Badge>
@@ -699,41 +708,58 @@ export default function RecipesIndex({
                                                     <div className="space-y-1.5">
                                                         <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                                                             Ingredients (
-                                                            {recipe.items.length})
+                                                            {
+                                                                recipe.items
+                                                                    .length
+                                                            }
+                                                            )
                                                         </span>
                                                         <ul className="space-y-1 divide-y divide-border/30 text-xs text-muted-foreground">
                                                             {recipe.items
                                                                 .slice(0, 4)
-                                                                .map((it, idx) => (
-                                                                    <li
-                                                                        key={idx}
-                                                                        className="flex justify-between py-1"
-                                                                    >
-                                                                        <span className="truncate pr-2 font-medium text-foreground">
-                                                                            {it.food
-                                                                                ?.name ||
-                                                                                'Food item'}
-                                                                        </span>
-                                                                        <span className="shrink-0">
-                                                                            {it.grams}g
-                                                                            &bull;{' '}
-                                                                            {Math.round(
-                                                                                Number(
-                                                                                    it.calories,
-                                                                                ),
-                                                                            )}{' '}
-                                                                            kcal
-                                                                        </span>
-                                                                    </li>
-                                                                ))}
-                                                            {recipe.items.length >
-                                                                4 && (
+                                                                .map(
+                                                                    (
+                                                                        it,
+                                                                        idx,
+                                                                    ) => (
+                                                                        <li
+                                                                            key={
+                                                                                idx
+                                                                            }
+                                                                            className="flex justify-between py-1"
+                                                                        >
+                                                                            <span className="truncate pr-2 font-medium text-foreground">
+                                                                                {it
+                                                                                    .food
+                                                                                    ?.name ||
+                                                                                    'Food item'}
+                                                                            </span>
+                                                                            <span className="shrink-0">
+                                                                                {
+                                                                                    it.grams
+                                                                                }
+                                                                                g
+                                                                                &bull;{' '}
+                                                                                {Math.round(
+                                                                                    Number(
+                                                                                        it.calories,
+                                                                                    ),
+                                                                                )}{' '}
+                                                                                kcal
+                                                                            </span>
+                                                                        </li>
+                                                                    ),
+                                                                )}
+                                                            {recipe.items
+                                                                .length > 4 && (
                                                                 <li className="pt-1 text-[11px] text-muted-foreground italic">
                                                                     +
-                                                                    {recipe.items
+                                                                    {recipe
+                                                                        .items
                                                                         .length -
                                                                         4}{' '}
-                                                                    more ingredient(s)
+                                                                    more
+                                                                    ingredient(s)
                                                                 </li>
                                                             )}
                                                         </ul>
@@ -783,38 +809,71 @@ export default function RecipesIndex({
                                         Free Recipe APIs
                                     </Badge>
                                     <h4 className="text-sm font-bold text-foreground">
-                                        Ready Meal-Prep Kits & Free Recipe API Integrations
+                                        Ready Meal-Prep Kits & Free Recipe API
+                                        Integrations
                                     </h4>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    kcal-log provides 6 built-in macro-balanced meal prep kits ready to log directly or import as customizable templates. The platform is architected to seamlessly hook into external recipe databases:
+                                    kcal-log provides 6 built-in macro-balanced
+                                    meal prep kits ready to log directly or
+                                    import as customizable templates. The
+                                    platform is architected to seamlessly hook
+                                    into external recipe databases:
                                 </p>
-                                <div className="grid grid-cols-1 gap-2.5 pt-2 sm:grid-cols-3 text-xs">
+                                <div className="grid grid-cols-1 gap-2.5 pt-2 text-xs sm:grid-cols-3">
                                     <div className="rounded-lg border border-border bg-card/60 p-2.5">
                                         <div className="flex items-center justify-between">
-                                            <p className="font-semibold text-foreground">Edamam Recipe API</p>
-                                            <Badge variant="outline" className="text-[10px]">Free Tier</Badge>
+                                            <p className="font-semibold text-foreground">
+                                                Edamam Recipe API
+                                            </p>
+                                            <Badge
+                                                variant="outline"
+                                                className="text-[10px]"
+                                            >
+                                                Free Tier
+                                            </Badge>
                                         </div>
                                         <p className="mt-1 text-[11px] text-muted-foreground">
-                                            10,000 queries/month free. Complete macro splits, allergen tags, and micronutrient calculations per serving.
+                                            10,000 queries/month free. Complete
+                                            macro splits, allergen tags, and
+                                            micronutrient calculations per
+                                            serving.
                                         </p>
                                     </div>
                                     <div className="rounded-lg border border-border bg-card/60 p-2.5">
                                         <div className="flex items-center justify-between">
-                                            <p className="font-semibold text-foreground">Spoonacular API</p>
-                                            <Badge variant="outline" className="text-[10px]">150 pts/day</Badge>
+                                            <p className="font-semibold text-foreground">
+                                                Spoonacular API
+                                            </p>
+                                            <Badge
+                                                variant="outline"
+                                                className="text-[10px]"
+                                            >
+                                                150 pts/day
+                                            </Badge>
                                         </div>
                                         <p className="mt-1 text-[11px] text-muted-foreground">
-                                            Dynamic recipe scaling, ingredient price estimation, and step-by-step culinary preparation instructions.
+                                            Dynamic recipe scaling, ingredient
+                                            price estimation, and step-by-step
+                                            culinary preparation instructions.
                                         </p>
                                     </div>
                                     <div className="rounded-lg border border-border bg-card/60 p-2.5">
                                         <div className="flex items-center justify-between">
-                                            <p className="font-semibold text-foreground">TheMealDB</p>
-                                            <Badge variant="outline" className="text-[10px]">100% Free</Badge>
+                                            <p className="font-semibold text-foreground">
+                                                TheMealDB
+                                            </p>
+                                            <Badge
+                                                variant="outline"
+                                                className="text-[10px]"
+                                            >
+                                                100% Free
+                                            </Badge>
                                         </div>
                                         <p className="mt-1 text-[11px] text-muted-foreground">
-                                            Open-source global culinary database with high-resolution imagery and YouTube video cooking tutorials.
+                                            Open-source global culinary database
+                                            with high-resolution imagery and
+                                            YouTube video cooking tutorials.
                                         </p>
                                     </div>
                                 </div>
@@ -834,7 +893,7 @@ export default function RecipesIndex({
                                         <div className="flex items-center justify-between">
                                             <Badge
                                                 variant="secondary"
-                                                className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold"
+                                                className="bg-emerald-500/10 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400"
                                             >
                                                 {kit.tag}
                                             </Badge>
@@ -857,7 +916,8 @@ export default function RecipesIndex({
                                     <div className="rounded-lg bg-muted/40 p-3">
                                         <div className="flex items-center justify-between border-b border-border/50 pb-2">
                                             <span className="text-xs font-semibold text-muted-foreground">
-                                                Per Serving ({kit.servings} servings yield)
+                                                Per Serving ({kit.servings}{' '}
+                                                servings yield)
                                             </span>
                                             <span className="flex items-center gap-1 text-sm font-extrabold text-foreground">
                                                 <Flame className="h-3.5 w-3.5 text-amber-500" />
@@ -903,13 +963,19 @@ export default function RecipesIndex({
                                     {/* Ingredients List */}
                                     <div className="space-y-1.5">
                                         <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-                                            Ingredients ({kit.ingredients.length})
+                                            Ingredients (
+                                            {kit.ingredients.length})
                                         </span>
                                         <ul className="space-y-1 divide-y divide-border/30 text-xs text-muted-foreground">
                                             {kit.ingredients.map((ing, idx) => (
-                                                <li key={idx} className="flex items-center gap-1.5 py-1">
-                                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
-                                                    <span className="font-medium text-foreground">{ing}</span>
+                                                <li
+                                                    key={idx}
+                                                    className="flex items-center gap-1.5 py-1"
+                                                >
+                                                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                                                    <span className="font-medium text-foreground">
+                                                        {ing}
+                                                    </span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -920,7 +986,9 @@ export default function RecipesIndex({
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleImportKitAsCustom(kit)}
+                                        onClick={() =>
+                                            handleImportKitAsCustom(kit)
+                                        }
                                         className="h-8 gap-1.5 text-xs font-semibold"
                                     >
                                         <Plus className="h-3.5 w-3.5" />
@@ -1074,7 +1142,9 @@ export default function RecipesIndex({
                                 {!activeFoodToAdd ? (
                                     <div className="space-y-2">
                                         <Input
-                                            placeholder={t('recipes.search_ingredient')}
+                                            placeholder={t(
+                                                'recipes.search_ingredient',
+                                            )}
                                             value={foodSearchQuery}
                                             onChange={(e) =>
                                                 setFoodSearchQuery(
@@ -1448,16 +1518,23 @@ export default function RecipesIndex({
                             Log Starter Kit Portion
                         </DialogTitle>
                         <DialogDescription>
-                            Log 1 prepared portion of &ldquo;{quickLogKit?.name}&rdquo; directly to your daily diary.
+                            Log 1 prepared portion of &ldquo;{quickLogKit?.name}
+                            &rdquo; directly to your daily diary.
                         </DialogDescription>
                     </DialogHeader>
 
                     {quickLogKit && (
-                        <form onSubmit={handleQuickLogKit} className="space-y-4">
+                        <form
+                            onSubmit={handleQuickLogKit}
+                            className="space-y-4"
+                        >
                             <div className="rounded-lg bg-muted/40 p-3 text-xs">
                                 <div className="flex justify-between font-semibold text-foreground">
                                     <span>Portion Size:</span>
-                                    <span>1 serving ({quickLogKit.caloriesPerServing} kcal)</span>
+                                    <span>
+                                        1 serving (
+                                        {quickLogKit.caloriesPerServing} kcal)
+                                    </span>
                                 </div>
                                 <div className="mt-2 grid grid-cols-4 gap-1 text-center font-bold">
                                     <div className="rounded bg-background p-1 text-blue-600 dark:text-blue-400">
@@ -1477,20 +1554,28 @@ export default function RecipesIndex({
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="kit-log-date" className="text-xs font-semibold">
+                                    <Label
+                                        htmlFor="kit-log-date"
+                                        className="text-xs font-semibold"
+                                    >
                                         Date
                                     </Label>
                                     <Input
                                         id="kit-log-date"
                                         type="date"
                                         value={quickLogDate}
-                                        onChange={(e) => setQuickLogDate(e.target.value)}
+                                        onChange={(e) =>
+                                            setQuickLogDate(e.target.value)
+                                        }
                                         required
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="kit-meal-slot" className="text-xs font-semibold">
+                                    <Label
+                                        htmlFor="kit-meal-slot"
+                                        className="text-xs font-semibold"
+                                    >
                                         Meal Slot
                                     </Label>
                                     <select
@@ -1498,12 +1583,18 @@ export default function RecipesIndex({
                                         value={quickLogMealSlot}
                                         onChange={(e) =>
                                             setQuickLogMealSlot(
-                                                e.target.value as 'breakfast' | 'lunch' | 'dinner' | 'snack',
+                                                e.target.value as
+                                                    | 'breakfast'
+                                                    | 'lunch'
+                                                    | 'dinner'
+                                                    | 'snack',
                                             )
                                         }
-                                        className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                                        className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden"
                                     >
-                                        <option value="breakfast">Breakfast</option>
+                                        <option value="breakfast">
+                                            Breakfast
+                                        </option>
                                         <option value="lunch">Lunch</option>
                                         <option value="dinner">Dinner</option>
                                         <option value="snack">Snack</option>

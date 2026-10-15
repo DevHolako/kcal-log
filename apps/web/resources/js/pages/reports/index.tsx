@@ -157,7 +157,9 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                             {t('reports.exec_summary_title')}
                         </h2>
                         <span className="text-xs text-muted-foreground">
-                            {userStats.totalDaysLogged} of {userStats.periodDays} days recorded ({userStats.loggingRate}%)
+                            {userStats.totalDaysLogged} of{' '}
+                            {userStats.periodDays} days recorded (
+                            {userStats.loggingRate}%)
                         </span>
                     </div>
 
@@ -178,17 +180,25 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                    <span>{t('reports.target')}: {userStats.targetCalories} kcal</span>
+                                    <span>
+                                        {t('reports.target')}:{' '}
+                                        {userStats.targetCalories} kcal
+                                    </span>
                                     <span
                                         className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-                                            Math.abs(userStats.calorieVariance) <= 150
+                                            Math.abs(
+                                                userStats.calorieVariance,
+                                            ) <= 150
                                                 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                                                : userStats.calorieVariance > 150
+                                                : userStats.calorieVariance >
+                                                    150
                                                   ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                                                   : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                                         }`}
                                     >
-                                        {userStats.calorieVariance > 0 ? '+' : ''}
+                                        {userStats.calorieVariance > 0
+                                            ? '+'
+                                            : ''}
                                         {userStats.calorieVariance} kcal
                                     </span>
                                 </div>
@@ -224,30 +234,39 @@ export default function ReportsIndex({ exports, userStats, status }: Props) {
                             <CardContent className="space-y-2">
                                 <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
                                     <div
-                                        style={{ width: `${userStats.proteinPct}%` }}
+                                        style={{
+                                            width: `${userStats.proteinPct}%`,
+                                        }}
                                         className="bg-blue-600 dark:bg-blue-500"
                                         title={`Protein: ${userStats.proteinPct}%`}
                                     />
                                     <div
-                                        style={{ width: `${userStats.carbsPct}%` }}
+                                        style={{
+                                            width: `${userStats.carbsPct}%`,
+                                        }}
                                         className="bg-amber-500"
                                         title={`Carbs: ${userStats.carbsPct}%`}
                                     />
                                     <div
-                                        style={{ width: `${userStats.fatPct}%` }}
+                                        style={{
+                                            width: `${userStats.fatPct}%`,
+                                        }}
                                         className="bg-rose-500"
                                         title={`Fat: ${userStats.fatPct}%`}
                                     />
                                 </div>
                                 <div className="flex items-center justify-between text-[11px]">
                                     <span className="font-semibold text-blue-600 dark:text-blue-400">
-                                        P: {userStats.avgProtein}g ({userStats.proteinPct}%)
+                                        P: {userStats.avgProtein}g (
+                                        {userStats.proteinPct}%)
                                     </span>
                                     <span className="font-semibold text-amber-600 dark:text-amber-400">
-                                        C: {userStats.avgCarbs}g ({userStats.carbsPct}%)
+                                        C: {userStats.avgCarbs}g (
+                                        {userStats.carbsPct}%)
                                     </span>
                                     <span className="font-semibold text-rose-600 dark:text-rose-400">
-                                        F: {userStats.avgFat}g ({userStats.fatPct}%)
+                                        F: {userStats.avgFat}g (
+                                        {userStats.fatPct}%)
                                     </span>
                                 </div>
                             </CardContent>

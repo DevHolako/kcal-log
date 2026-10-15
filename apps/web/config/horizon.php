@@ -97,7 +97,11 @@ return [
     */
 
     'waits' => [
-        'redis:default' => 60,
+        'redis:high' => 10,
+        'redis:default' => 30,
+        'redis:adaptive' => 60,
+        'redis:exports' => 90,
+        'redis:sync' => 180,
     ],
 
     /*
@@ -197,33 +201,80 @@ return [
     */
 
     'defaults' => [
-        'supervisor-1' => [
+        'supervisor-high' => [
             'connection' => 'redis',
-            'queue' => ['default', 'reports', 'sync'],
+            'queue' => ['high'],
+            'balance' => 'false',
+            'minProcesses' => 2,
+            'maxProcesses' => 4,
+            'balanceMaxShift' => 1,
+            'balanceCooldown' => 3,
+            'tries' => 3,
+            'timeout' => 30,
+        ],
+        'supervisor-adaptive' => [
+            'connection' => 'redis',
+            'queue' => ['adaptive', 'default'],
             'balance' => 'auto',
-            'autoScalingStrategy' => 'time',
-            'maxProcesses' => 1,
-            'maxTime' => 0,
-            'maxJobs' => 0,
-            'memory' => 128,
-            'tries' => 1,
-            'timeout' => 60,
-            'nice' => 0,
+            'minProcesses' => 2,
+            'maxProcesses' => 6,
+            'balanceMaxShift' => 2,
+            'balanceCooldown' => 3,
+            'tries' => 2,
+            'timeout' => 90,
+        ],
+        'supervisor-exports' => [
+            'connection' => 'redis',
+            'queue' => ['exports'],
+            'balance' => 'auto',
+            'minProcesses' => 1,
+            'maxProcesses' => 8,
+            'balanceMaxShift' => 3,
+            'balanceCooldown' => 5,
+            'memory' => 512,
+            'tries' => 2,
+            'timeout' => 180,
+        ],
+        'supervisor-sync' => [
+            'connection' => 'redis',
+            'queue' => ['sync'],
+            'balance' => 'simple',
+            'minProcesses' => 1,
+            'maxProcesses' => 2,
+            'tries' => 3,
+            'timeout' => 300,
         ],
     ],
 
     'environments' => [
         'production' => [
-            'supervisor-1' => [
+            'supervisor-high' => [
+                'minProcesses' => 2,
+                'maxProcesses' => 5,
+            ],
+            'supervisor-adaptive' => [
+                'minProcesses' => 2,
+                'maxProcesses' => 8,
+            ],
+            'supervisor-exports' => [
+                'minProcesses' => 2,
                 'maxProcesses' => 10,
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
+            ],
+            'supervisor-sync' => [
+                'minProcesses' => 1,
+                'maxProcesses' => 3,
             ],
         ],
 
         'local' => [
-            'supervisor-1' => [
+            'supervisor-dev' => [
+                'connection' => 'redis',
+                'queue' => ['high', 'default', 'adaptive', 'exports', 'sync'],
+                'balance' => 'auto',
+                'minProcesses' => 1,
                 'maxProcesses' => 3,
+                'tries' => 1,
+                'timeout' => 60,
             ],
         ],
     ],

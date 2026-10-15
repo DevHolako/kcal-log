@@ -2,6 +2,7 @@
   "name": "kcal-log-monorepo",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Open-source MyFitnessPal replacement monorepo",
   "packageManager": "pnpm@10.5.2",
   "engines": {
@@ -14,13 +15,16 @@
     "dev:frontend": "pnpm --filter @kcal-log/web dev",
     "build": "pnpm --filter @kcal-log/web build",
     "test": "pnpm --filter @kcal-log/nutrition test",
+    "test:lint-rules": "node packages/oxlint-rules/test/rules.test.js",
     "test:php": "cd apps/web && php artisan test",
-    "test:all": "pnpm test && pnpm test:php",
+    "test:all": "pnpm test && pnpm test:lint-rules && pnpm test:php",
     "lint": "pnpm --filter @kcal-log/web check",
     "check": "pnpm --filter @kcal-log/web check"
   },
   "devDependencies": {
+    "@oxlint/plugins": "^1.88.0",
     "concurrently": "^10.0.3",
+    "oxlint": "^1.88.0",
     "vite-plus": "^1.2.0"
   }
 }

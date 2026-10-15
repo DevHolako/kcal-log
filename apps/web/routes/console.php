@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('adaptive:calculate')->weeklyOn(1, '04:00');
 Schedule::command('off:sync')->dailyAt('02:00');
+Schedule::command('horizon:snapshot')->everyFiveMinutes();

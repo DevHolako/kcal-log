@@ -1,0 +1,21 @@
+{
+  "name": "@kcal-log/oxlint-rules",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": "./src/index.js",
+    "./rules": "./src/rules/index.js"
+  },
+  "scripts": {
+    "test": "node test/rules.test.js"
+  },
+  "dependencies": {
+    "@oxlint/plugins": "^1.88.0"
+  },
+  "devDependencies": {
+    "oxlint": "^1.88.0"
+  }
+}

@@ -340,7 +340,9 @@ export default function FoodsIndex({
                                 <>
                                     <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
-                                        placeholder={t('foods.search_placeholder')}
+                                        placeholder={t(
+                                            'foods.search_placeholder',
+                                        )}
                                         value={query}
                                         onChange={(e) =>
                                             setQuery(e.target.value)
@@ -352,7 +354,9 @@ export default function FoodsIndex({
                                 <>
                                     <Barcode className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
-                                        placeholder={t('foods.barcode_placeholder')}
+                                        placeholder={t(
+                                            'foods.barcode_placeholder',
+                                        )}
                                         value={barcodeInput}
                                         onChange={(e) =>
                                             setBarcodeInput(e.target.value)

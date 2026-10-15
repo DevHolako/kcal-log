@@ -24,7 +24,14 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import WeightTrendChart from '@/components/weight-trend-chart';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { getEcho } from '@/echo';
 import { useTranslation } from '@/lib/i18n';
 import { formatDate } from '@/lib/utils';
@@ -170,11 +177,15 @@ export default function StrategyIndex({
                     <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
                         <Button
                             variant="outline"
-                            onClick={() => setShowMathExplainer(!showMathExplainer)}
+                            onClick={() =>
+                                setShowMathExplainer(!showMathExplainer)
+                            }
                             className="gap-2 text-xs"
                         >
                             <Brain className="h-4 w-4 text-emerald-600" />
-                            {showMathExplainer ? t('strategy.hide_logic') : t('strategy.how_it_works')}
+                            {showMathExplainer
+                                ? t('strategy.hide_logic')
+                                : t('strategy.how_it_works')}
                             {showMathExplainer ? (
                                 <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
                             ) : (
@@ -191,7 +202,9 @@ export default function StrategyIndex({
                             <RefreshCw
                                 className={`h-4 w-4 ${isTriggering ? 'animate-spin' : ''}`}
                             />
-                            {isTriggering ? t('action.calculating') : t('action.recalculate')}
+                            {isTriggering
+                                ? t('action.calculating')
+                                : t('action.recalculate')}
                         </Button>
                     </div>
                 </div>
@@ -199,10 +212,17 @@ export default function StrategyIndex({
                 {/* Initial Calibration Mode Alert */}
                 {weightTrends.length < 4 && (
                     <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-amber-800 dark:text-amber-200">
-                        <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                        <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
                         <div>
-                            <span className="font-bold">Initial Calibration Phase ({weightTrends.length}/4 weigh-ins):</span>{' '}
-                            The adaptive engine requires a minimum of 4 weight logs across a 7-day period to establish high-confidence EWMA smoothed baselines. Target proposals are clamped with conservative bounds until baseline calibration is reached.
+                            <span className="font-bold">
+                                Initial Calibration Phase ({weightTrends.length}
+                                /4 weigh-ins):
+                            </span>{' '}
+                            The adaptive engine requires a minimum of 4 weight
+                            logs across a 7-day period to establish
+                            high-confidence EWMA smoothed baselines. Target
+                            proposals are clamped with conservative bounds until
+                            baseline calibration is reached.
                         </div>
                     </div>
                 )}
@@ -218,7 +238,9 @@ export default function StrategyIndex({
                                 </CardTitle>
                             </div>
                             <CardDescription>
-                                Transparent, peer-reviewed metabolic tracking using Exponentially Weighted Moving Averages (EWMA) and dynamic energy expenditure modeling.
+                                Transparent, peer-reviewed metabolic tracking
+                                using Exponentially Weighted Moving Averages
+                                (EWMA) and dynamic energy expenditure modeling.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4 text-xs">
@@ -230,13 +252,20 @@ export default function StrategyIndex({
                                         <span>1. EWMA Weight Smoothing</span>
                                     </div>
                                     <p className="text-muted-foreground">
-                                        Scale weight fluctuates by &plusmn;1&ndash;2.5 kg daily due to sodium, glycogen hydration, and digestive waste. We apply an exponential smoothing coefficient of &alpha; = 0.25:
+                                        Scale weight fluctuates by
+                                        &plusmn;1&ndash;2.5 kg daily due to
+                                        sodium, glycogen hydration, and
+                                        digestive waste. We apply an exponential
+                                        smoothing coefficient of &alpha; = 0.25:
                                     </p>
                                     <div className="rounded bg-muted/60 p-2 font-mono text-[11px] text-foreground">
-                                        EWMA_t = 0.25 &times; W_t + 0.75 &times; EWMA_(t-1)
+                                        EWMA_t = 0.25 &times; W_t + 0.75 &times;
+                                        EWMA_(t-1)
                                     </div>
                                     <p className="text-[11px] text-muted-foreground">
-                                        Dampens transient water spikes to reveal genuine physiological tissue change over rolling 7-day windows.
+                                        Dampens transient water spikes to reveal
+                                        genuine physiological tissue change over
+                                        rolling 7-day windows.
                                     </p>
                                 </div>
 
@@ -244,16 +273,24 @@ export default function StrategyIndex({
                                 <div className="space-y-2 rounded-lg border border-border/60 bg-card p-3.5">
                                     <div className="flex items-center gap-1.5 font-bold text-foreground">
                                         <Flame className="h-4 w-4 text-amber-500" />
-                                        <span>2. Empirical TDEE Derivation</span>
+                                        <span>
+                                            2. Empirical TDEE Derivation
+                                        </span>
                                     </div>
                                     <p className="text-muted-foreground">
-                                        Instead of static estimations (Mifflin-St Jeor), your actual Total Daily Energy Expenditure is derived from empirical intake and trend mass delta:
+                                        Instead of static estimations
+                                        (Mifflin-St Jeor), your actual Total
+                                        Daily Energy Expenditure is derived from
+                                        empirical intake and trend mass delta:
                                     </p>
                                     <div className="rounded bg-muted/60 p-2 font-mono text-[11px] text-foreground">
-                                        TDEE = Avg_Intake - ((&Delta;EWMA &times; 7700) / 7)
+                                        TDEE = Avg_Intake - ((&Delta;EWMA
+                                        &times; 7700) / 7)
                                     </div>
                                     <p className="text-[11px] text-muted-foreground">
-                                        7,700 kcal represents the standardized metabolic caloric density of 1 kg of adipose tissue.
+                                        7,700 kcal represents the standardized
+                                        metabolic caloric density of 1 kg of
+                                        adipose tissue.
                                     </p>
                                 </div>
 
@@ -261,15 +298,30 @@ export default function StrategyIndex({
                                 <div className="space-y-2 rounded-lg border border-border/60 bg-card p-3.5">
                                     <div className="flex items-center gap-1.5 font-bold text-foreground">
                                         <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                                        <span>3. Deficit Clamping & Floors</span>
+                                        <span>
+                                            3. Deficit Clamping & Floors
+                                        </span>
                                     </div>
                                     <p className="text-muted-foreground">
-                                        Algorithms can overreact to anomalous weeks. The coach enforces strict medical safety boundaries:
+                                        Algorithms can overreact to anomalous
+                                        weeks. The coach enforces strict medical
+                                        safety boundaries:
                                     </p>
-                                    <ul className="space-y-1 list-disc pl-4 text-[11px] text-muted-foreground">
-                                        <li>Max weekly rate adjustment clamped to &plusmn;1.0 kg/wk (&le; 500 kcal shift).</li>
-                                        <li>Metabolic calorie floors: 1,200 kcal/day (female), 1,500 kcal/day (male).</li>
-                                        <li>Human-in-the-loop: proposals require explicit user confirmation.</li>
+                                    <ul className="list-disc space-y-1 pl-4 text-[11px] text-muted-foreground">
+                                        <li>
+                                            Max weekly rate adjustment clamped
+                                            to &plusmn;1.0 kg/wk (&le; 500 kcal
+                                            shift).
+                                        </li>
+                                        <li>
+                                            Metabolic calorie floors: 1,200
+                                            kcal/day (female), 1,500 kcal/day
+                                            (male).
+                                        </li>
+                                        <li>
+                                            Human-in-the-loop: proposals require
+                                            explicit user confirmation.
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -547,7 +599,7 @@ export default function StrategyIndex({
                                                 <>
                                                     <span className="text-muted-foreground line-through">
                                                         {Math.round(
-                                                             activeTarget.carbs_g,
+                                                            activeTarget.carbs_g,
                                                         )}{' '}
                                                         g
                                                     </span>

@@ -995,13 +995,13 @@ export default function DiaryIndex({
                                                                                 'a'
                                                                                     ? 'bg-emerald-600 text-white'
                                                                                     : food.nutri_score.toLowerCase() ===
-                                                                                          'b'
+                                                                                        'b'
                                                                                       ? 'bg-green-500 text-white'
                                                                                       : food.nutri_score.toLowerCase() ===
-                                                                                            'c'
+                                                                                          'c'
                                                                                         ? 'bg-yellow-500 text-black'
                                                                                         : food.nutri_score.toLowerCase() ===
-                                                                                              'd'
+                                                                                            'd'
                                                                                           ? 'bg-orange-500 text-white'
                                                                                           : 'bg-red-600 text-white'
                                                                             }`}
@@ -1098,13 +1098,13 @@ export default function DiaryIndex({
                                                                             'a'
                                                                                 ? 'bg-emerald-600 text-white'
                                                                                 : food.nutri_score.toLowerCase() ===
-                                                                                      'b'
+                                                                                    'b'
                                                                                   ? 'bg-green-500 text-white'
                                                                                   : food.nutri_score.toLowerCase() ===
-                                                                                        'c'
+                                                                                      'c'
                                                                                     ? 'bg-yellow-500 text-black'
                                                                                     : food.nutri_score.toLowerCase() ===
-                                                                                          'd'
+                                                                                        'd'
                                                                                       ? 'bg-orange-500 text-white'
                                                                                       : 'bg-red-600 text-white'
                                                                         }`}
