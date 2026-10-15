@@ -59,6 +59,19 @@ class SyncOpenFoodFactsJob implements ShouldQueue
     }
 
     /**
+     * Get the tags that should be assigned to the job for Horizon tracing.
+     *
+     * @return array<int, string>
+     */
+    public function tags(): array
+    {
+        return [
+            'sync:open-food-facts',
+            'catalog:staples',
+        ];
+    }
+
+    /**
      * Execute the job.
      *
      * @return array{saved: int, refreshed: int, failed_queries: int}
