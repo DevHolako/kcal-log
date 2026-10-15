@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/lib/i18n';
 import type { FoodItem } from '@/pages/foods';
 
 interface Props {
@@ -24,6 +25,7 @@ export default function BarcodeScannerModal({
     onOpenChange,
     onFoodFound,
 }: Props) {
+    const { t } = useTranslation();
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const animationFrameRef = useRef<number | null>(null);
@@ -59,9 +61,7 @@ export default function BarcodeScannerModal({
                 !navigator.mediaDevices ||
                 !navigator.mediaDevices.getUserMedia
             ) {
-                setCameraError(
-                    'Camera API is not supported on this browser or environment.',
-                );
+                setCameraError(t('scanner.unsupported'));
                 return;
             }
 
@@ -126,10 +126,7 @@ export default function BarcodeScannerModal({
                 setHasBarcodeDetector(false);
             }
         } catch (err: any) {
-            setCameraError(
-                err.message ||
-                    'Unable to access camera. Please allow camera permissions.',
-            );
+            setCameraError(err.message || t('scanner.permission_denied'));
             setCameraActive(false);
         }
     };
@@ -159,7 +156,7 @@ export default function BarcodeScannerModal({
                 onFoodFound(data.data);
             } else {
                 setSearchError(
-                    data.message || `No food found matching barcode ${code}.`,
+                    data.message || t('scanner.not_found', { code }),
                 );
                 // Resume camera scanning after short delay
                 setTimeout(() => {
@@ -170,9 +167,7 @@ export default function BarcodeScannerModal({
                 }, 3000);
             }
         } catch {
-            setSearchError(
-                `Failed to lookup barcode ${code}. Check network connection.`,
-            );
+            setSearchError(t('scanner.failed', { code }));
             setScannedCode(null);
         } finally {
             setIsSearching(false);
@@ -206,11 +201,10 @@ export default function BarcodeScannerModal({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Camera className="h-5 w-5 text-emerald-600" />
-                        Scan Food Barcode
+                        {t('scanner.title')}
                     </DialogTitle>
                     <DialogDescription>
-                        Scan any food package barcode to look it up in Open Food
-                        Facts and your saved food catalog.
+                        {t('scanner.description')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -231,7 +225,7 @@ export default function BarcodeScannerModal({
                                 <div className="relative h-44 w-64 rounded-xl border-2 border-emerald-500/80 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
                                     <div className="absolute inset-x-0 top-1/2 h-0.5 animate-pulse bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
                                     <span className="absolute inset-x-0 bottom-2 text-center text-[10px] font-medium tracking-wider text-emerald-300 uppercase">
-                                        Align barcode inside frame
+                                        {t('scanner.align')}
                                     </span>
                                 </div>
                             </div>
@@ -255,8 +249,8 @@ export default function BarcodeScannerModal({
                                         }}
                                         className="gap-1.5 border-slate-700 text-xs text-white hover:bg-slate-800"
                                     >
-                                        <RefreshCw className="h-3 w-3" /> Retry
-                                        Camera
+                                        <RefreshCw className="h-3 w-3" />{' '}
+                                        {t('scanner.retry')}
                                     </Button>
                                 )}
                             </div>
@@ -267,7 +261,9 @@ export default function BarcodeScannerModal({
                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-950/80 text-white">
                                 <Loader2 className="h-7 w-7 animate-spin text-emerald-400" />
                                 <span className="text-sm font-medium">
-                                    Looking up barcode {scannedCode}...
+                                    {t('scanner.looking_up', {
+                                        code: scannedCode ?? '',
+                                    })}
                                 </span>
                             </div>
                         )}
@@ -276,9 +272,7 @@ export default function BarcodeScannerModal({
                     {/* Camera feedback notice */}
                     {cameraActive && !hasBarcodeDetector && (
                         <p className="text-center text-[11px] text-muted-foreground">
-                            Camera stream active. If your browser does not
-                            support live barcode detection, enter the digits
-                            below.
+                            {t('scanner.notice')}
                         </p>
                     )}
 
@@ -299,7 +293,7 @@ export default function BarcodeScannerModal({
                             htmlFor="manual-barcode"
                             className="text-xs font-semibold text-muted-foreground"
                         >
-                            Or enter barcode manually:
+                            {t('scanner.manual_prompt')}
                         </Label>
                         <div className="flex gap-2">
                             <Input
@@ -320,7 +314,7 @@ export default function BarcodeScannerModal({
                                 {isSearching ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
-                                    'Lookup'
+                                    t('action.lookup')
                                 )}
                             </Button>
                         </div>
@@ -332,7 +326,7 @@ export default function BarcodeScannerModal({
                         variant="outline"
                         onClick={() => onOpenChange(false)}
                     >
-                        Close
+                        {t('action.close')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

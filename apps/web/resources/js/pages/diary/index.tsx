@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import BarcodeScannerModal from '@/components/barcode-scanner-modal';
+import ConcentricMacroRings from '@/components/concentric-macro-rings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -265,13 +266,6 @@ export default function DiaryIndex({
         snack: 'Snacks',
     };
 
-    const caloriePercent = Math.min(
-        100,
-        Math.round(
-            (summary.total_calories / (summary.target_calories || 2000)) * 100,
-        ),
-    );
-
     return (
         <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
             <Head title={`Diary - ${selectedDate}`} />
@@ -329,83 +323,32 @@ export default function DiaryIndex({
                 </div>
             )}
 
-            {/* Daily Nutrition Summary Card */}
+            {/* Daily Nutrition Summary Card with Concentric Rings */}
             <Card className="border-border/60 bg-muted/20 shadow-xs">
-                <CardContent className="space-y-4 p-5">
-                    <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-4">
-                        {/* Calories Overview */}
-                        <div className="space-y-2 border-r-0 border-border pr-0 md:col-span-2 md:border-r md:pr-4">
-                            <div className="flex items-baseline justify-between">
-                                <div>
-                                    <span className="text-3xl font-extrabold text-foreground">
-                                        {Math.round(summary.total_calories)}
-                                    </span>
-                                    <span className="ml-1 text-xs text-muted-foreground">
-                                        / {Math.round(summary.target_calories)}{' '}
-                                        kcal
-                                    </span>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-sm font-semibold text-primary">
-                                        {Math.round(summary.remaining_calories)}
-                                    </span>
-                                    <span className="block text-xs text-muted-foreground">
-                                        remaining
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Calorie Progress Bar */}
-                            <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
-                                <div
-                                    className="h-full bg-primary transition-all duration-300"
-                                    style={{ width: `${caloriePercent}%` }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Macronutrient Bars */}
-                        <div className="grid grid-cols-3 gap-3 text-center md:col-span-2">
-                            {/* Protein */}
-                            <div className="space-y-1">
-                                <div className="text-[11px] font-semibold text-muted-foreground uppercase">
-                                    Protein
-                                </div>
-                                <div className="text-base font-bold text-emerald-600 dark:text-emerald-400">
-                                    {Math.round(summary.total_protein)}g
-                                </div>
-                                <div className="text-[10px] text-muted-foreground">
-                                    goal: {Math.round(summary.target_protein)}g
-                                </div>
-                            </div>
-
-                            {/* Carbs */}
-                            <div className="space-y-1">
-                                <div className="text-[11px] font-semibold text-muted-foreground uppercase">
-                                    Carbs
-                                </div>
-                                <div className="text-base font-bold text-blue-600 dark:text-blue-400">
-                                    {Math.round(summary.total_carbs)}g
-                                </div>
-                                <div className="text-[10px] text-muted-foreground">
-                                    goal: {Math.round(summary.target_carbs)}g
-                                </div>
-                            </div>
-
-                            {/* Fat */}
-                            <div className="space-y-1">
-                                <div className="text-[11px] font-semibold text-muted-foreground uppercase">
-                                    Fat
-                                </div>
-                                <div className="text-base font-bold text-amber-600 dark:text-amber-400">
-                                    {Math.round(summary.total_fat)}g
-                                </div>
-                                <div className="text-[10px] text-muted-foreground">
-                                    goal: {Math.round(summary.target_fat)}g
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <CardContent className="space-y-6 p-5">
+                    <ConcentricMacroRings
+                        calories={{
+                            consumed: summary.total_calories,
+                            target: summary.target_calories,
+                            remaining: summary.remaining_calories,
+                            unit: 'kcal',
+                        }}
+                        protein={{
+                            consumed: summary.total_protein,
+                            target: summary.target_protein,
+                            unit: 'g',
+                        }}
+                        carbs={{
+                            consumed: summary.total_carbs,
+                            target: summary.target_carbs,
+                            unit: 'g',
+                        }}
+                        fat={{
+                            consumed: summary.total_fat,
+                            target: summary.target_fat,
+                            unit: 'g',
+                        }}
+                    />
 
                     {/* Micronutrient Summary Quick-Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/50 pt-3 text-xs text-muted-foreground">

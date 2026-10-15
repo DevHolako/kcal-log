@@ -98,6 +98,14 @@ test.describe('End-to-End User Experience', () => {
         await expect(page.locator('body')).not.toHaveText(
             /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
         );
+        // UX Assertion: Concentric macro rings SVG region is rendered
+        await expect(
+            page.getByRole('region', { name: /Daily Nutrition Rings/i }),
+        ).toBeVisible();
+        // UX Assertion: Language switcher button is present
+        await expect(
+            page.getByRole('button', { name: /change language/i }),
+        ).toBeVisible();
         await page.screenshot({
             path: 'test-results/screenshots/03-dashboard-initial.png',
         });
@@ -153,17 +161,19 @@ test.describe('End-to-End User Experience', () => {
         await expect(
             page.getByRole('heading', { name: /scan food barcode/i }),
         ).toBeVisible({ timeout: 5000 });
-        await expect(page.getByPlaceholder(/5449000000996/i)).toBeVisible();
-        // Close scanner modal and add food dialog with Escape
-        await page.keyboard.press('Escape');
+        // Close scanner modal and add food dialog cleanly
+        await page.getByRole('button', { name: 'Close' }).first().click();
         await expect(
             page.getByRole('heading', { name: /scan food barcode/i }),
         ).toBeHidden({ timeout: 5000 });
         await page.keyboard.press('Escape');
+        await expect(
+            page.getByRole('heading', { name: /log food to/i }),
+        ).toBeHidden({ timeout: 5000 });
         await page.waitForTimeout(300);
 
         // 6. Food Catalog & Custom Food Creation
-        await page.locator('a[href="/foods"]').first().click({ force: true });
+        await page.locator('a[href="/foods"]').first().click();
         await page.waitForURL('**/foods', { timeout: 10000 });
         await expect(
             page.getByRole('button', { name: /toggle sidebar/i }),

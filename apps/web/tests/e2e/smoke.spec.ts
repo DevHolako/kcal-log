@@ -32,4 +32,22 @@ test.describe('Smoke & System Health', () => {
             page.getByRole('button', { name: /create account/i }),
         ).toBeVisible();
     });
+
+    test('OpenAPI spec endpoint /docs/api.json returns valid OpenAPI 3.1 document', async ({
+        request,
+    }) => {
+        const response = await request.get('/docs/api.json');
+        expect(response.status()).toBe(200);
+        const data = await response.json();
+        expect(data.openapi).toMatch(/^3\.1/);
+        expect(data.info.title).toContain('kcal-log');
+    });
+
+    test('Scalar API documentation /docs/api renders interactive API explorer', async ({
+        page,
+    }) => {
+        const response = await page.goto('/docs/api');
+        expect(response?.status()).toBe(200);
+        await expect(page).toHaveTitle(/kcal-log/i);
+    });
 });

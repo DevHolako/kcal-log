@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import WeightTrendChart from '@/components/weight-trend-chart';
 import {
     Card,
     CardContent,
@@ -549,8 +550,17 @@ export default function StrategyIndex({
                                 </p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
-                                <div className="overflow-x-auto">
+                            <div className="space-y-6">
+                                <WeightTrendChart
+                                    data={weightTrends.map((p) => ({
+                                        date: p.date,
+                                        rawWeightKg: p.weight_kg,
+                                        trendWeightKg: p.ewma_kg,
+                                    }))}
+                                    unit="kg"
+                                />
+
+                                <div className="overflow-x-auto border-t border-border/50 pt-4">
                                     <table className="w-full text-sm">
                                         <thead>
                                             <tr className="border-b text-xs text-muted-foreground">
