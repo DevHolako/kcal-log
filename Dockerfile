@@ -4,8 +4,13 @@
 # ==============================================================================
 
 # --- Stage 1: Build Frontend Assets ---
-FROM node:22-alpine AS frontend-builder
+FROM node:22-bookworm-slim AS frontend-builder
 WORKDIR /app
+
+# Ensure devDependencies are installed even if Coolify injects APP_ENV=production or NODE_ENV=production
+ENV NODE_ENV=development
+ENV SKIP_WAYFINDER=1
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 RUN corepack enable && corepack prepare pnpm@10.5.2 --activate
 
@@ -14,8 +19,8 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/ ./packages/
 COPY apps/web/package.json ./apps/web/
 
-# Install Node dependencies
-RUN pnpm install --frozen-lockfile
+# Install Node dependencies (explicitly include devDependencies needed for bundling)
+RUN pnpm install --frozen-lockfile --prod=false
 
 # Copy web frontend source files
 COPY apps/web/resources ./apps/web/resources
@@ -25,7 +30,6 @@ COPY apps/web/app ./apps/web/app
 COPY apps/web/vite.config.ts apps/web/tsconfig.json apps/web/components.json ./apps/web/
 
 # Build production assets (Vite+ / Rolldown)
-ENV SKIP_WAYFINDER=1
 RUN pnpm --filter @kcal-log/web build
 
 # --- Stage 2: Install PHP Composer Dependencies ---

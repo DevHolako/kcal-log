@@ -24,10 +24,9 @@ export default defineConfig({
             presets: [reactCompilerPreset()],
         }),
         tailwindcss(),
-        wayfinder({
-            formVariants: true,
-            command: process.env.SKIP_WAYFINDER ? 'true' : undefined,
-        }),
+        ...(process.env.SKIP_WAYFINDER
+            ? []
+            : [wayfinder({ formVariants: true })]),
     ]),
     server: {
         port: 9173,
