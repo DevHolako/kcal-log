@@ -1,13 +1,9 @@
 import { Head, router } from '@inertiajs/react';
 import {
-    BookOpen,
     CalendarPlus,
-    Check,
     ChefHat,
     Clock,
     Flame,
-    Info,
-    Layers,
     Loader2,
     Plus,
     Sparkles,

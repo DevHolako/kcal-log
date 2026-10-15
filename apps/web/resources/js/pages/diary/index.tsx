@@ -110,7 +110,7 @@ export default function DiaryIndex({
     recentFoods,
     status,
 }: Props) {
-    const { t, locale, formatNumber } = useTranslation();
+    const { t } = useTranslation();
     const { auth } = usePage().props as any;
     const { summary, slots } = diary;
 

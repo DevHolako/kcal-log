@@ -12,7 +12,6 @@ import {
     Loader2,
     Scale,
     ShieldCheck,
-    Target,
 } from 'lucide-react';
 import { useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
