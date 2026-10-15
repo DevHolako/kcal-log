@@ -279,35 +279,39 @@ export default function DiaryIndex({
     const slotThemes = {
         breakfast: {
             headerBg:
-                'bg-gradient-to-r from-amber-500/10 via-amber-500/[0.03] to-transparent',
-            border: 'border-amber-500/20 hover:border-amber-500/35',
-            badge: 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/25',
-            addBtn: 'border-amber-500/30 text-amber-800 dark:text-amber-200 hover:bg-amber-500/10',
-            iconContainer: 'bg-amber-500/15',
+                'bg-gradient-to-r from-amber-500/15 via-amber-500/[0.04] to-transparent',
+            cardBg: 'bg-amber-500/[0.035] dark:bg-amber-500/[0.06]',
+            border: 'border-amber-500/25 hover:border-amber-500/40',
+            badge: 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30',
+            addBtn: 'border-amber-500/30 text-amber-800 dark:text-amber-200 hover:bg-amber-500/15',
+            iconContainer: 'bg-amber-500/20',
         },
         lunch: {
             headerBg:
-                'bg-gradient-to-r from-emerald-500/10 via-emerald-500/[0.03] to-transparent',
-            border: 'border-emerald-500/20 hover:border-emerald-500/35',
-            badge: 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/25',
-            addBtn: 'border-emerald-500/30 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-500/10',
-            iconContainer: 'bg-emerald-500/15',
+                'bg-gradient-to-r from-teal-500/15 via-teal-500/[0.04] to-transparent',
+            cardBg: 'bg-teal-500/[0.035] dark:bg-teal-500/[0.06]',
+            border: 'border-teal-500/25 hover:border-teal-500/40',
+            badge: 'bg-teal-500/15 text-teal-800 dark:text-teal-300 border-teal-500/30',
+            addBtn: 'border-teal-500/30 text-teal-800 dark:text-teal-200 hover:bg-teal-500/15',
+            iconContainer: 'bg-teal-500/20',
         },
         dinner: {
             headerBg:
-                'bg-gradient-to-r from-indigo-500/10 via-indigo-500/[0.03] to-transparent',
-            border: 'border-indigo-500/20 hover:border-indigo-500/35',
-            badge: 'bg-indigo-500/10 text-indigo-800 dark:text-indigo-300 border-indigo-500/25',
-            addBtn: 'border-indigo-500/30 text-indigo-800 dark:text-indigo-200 hover:bg-indigo-500/10',
-            iconContainer: 'bg-indigo-500/15',
+                'bg-gradient-to-r from-indigo-500/15 via-indigo-500/[0.04] to-transparent',
+            cardBg: 'bg-indigo-500/[0.035] dark:bg-indigo-500/[0.06]',
+            border: 'border-indigo-500/25 hover:border-indigo-500/40',
+            badge: 'bg-indigo-500/15 text-indigo-800 dark:text-indigo-300 border-indigo-500/30',
+            addBtn: 'border-indigo-500/30 text-indigo-800 dark:text-indigo-200 hover:bg-indigo-500/15',
+            iconContainer: 'bg-indigo-500/20',
         },
         snack: {
             headerBg:
-                'bg-gradient-to-r from-orange-500/10 via-orange-500/[0.03] to-transparent',
-            border: 'border-orange-500/20 hover:border-orange-500/35',
-            badge: 'bg-orange-500/10 text-orange-800 dark:text-orange-300 border-orange-500/25',
-            addBtn: 'border-orange-500/30 text-orange-800 dark:text-orange-200 hover:bg-orange-500/10',
-            iconContainer: 'bg-orange-500/15',
+                'bg-gradient-to-r from-orange-500/15 via-orange-500/[0.04] to-transparent',
+            cardBg: 'bg-orange-500/[0.035] dark:bg-orange-500/[0.06]',
+            border: 'border-orange-500/25 hover:border-orange-500/40',
+            badge: 'bg-orange-500/15 text-orange-800 dark:text-orange-300 border-orange-500/30',
+            addBtn: 'border-orange-500/30 text-orange-800 dark:text-orange-200 hover:bg-orange-500/15',
+            iconContainer: 'bg-orange-500/20',
         },
     };
 
@@ -524,8 +528,9 @@ export default function DiaryIndex({
                             <Card
                                 key={slotKey}
                                 className={cn(
-                                    'overflow-hidden rounded-2xl border bg-card shadow-2xs transition-all hover:shadow-xs',
+                                    'overflow-hidden rounded-2xl border shadow-2xs transition-all hover:shadow-xs',
                                     theme.border,
+                                    theme.cardBg,
                                 )}
                             >
                                 <CardHeader

@@ -24,6 +24,12 @@ export function PaletteSelector({ className = '' }: PaletteSelectorProps) {
 
     // Custom palette local state
     const [customPrimary, setCustomPrimary] = useState(palette.primary);
+    const [customBgLight, setCustomBgLight] = useState(
+        palette.backgroundLight || '#f5f7ff',
+    );
+    const [customBgDark, setCustomBgDark] = useState(
+        palette.backgroundDark || '#0c0f1d',
+    );
     const [customCalories, setCustomCalories] = useState(palette.macroCalories);
     const [customProtein, setCustomProtein] = useState(palette.macroProtein);
     const [customCarbs, setCustomCarbs] = useState(palette.macroCarbs);
@@ -42,6 +48,11 @@ export function PaletteSelector({ className = '' }: PaletteSelectorProps) {
             description: 'User-defined bespoke color scheme',
             primary: customPrimary,
             primaryForeground: '#ffffff',
+            backgroundLight: customBgLight,
+            backgroundDark: customBgDark,
+            cardLight: '#ffffff',
+            cardDark: '#13182c',
+            plateBgTint: `${customPrimary}12`,
             macroCalories: customCalories,
             macroProtein: customProtein,
             macroCarbs: customCarbs,
@@ -72,8 +83,8 @@ export function PaletteSelector({ className = '' }: PaletteSelectorProps) {
                         Choose Theme Palette
                     </DialogTitle>
                     <DialogDescription>
-                        Select from 8 curated palettes or build your own custom
-                        color scheme.
+                        Select from 8 curated palettes with bespoke background
+                        colors, or build your own custom scheme.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -97,7 +108,7 @@ export function PaletteSelector({ className = '' }: PaletteSelectorProps) {
                     </div>
 
                     {!isCustomMode ? (
-                        /* Preset Grid */
+                        /* Preset Grid - Each plate features its bespoke background */
                         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                             {presets.map((preset) => {
                                 const isActive = palette.id === preset.id;
@@ -108,27 +119,56 @@ export function PaletteSelector({ className = '' }: PaletteSelectorProps) {
                                         onClick={() =>
                                             handleApplyPreset(preset.id)
                                         }
-                                        className={`flex flex-col justify-between rounded-xl border p-3 text-left transition-all hover:scale-[1.01] ${isActive ? 'border-primary bg-primary/[0.04] ring-2 ring-primary/30' : 'border-border/70 hover:border-border hover:bg-muted/30'}`}
+                                        style={{
+                                            backgroundColor:
+                                                preset.backgroundLight,
+                                        }}
+                                        className={`group relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all hover:scale-[1.01] ${isActive ? 'border-primary shadow-xs ring-2 ring-primary/40' : 'border-border/70 hover:border-border hover:shadow-2xs'}`}
                                     >
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm font-bold text-foreground">
+                                            <span className="text-sm font-bold text-neutral-900">
                                                 {preset.name}
                                             </span>
-                                            {isActive && (
-                                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                            {isActive ? (
+                                                <span
+                                                    className="flex h-5 w-5 items-center justify-center rounded-full text-white shadow-2xs"
+                                                    style={{
+                                                        backgroundColor:
+                                                            preset.primary,
+                                                    }}
+                                                >
                                                     <Check className="h-3 w-3 stroke-[3]" />
                                                 </span>
+                                            ) : (
+                                                <span
+                                                    className="h-2.5 w-2.5 rounded-full border border-black/10 shadow-2xs transition-transform group-hover:scale-125"
+                                                    style={{
+                                                        backgroundColor:
+                                                            preset.primary,
+                                                    }}
+                                                />
                                             )}
                                         </div>
 
-                                        <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+                                        <p className="mt-1 line-clamp-1 text-xs text-neutral-600">
                                             {preset.description}
                                         </p>
 
-                                        {/* Color Swatches */}
+                                        {/* Color Swatches including Background Plate Color */}
                                         <div className="mt-3 flex items-center gap-1.5">
                                             <span
-                                                className="h-4 w-4 rounded-full shadow-2xs"
+                                                className="flex items-center justify-center rounded border border-black/10 px-1 py-0.5 text-[9px] font-bold shadow-2xs"
+                                                style={{
+                                                    backgroundColor:
+                                                        preset.backgroundLight,
+                                                    color: '#333',
+                                                }}
+                                                title={`Background: ${preset.backgroundLight}`}
+                                            >
+                                                BG
+                                            </span>
+                                            <span
+                                                className="h-4 w-4 rounded-full border border-black/10 shadow-2xs"
                                                 style={{
                                                     backgroundColor:
                                                         preset.primary,
@@ -204,6 +244,52 @@ export function PaletteSelector({ className = '' }: PaletteSelectorProps) {
                                             value={customPrimary}
                                             onChange={(e) =>
                                                 setCustomPrimary(e.target.value)
+                                            }
+                                            className="font-mono text-xs"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs">
+                                        Page Background (Light)
+                                    </Label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="color"
+                                            value={customBgLight}
+                                            onChange={(e) =>
+                                                setCustomBgLight(e.target.value)
+                                            }
+                                            className="h-8 w-10 cursor-pointer rounded border border-input bg-transparent p-0.5"
+                                        />
+                                        <Input
+                                            value={customBgLight}
+                                            onChange={(e) =>
+                                                setCustomBgLight(e.target.value)
+                                            }
+                                            className="font-mono text-xs"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs">
+                                        Page Background (Dark)
+                                    </Label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="color"
+                                            value={customBgDark}
+                                            onChange={(e) =>
+                                                setCustomBgDark(e.target.value)
+                                            }
+                                            className="h-8 w-10 cursor-pointer rounded border border-input bg-transparent p-0.5"
+                                        />
+                                        <Input
+                                            value={customBgDark}
+                                            onChange={(e) =>
+                                                setCustomBgDark(e.target.value)
                                             }
                                             className="font-mono text-xs"
                                         />

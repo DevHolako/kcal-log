@@ -48,26 +48,54 @@ export default function Appearance() {
                                     key={preset.id}
                                     type="button"
                                     onClick={() => setPalette(preset.id)}
-                                    className={`flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all hover:scale-[1.01] ${isActive ? 'border-primary bg-primary/[0.04] ring-2 ring-primary/30' : 'border-border/70 hover:border-border hover:bg-muted/30'}`}
+                                    style={{
+                                        backgroundColor: preset.backgroundLight,
+                                    }}
+                                    className={`group flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all hover:scale-[1.01] ${isActive ? 'border-primary shadow-xs ring-2 ring-primary/40' : 'border-border/70 hover:border-border hover:shadow-2xs'}`}
                                 >
                                     <div className="flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-foreground">
+                                        <span className="text-sm font-semibold text-neutral-900">
                                             {preset.name}
                                         </span>
                                         {isActive ? (
-                                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                            <span
+                                                className="flex h-5 w-5 items-center justify-center rounded-full text-white shadow-2xs"
+                                                style={{
+                                                    backgroundColor:
+                                                        preset.primary,
+                                                }}
+                                            >
                                                 <Check className="h-3 w-3 stroke-[3]" />
                                             </span>
-                                        ) : null}
+                                        ) : (
+                                            <span
+                                                className="h-2 w-2 rounded-full border border-black/10 transition-transform group-hover:scale-125"
+                                                style={{
+                                                    backgroundColor:
+                                                        preset.primary,
+                                                }}
+                                            />
+                                        )}
                                     </div>
 
-                                    <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+                                    <p className="mt-1 line-clamp-1 text-xs text-neutral-600">
                                         {preset.description}
                                     </p>
 
                                     <div className="mt-3 flex items-center gap-1.5">
                                         <span
-                                            className="h-4 w-4 rounded-full shadow-2xs"
+                                            className="flex items-center justify-center rounded border border-black/10 px-1 py-0.5 text-[9px] font-bold shadow-2xs"
+                                            style={{
+                                                backgroundColor:
+                                                    preset.backgroundLight,
+                                                color: '#333',
+                                            }}
+                                            title={`Background: ${preset.backgroundLight}`}
+                                        >
+                                            BG
+                                        </span>
+                                        <span
+                                            className="h-4 w-4 rounded-full border border-black/10 shadow-2xs"
                                             style={{
                                                 backgroundColor: preset.primary,
                                             }}
