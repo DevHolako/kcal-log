@@ -403,6 +403,77 @@ test.describe('End-to-End User Experience', () => {
             path: 'test-results/screenshots/07-reports-and-exports.png',
         });
 
+        // 8b. Appearance Settings & Dynamic Navigation Layouts
+        await page.goto('/settings/appearance');
+        await page.waitForURL('**/settings/appearance', { timeout: 10000 });
+        await expect(
+            page.getByRole('heading', { name: /Navigation Layout/i }),
+        ).toBeVisible();
+        await expect(page.getByText('Left Sidebar')).toBeVisible();
+        await expect(page.getByText('Right Sidebar')).toBeVisible();
+        await expect(page.getByText('Top Navigation')).toBeVisible();
+        await expect(page.getByText('Bottom Dock')).toBeVisible();
+
+        // Switch to Right Sidebar
+        await page.getByRole('button', { name: /Right Sidebar/i }).click();
+        await expect(
+            page.getByRole('button', { name: /Right Sidebar/i }),
+        ).toHaveClass(/border-primary/);
+        await expect(
+            page.getByRole('button', { name: /Left Sidebar/i }),
+        ).not.toHaveClass(/border-primary/);
+        await expect(page.locator('[data-side="right"]')).toBeVisible();
+        await page.waitForTimeout(300);
+        await page.screenshot({
+            path: 'test-results/screenshots/10-layout-right-sidebar.png',
+        });
+
+        // Switch to Top Navigation
+        await page.getByRole('button', { name: /Top Navigation/i }).click();
+        await expect(
+            page.getByRole('button', { name: /Top Navigation/i }),
+        ).toHaveClass(/border-primary/);
+        await expect(
+            page.getByRole('button', { name: /Right Sidebar/i }),
+        ).not.toHaveClass(/border-primary/);
+        await expect(
+            page.getByRole('link', { name: /Daily Diary/i }).first(),
+        ).toBeVisible();
+        await page.waitForTimeout(300);
+        await page.screenshot({
+            path: 'test-results/screenshots/11-layout-top-nav.png',
+        });
+
+        // Switch to Bottom Dock
+        await page.getByRole('button', { name: /Bottom Dock/i }).click();
+        await expect(
+            page.getByRole('button', { name: /Bottom Dock/i }),
+        ).toHaveClass(/border-primary/);
+        await expect(
+            page.getByRole('button', { name: /Top Navigation/i }),
+        ).not.toHaveClass(/border-primary/);
+        await expect(
+            page.locator('nav[aria-label="Bottom Navigation"]'),
+        ).toBeVisible();
+        await page.waitForTimeout(300);
+        await page.screenshot({
+            path: 'test-results/screenshots/12-layout-bottom-dock.png',
+        });
+
+        // Switch back to Left Sidebar
+        await page.getByRole('button', { name: /Left Sidebar/i }).click();
+        await expect(
+            page.getByRole('button', { name: /Left Sidebar/i }),
+        ).toHaveClass(/border-primary/);
+        await expect(
+            page.getByRole('button', { name: /Bottom Dock/i }),
+        ).not.toHaveClass(/border-primary/);
+        await expect(page.locator('[data-side="left"]')).toBeVisible();
+        await page.waitForTimeout(300);
+        await page.screenshot({
+            path: 'test-results/screenshots/13-layout-left-sidebar.png',
+        });
+
         // 9. Profile Settings: Recalibrate Targets & Reset Tracking Data
         await page.goto('/settings/profile');
         await page.waitForURL('**/settings/profile', { timeout: 10000 });

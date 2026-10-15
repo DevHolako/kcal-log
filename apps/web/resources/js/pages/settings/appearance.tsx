@@ -4,12 +4,105 @@ import AppearanceTabs from '@/components/appearance-tabs';
 import Heading from '@/components/heading';
 import { PaletteSelector } from '@/components/palette-selector';
 import { useAppearance } from '@/hooks/use-appearance';
+import {
+    type NavigationLayoutMode,
+    useNavigationLayout,
+} from '@/hooks/use-navigation-layout';
 import { usePalette } from '@/lib/theme-palettes';
+import { cn } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+
+function LayoutWireframe({
+    mode,
+    isActive,
+}: {
+    mode: NavigationLayoutMode;
+    isActive: boolean;
+}) {
+    const activeColor = isActive ? 'bg-primary' : 'bg-muted-foreground/30';
+    const mutedBar = 'bg-muted-foreground/20';
+    const contentBlock = 'bg-muted-foreground/10';
+
+    if (mode === 'sidebar-left') {
+        return (
+            <div className="flex h-16 w-full gap-1.5 rounded-lg border border-border/70 bg-background/60 p-1.5">
+                <div
+                    className={cn(
+                        'w-1/4 rounded transition-colors',
+                        activeColor,
+                    )}
+                />
+                <div className="flex flex-1 flex-col gap-1.5">
+                    <div className={cn('h-2 w-full rounded', mutedBar)} />
+                    <div className="flex flex-1 gap-1.5">
+                        <div className={cn('flex-1 rounded', contentBlock)} />
+                        <div className={cn('flex-1 rounded', contentBlock)} />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (mode === 'sidebar-right') {
+        return (
+            <div className="flex h-16 w-full gap-1.5 rounded-lg border border-border/70 bg-background/60 p-1.5">
+                <div className="flex flex-1 flex-col gap-1.5">
+                    <div className={cn('h-2 w-full rounded', mutedBar)} />
+                    <div className="flex flex-1 gap-1.5">
+                        <div className={cn('flex-1 rounded', contentBlock)} />
+                        <div className={cn('flex-1 rounded', contentBlock)} />
+                    </div>
+                </div>
+                <div
+                    className={cn(
+                        'w-1/4 rounded transition-colors',
+                        activeColor,
+                    )}
+                />
+            </div>
+        );
+    }
+
+    if (mode === 'top-nav') {
+        return (
+            <div className="flex h-16 w-full flex-col gap-1.5 rounded-lg border border-border/70 bg-background/60 p-1.5">
+                <div
+                    className={cn(
+                        'h-3 w-full rounded transition-colors',
+                        activeColor,
+                    )}
+                />
+                <div className="flex flex-1 gap-1.5">
+                    <div className={cn('flex-1 rounded', contentBlock)} />
+                    <div className={cn('flex-1 rounded', contentBlock)} />
+                    <div className={cn('flex-1 rounded', contentBlock)} />
+                </div>
+            </div>
+        );
+    }
+
+    // bottom-nav
+    return (
+        <div className="flex h-16 w-full flex-col justify-between gap-1 rounded-lg border border-border/70 bg-background/60 p-1.5">
+            <div className={cn('h-2 w-full rounded', mutedBar)} />
+            <div className="my-0.5 flex flex-1 gap-1.5">
+                <div className={cn('flex-1 rounded', contentBlock)} />
+                <div className={cn('flex-1 rounded', contentBlock)} />
+            </div>
+            <div
+                className={cn(
+                    'mx-auto h-2.5 w-3/4 rounded-full transition-colors',
+                    activeColor,
+                )}
+            />
+        </div>
+    );
+}
 
 export default function Appearance() {
     const { palette, presets, setPalette } = usePalette();
     const { resolvedAppearance } = useAppearance();
+    const { layout, setLayout, options: layoutOptions } = useNavigationLayout();
     const isDark = resolvedAppearance === 'dark';
 
     return (
@@ -19,6 +112,7 @@ export default function Appearance() {
             <h1 className="sr-only">Appearance settings</h1>
 
             <div className="space-y-8">
+                {/* Theme Mode */}
                 <div className="space-y-4">
                     <Heading
                         variant="small"
@@ -28,6 +122,84 @@ export default function Appearance() {
                     <AppearanceTabs />
                 </div>
 
+                {/* Navigation Layout */}
+                <div className="space-y-4 border-t border-border/60 pt-6">
+                    <Heading
+                        variant="small"
+                        title="Navigation Layout"
+                        description="Select where navigation bars and drawers appear across your screen"
+                    />
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        {layoutOptions.map((opt) => {
+                            const isActive = layout === opt.id;
+                            return (
+                                <button
+                                    key={opt.id}
+                                    type="button"
+                                    onClick={() => setLayout(opt.id)}
+                                    className={cn(
+                                        'group flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all hover:scale-[1.01]',
+                                        isActive
+                                            ? 'border-primary bg-card shadow-xs ring-2 ring-primary/40'
+                                            : isDark
+                                              ? 'border-neutral-800 bg-card/60 hover:border-neutral-700'
+                                              : 'border-border/70 bg-card/60 hover:border-border hover:shadow-2xs',
+                                    )}
+                                >
+                                    <div>
+                                        <div className="flex items-center justify-between">
+                                            <span
+                                                className={cn(
+                                                    'text-sm font-semibold',
+                                                    isDark
+                                                        ? 'text-neutral-100'
+                                                        : 'text-neutral-900',
+                                                )}
+                                            >
+                                                {opt.title}
+                                            </span>
+                                            {isActive ? (
+                                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-2xs">
+                                                    <Check className="h-3 w-3 stroke-[3]" />
+                                                </span>
+                                            ) : (
+                                                <span
+                                                    className={cn(
+                                                        'h-2.5 w-2.5 rounded-full border shadow-2xs transition-transform group-hover:scale-125',
+                                                        isDark
+                                                            ? 'border-white/20 bg-muted-foreground/30'
+                                                            : 'border-black/10 bg-muted-foreground/20',
+                                                    )}
+                                                />
+                                            )}
+                                        </div>
+
+                                        <p
+                                            className={cn(
+                                                'mt-1 line-clamp-2 text-xs',
+                                                isDark
+                                                    ? 'text-neutral-400'
+                                                    : 'text-neutral-600',
+                                            )}
+                                        >
+                                            {opt.description}
+                                        </p>
+                                    </div>
+
+                                    <div className="mt-3">
+                                        <LayoutWireframe
+                                            mode={opt.id}
+                                            isActive={isActive}
+                                        />
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Color Palette */}
                 <div className="space-y-4 border-t border-border/60 pt-6">
                     <div className="flex items-center justify-between">
                         <Heading

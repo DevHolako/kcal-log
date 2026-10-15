@@ -7,12 +7,16 @@ import type { AppLayoutProps } from '@/types';
 export default function AppSidebarLayout({
     children,
     breadcrumbs = [],
+    side = 'left',
 }: AppLayoutProps) {
     return (
-        <AppShell variant="sidebar">
-            <AppSidebar />
+        <AppShell
+            variant="sidebar"
+            className={side === 'right' ? 'flex-row-reverse' : undefined}
+        >
+            <AppSidebar side={side} />
             <AppContent variant="sidebar" className="min-w-0 overflow-x-clip">
-                <AppSidebarHeader breadcrumbs={breadcrumbs} />
+                <AppSidebarHeader breadcrumbs={breadcrumbs} side={side} />
                 {children}
             </AppContent>
         </AppShell>
