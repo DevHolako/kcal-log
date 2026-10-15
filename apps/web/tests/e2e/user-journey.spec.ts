@@ -102,13 +102,24 @@ test.describe('End-to-End User Experience', () => {
         await expect(
             page.getByRole('region', { name: /Daily Nutrition Rings/i }),
         ).toBeVisible();
-        // UX Assertion: Language switcher button is present
+        // UX Assertion: Language switcher and Theme toggle buttons are present
         await expect(
             page.getByRole('button', { name: /change language/i }),
         ).toBeVisible();
+        const themeToggle = page.getByRole('button', { name: /switch to dark mode/i });
+        await expect(themeToggle).toBeVisible();
         await page.screenshot({
             path: 'test-results/screenshots/03-dashboard-initial.png',
         });
+
+        // Test theme toggle to Dark Mode and capture screenshot
+        await themeToggle.click();
+        await expect(page.locator('html')).toHaveClass(/dark/);
+        await page.screenshot({
+            path: 'test-results/screenshots/03b-dashboard-dark.png',
+        });
+        await page.getByRole('button', { name: /switch to light mode/i }).click();
+        await expect(page.locator('html')).not.toHaveClass(/dark/);
 
         // 4. Quick Add Calories to Breakfast
         const breakfastQuickAdd = page

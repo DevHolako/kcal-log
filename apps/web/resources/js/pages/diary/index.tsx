@@ -30,6 +30,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getEcho } from '@/echo';
+import { cn } from '@/lib/utils';
 import type { FoodItem, FoodServingData } from '@/pages/foods';
 
 interface DiaryEntryData {
@@ -266,17 +267,53 @@ export default function DiaryIndex({
         snack: 'Snacks',
     };
 
+    const slotThemes = {
+        breakfast: {
+            headerBg:
+                'bg-gradient-to-r from-amber-500/10 via-amber-500/[0.03] to-transparent',
+            border: 'border-amber-500/20 hover:border-amber-500/35',
+            badge: 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/25',
+            addBtn: 'border-amber-500/30 text-amber-800 dark:text-amber-200 hover:bg-amber-500/10',
+            iconContainer: 'bg-amber-500/15',
+        },
+        lunch: {
+            headerBg:
+                'bg-gradient-to-r from-emerald-500/10 via-emerald-500/[0.03] to-transparent',
+            border: 'border-emerald-500/20 hover:border-emerald-500/35',
+            badge: 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/25',
+            addBtn: 'border-emerald-500/30 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-500/10',
+            iconContainer: 'bg-emerald-500/15',
+        },
+        dinner: {
+            headerBg:
+                'bg-gradient-to-r from-indigo-500/10 via-indigo-500/[0.03] to-transparent',
+            border: 'border-indigo-500/20 hover:border-indigo-500/35',
+            badge: 'bg-indigo-500/10 text-indigo-800 dark:text-indigo-300 border-indigo-500/25',
+            addBtn: 'border-indigo-500/30 text-indigo-800 dark:text-indigo-200 hover:bg-indigo-500/10',
+            iconContainer: 'bg-indigo-500/15',
+        },
+        snack: {
+            headerBg:
+                'bg-gradient-to-r from-orange-500/10 via-orange-500/[0.03] to-transparent',
+            border: 'border-orange-500/20 hover:border-orange-500/35',
+            badge: 'bg-orange-500/10 text-orange-800 dark:text-orange-300 border-orange-500/25',
+            addBtn: 'border-orange-500/30 text-orange-800 dark:text-orange-200 hover:bg-orange-500/10',
+            iconContainer: 'bg-orange-500/15',
+        },
+    };
+
     return (
         <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
             <Head title={`Diary - ${selectedDate}`} />
 
             {/* Date Navigator Header */}
-            <div className="flex flex-col items-center justify-between gap-4 border-b border-border pb-4 sm:flex-row">
+            <div className="flex flex-col items-center justify-between gap-4 border-b border-border/80 pb-4 sm:flex-row">
                 <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
                         size="icon"
                         onClick={() => navigateDate(-1)}
+                        className="shadow-2xs"
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -286,12 +323,12 @@ export default function DiaryIndex({
                             type="date"
                             value={selectedDate}
                             onChange={(e) => handleSelectDate(e.target.value)}
-                            className="w-auto text-sm font-medium"
+                            className="w-auto text-sm font-semibold shadow-2xs"
                         />
                         {isToday && (
                             <Badge
                                 variant="secondary"
-                                className="bg-primary/10 text-primary"
+                                className="border-primary/20 bg-primary/15 font-semibold text-primary"
                             >
                                 Today
                             </Badge>
@@ -302,13 +339,14 @@ export default function DiaryIndex({
                         variant="outline"
                         size="icon"
                         onClick={() => navigateDate(1)}
+                        className="shadow-2xs"
                     >
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>
 
                 {summary.weight_kg !== null && (
-                    <div className="flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 rounded-full border border-border/80 bg-muted/60 px-3.5 py-1.5 text-xs text-muted-foreground shadow-2xs">
                         <span>Logged Weight:</span>
                         <strong className="text-foreground">
                             {summary.weight_kg} kg
@@ -318,14 +356,15 @@ export default function DiaryIndex({
             </div>
 
             {status && (
-                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm font-semibold text-emerald-700 shadow-2xs dark:text-emerald-300">
                     {status}
                 </div>
             )}
 
             {/* Daily Nutrition Summary Card with Concentric Rings */}
-            <Card className="border-border/60 bg-muted/20 shadow-xs">
-                <CardContent className="space-y-6 p-5">
+            <Card className="relative overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs">
+                <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-96 -translate-x-1/2 rounded-full bg-emerald-500/[0.08] blur-3xl dark:bg-emerald-500/[0.12]" />
+                <CardContent className="relative space-y-6 p-5">
                     <ConcentricMacroRings
                         calories={{
                             consumed: summary.total_calories,
@@ -389,9 +428,9 @@ export default function DiaryIndex({
                             variant="ghost"
                             size="sm"
                             onClick={() => setMicroModalOpen(true)}
-                            className="h-7 gap-1.5 px-2 text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+                            className="h-7 gap-1.5 px-2 text-xs font-semibold text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400"
                         >
-                            <Sparkles className="h-3.5 w-3.5" />
+                            <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
                             Detailed Micronutrients
                         </Button>
                     </div>
@@ -403,17 +442,39 @@ export default function DiaryIndex({
                 {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map(
                     (slotKey) => {
                         const slot = slots[slotKey];
+                        const theme = slotThemes[slotKey];
                         return (
-                            <Card key={slotKey} className="border-border/70">
-                                <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 px-4 py-3">
+                            <Card
+                                key={slotKey}
+                                className={cn(
+                                    'overflow-hidden rounded-2xl border bg-card shadow-2xs transition-all hover:shadow-xs',
+                                    theme.border,
+                                )}
+                            >
+                                <CardHeader
+                                    className={cn(
+                                        'flex flex-row items-center justify-between border-b border-border/40 px-4 py-3',
+                                        theme.headerBg,
+                                    )}
+                                >
                                     <div className="flex items-center gap-2.5">
-                                        {slotIcons[slotKey]}
+                                        <div
+                                            className={cn(
+                                                'rounded-lg p-1.5 shadow-2xs',
+                                                theme.iconContainer,
+                                            )}
+                                        >
+                                            {slotIcons[slotKey]}
+                                        </div>
                                         <CardTitle className="text-base font-semibold">
                                             {slotNames[slotKey]}
                                         </CardTitle>
                                         <Badge
                                             variant="outline"
-                                            className="ml-1 font-mono text-xs font-medium"
+                                            className={cn(
+                                                'ml-1 font-mono text-xs font-bold',
+                                                theme.badge,
+                                            )}
                                         >
                                             {Math.round(slot.calories)} kcal
                                         </Badge>
@@ -424,7 +485,10 @@ export default function DiaryIndex({
                                             variant="outline"
                                             size="sm"
                                             onClick={() => openAddFood(slotKey)}
-                                            className="h-8 gap-1.5 text-xs"
+                                            className={cn(
+                                                'h-8 gap-1.5 text-xs font-semibold shadow-2xs',
+                                                theme.addBtn,
+                                            )}
                                         >
                                             <Plus className="h-3.5 w-3.5" />
                                             Add Food
@@ -435,7 +499,7 @@ export default function DiaryIndex({
                                             onClick={() =>
                                                 openQuickAdd(slotKey)
                                             }
-                                            className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                                            className="h-8 gap-1.5 text-xs text-muted-foreground hover:bg-amber-500/10 hover:text-amber-700 dark:hover:text-amber-300"
                                         >
                                             <Zap className="h-3.5 w-3.5 text-amber-500" />
                                             Quick Add
@@ -445,9 +509,28 @@ export default function DiaryIndex({
 
                                 <CardContent className="p-0">
                                     {slot.entries.length === 0 ? (
-                                        <div className="py-4 text-center text-xs text-muted-foreground">
-                                            No items logged for{' '}
-                                            {slotNames[slotKey].toLowerCase()}.
+                                        <div className="flex flex-col items-center justify-center gap-2 py-8 text-center text-xs text-muted-foreground">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/60 text-muted-foreground/60">
+                                                {slotIcons[slotKey]}
+                                            </div>
+                                            <span>
+                                                No items logged for{' '}
+                                                {slotNames[
+                                                    slotKey
+                                                ].toLowerCase()}{' '}
+                                                yet.
+                                            </span>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() =>
+                                                    openAddFood(slotKey)
+                                                }
+                                                className="h-7 text-xs font-semibold text-primary hover:text-primary/80"
+                                            >
+                                                + Add Food to{' '}
+                                                {slotNames[slotKey]}
+                                            </Button>
                                         </div>
                                     ) : (
                                         <div className="divide-y divide-border/30">
@@ -473,7 +556,7 @@ export default function DiaryIndex({
                                                                 g)
                                                             </span>
                                                             <span>&bull;</span>
-                                                            <span className="text-emerald-600 dark:text-emerald-400">
+                                                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                                                                 P:{' '}
                                                                 {Number(
                                                                     entry.protein,
@@ -481,7 +564,7 @@ export default function DiaryIndex({
                                                                 g
                                                             </span>
                                                             <span>&bull;</span>
-                                                            <span className="text-blue-600 dark:text-blue-400">
+                                                            <span className="font-semibold text-blue-600 dark:text-blue-400">
                                                                 C:{' '}
                                                                 {Number(
                                                                     entry.carbs,
@@ -489,7 +572,7 @@ export default function DiaryIndex({
                                                                 g
                                                             </span>
                                                             <span>&bull;</span>
-                                                            <span className="text-amber-600 dark:text-amber-400">
+                                                            <span className="font-semibold text-amber-600 dark:text-amber-400">
                                                                 F:{' '}
                                                                 {Number(
                                                                     entry.fat,
@@ -533,16 +616,18 @@ export default function DiaryIndex({
             </div>
 
             {/* Water Tracker Widget */}
-            <Card className="border-border/70">
-                <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 px-4 py-3">
-                    <div className="flex items-center gap-2">
-                        <Droplet className="h-4 w-4 fill-sky-500 text-sky-500" />
+            <Card className="overflow-hidden rounded-2xl border border-sky-500/25 bg-card shadow-2xs transition-all hover:border-sky-500/40 hover:shadow-xs">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 bg-gradient-to-r from-sky-500/10 via-sky-500/[0.03] to-transparent px-4 py-3">
+                    <div className="flex items-center gap-2.5">
+                        <div className="rounded-lg bg-sky-500/15 p-1.5 text-sky-500 shadow-2xs">
+                            <Droplet className="h-4 w-4 fill-sky-500 text-sky-500" />
+                        </div>
                         <CardTitle className="text-base font-semibold">
                             Water Tracking
                         </CardTitle>
                         <Badge
                             variant="outline"
-                            className="ml-1 font-mono text-xs font-medium"
+                            className="ml-1 border-sky-500/25 bg-sky-500/10 font-mono text-xs font-bold text-sky-800 dark:text-sky-300"
                         >
                             {summary.water_ml} / {summary.target_water_ml} ml
                         </Badge>
@@ -553,7 +638,7 @@ export default function DiaryIndex({
                             variant="outline"
                             size="sm"
                             onClick={() => handleLogWater(250)}
-                            className="h-7 text-xs"
+                            className="h-7 border-sky-500/30 text-xs font-semibold text-sky-800 shadow-2xs hover:bg-sky-500/10 dark:text-sky-200"
                         >
                             +250 ml
                         </Button>
@@ -561,7 +646,7 @@ export default function DiaryIndex({
                             variant="outline"
                             size="sm"
                             onClick={() => handleLogWater(500)}
-                            className="h-7 text-xs"
+                            className="h-7 border-sky-500/30 text-xs font-semibold text-sky-800 shadow-2xs hover:bg-sky-500/10 dark:text-sky-200"
                         >
                             +500 ml
                         </Button>
@@ -569,7 +654,7 @@ export default function DiaryIndex({
                             variant="outline"
                             size="sm"
                             onClick={() => handleLogWater(750)}
-                            className="h-7 text-xs"
+                            className="h-7 border-sky-500/30 text-xs font-semibold text-sky-800 shadow-2xs hover:bg-sky-500/10 dark:text-sky-200"
                         >
                             +750 ml
                         </Button>
