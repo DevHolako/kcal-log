@@ -293,7 +293,7 @@ export default function Welcome() {
                                     size="sm"
                                     className="rounded-full text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                                 >
-                                    <Link href={login()}>Log in</Link>
+                                    <Link href={login()}>Log In</Link>
                                 </Button>
                                 <Button
                                     asChild
@@ -301,7 +301,7 @@ export default function Welcome() {
                                     className="rounded-full bg-emerald-600 px-5 font-medium text-white shadow-sm shadow-emerald-600/30 transition-all hover:bg-emerald-500"
                                 >
                                     <Link href={register()}>
-                                        Get Started
+                                        Register
                                         <ArrowRight className="ml-1.5 h-4 w-4" />
                                     </Link>
                                 </Button>
@@ -378,14 +378,14 @@ export default function Welcome() {
                                             variant="outline"
                                             className="w-full rounded-lg"
                                         >
-                                            <Link href={login()}>Log in</Link>
+                                            <Link href={login()}>Sign In</Link>
                                         </Button>
                                         <Button
                                             asChild
                                             className="w-full rounded-lg bg-emerald-600 text-white hover:bg-emerald-500"
                                         >
                                             <Link href={register()}>
-                                                Get Started Free
+                                                Sign Up
                                             </Link>
                                         </Button>
                                     </>
@@ -1882,7 +1882,7 @@ export default function Welcome() {
                                     className="h-12 rounded-full border-border px-8 font-medium hover:bg-muted"
                                 >
                                     <Link href={login()}>
-                                        Log In to Existing Account
+                                        Sign In to Existing Account
                                     </Link>
                                 </Button>
                             </div>
