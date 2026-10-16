@@ -278,16 +278,17 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Coolify Deployment via API
+      - name: Trigger Coolify Deployment via Webhook
         env:
+          COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
           COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
         run: |
-          if [ -z "$COOLIFY_TOKEN" ]; then
-            echo "::notice ::COOLIFY_TOKEN secret is not set in GitHub repository settings. Skipping deployment."
+          if [ -z "$COOLIFY_WEBHOOK_URL" ] || [ -z "$COOLIFY_TOKEN" ] || [ "$COOLIFY_TOKEN" = "placeholder_replace_with_your_coolify_token" ]; then
+            echo "::notice ::Coolify deployment secrets (COOLIFY_WEBHOOK_URL and COOLIFY_TOKEN) are not fully configured yet. Skipping deployment."
             exit 0
           fi
-          echo "Triggering deployment for resource wkmahwtelnowod7prfdxd9dq..."
+          echo "Triggering production deployment via Coolify webhook..."
           response=$(curl -fsSL -X POST \
             -H "Authorization: Bearer $COOLIFY_TOKEN" \
-            "https://apps.holako.dev/api/v1/deploy?uuid=wkmahwtelnowod7prfdxd9dq")
+            "$COOLIFY_WEBHOOK_URL")
           echo "Deployment triggered: $response"
