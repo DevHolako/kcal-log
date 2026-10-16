@@ -28,6 +28,25 @@ test('user can visit foods catalog web page with accurate total counts', functio
             ->has('customFoods')
             ->where('totalCachedFoods', 5)
             ->where('totalCustomFoods', 2)
+            ->where('isOffConnected', false)
+        );
+});
+
+test('user can visit foods catalog web page with isOffConnected true when connected', function () {
+    \App\Models\UserOffConnection::create([
+        'user_id' => $this->user->id,
+        'username' => 'testoffuser',
+        'password' => 'secret123',
+        'is_connected' => true,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->get(route('foods.index'));
+
+    $response->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('foods/index')
+            ->where('isOffConnected', true)
         );
 });
 

@@ -1,7 +1,8 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     AlertTriangle,
     Apple,
+    ArrowRight,
     Barcode,
     Calculator,
     CalendarPlus,
@@ -12,6 +13,7 @@ import {
     Plus,
     RefreshCw,
     Search,
+    Sparkles,
     Trash2,
     Utensils,
     X,
@@ -88,6 +90,7 @@ interface Props {
     searchQuery?: string | null;
     searchBarcode?: string | null;
     status?: string;
+    isOffConnected?: boolean;
 }
 
 export default function FoodsIndex({
@@ -99,6 +102,7 @@ export default function FoodsIndex({
     searchQuery,
     searchBarcode,
     status,
+    isOffConnected = false,
 }: Props) {
     const { t } = useTranslation();
     const [query, setQuery] = useState(searchQuery || '');
@@ -107,6 +111,21 @@ export default function FoodsIndex({
         searchBarcode ? 'barcode' : 'text',
     );
     const [activeTab, setActiveTab] = useState<'all' | 'custom'>('all');
+
+    // Dismissible Open Food Facts Information Banner
+    const [showOffBanner, setShowOffBanner] = useState<boolean>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('kcal_hide_off_banner') !== 'true';
+        }
+        return false;
+    });
+
+    const handleDismissBanner = () => {
+        setShowOffBanner(false);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('kcal_hide_off_banner', 'true');
+        }
+    };
 
     // Open Food Facts Sync Modal State
     const [isSyncOpen, setIsSyncOpen] = useState(false);
@@ -344,6 +363,55 @@ export default function FoodsIndex({
             {status && (
                 <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                     {status}
+                </div>
+            )}
+
+            {/* Open Food Facts Information & Connection Banner */}
+            {!isOffConnected && showOffBanner && (
+                <div
+                    data-testid="off-catalog-banner"
+                    className="relative flex flex-col items-start justify-between gap-4 overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 sm:flex-row sm:items-center dark:border-primary/30"
+                >
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                            <Sparkles className="h-5 w-5" />
+                        </div>
+                        <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="text-sm font-semibold text-foreground">
+                                    {t('foods.off_banner_title')}
+                                </h3>
+                                <Badge
+                                    variant="outline"
+                                    className="border-emerald-500/30 bg-emerald-500/10 text-[10px] font-normal text-emerald-600 dark:text-emerald-400"
+                                >
+                                    Active
+                                </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                {t('foods.off_banner_desc')}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
+                        <Link
+                            href="/settings/open-food-facts"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-xs transition hover:bg-primary/90"
+                        >
+                            {t('foods.off_banner_action')}
+                            <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={handleDismissBanner}
+                            className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-primary/10 hover:text-foreground"
+                            aria-label={t('foods.off_banner_dismiss')}
+                            title={t('foods.off_banner_dismiss')}
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
             )}
 

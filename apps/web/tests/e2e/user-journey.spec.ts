@@ -232,6 +232,7 @@ test.describe('End-to-End User Experience', () => {
         await expect(
             page.getByRole('button', { name: /toggle sidebar/i }),
         ).toHaveCount(1);
+        await expect(page.getByTestId('off-catalog-banner')).toBeVisible();
 
         await page
             .getByRole('button', { name: /create custom food/i })

@@ -191,6 +191,11 @@ export const translations: Record<Locale, Record<string, string>> = {
         'foods.sync_dispatched':
             'Sync started in background! New foods will stream into your catalog.',
         'foods.showing_count': 'Showing {showing} of {total} cached foods',
+        'foods.off_banner_title': 'Open Food Facts Ready — No Account Required',
+        'foods.off_banner_desc':
+            'Barcode scanning and global food search work automatically out-of-the-box. If you want to contribute product edits or sync your catalog additions, you can optionally connect your personal Open Food Facts account.',
+        'foods.off_banner_action': 'Connect OFF Account',
+        'foods.off_banner_dismiss': 'Dismiss',
 
         // Recipes & Meals
         'recipes.title': 'Recipes & Meals',
@@ -496,6 +501,11 @@ export const translations: Record<Locale, Record<string, string>> = {
             'Synchronisation lancée en arrière-plan ! Les nouveaux aliments apparaissent en direct.',
         'foods.showing_count':
             'Affichage de {showing} sur {total} aliments en cache',
+        'foods.off_banner_title': 'Open Food Facts prêt — Aucun compte requis',
+        'foods.off_banner_desc':
+            'La recherche et le scan de code-barres mondial fonctionnent automatiquement sans compte. Pour contribuer aux fiches produits ou synchroniser vos ajouts, vous pouvez associer votre compte Open Food Facts.',
+        'foods.off_banner_action': 'Associer mon compte',
+        'foods.off_banner_dismiss': 'Ignorer',
 
         // Recipes & Meals
         'recipes.title': 'Recettes & Repas préparés',

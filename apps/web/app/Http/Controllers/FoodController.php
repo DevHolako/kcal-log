@@ -144,6 +144,8 @@ class FoodController extends Controller
             ->latest()
             ->get();
 
+        $isOffConnected = (bool) $user->offConnection?->is_connected;
+
         return Inertia::render('foods/index', [
             'initialFoods' => $initialFoods,
             'customFoods' => $customFoods,
@@ -152,6 +154,7 @@ class FoodController extends Controller
             'searchResult' => $searchResult,
             'searchQuery' => $query,
             'searchBarcode' => $barcode,
+            'isOffConnected' => $isOffConnected,
         ]);
     }
 
