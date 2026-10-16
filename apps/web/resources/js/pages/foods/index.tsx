@@ -227,9 +227,86 @@ export default function FoodsIndex({
         };
     }, [auth?.user?.id]);
 
+    // Polling fallback to check sync status on mount and while sync is in progress
+    useEffect(() => {
+        let isMounted = true;
+        let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+        const checkStatus = async () => {
+            try {
+                const res = await fetch('/foods/sync/status', {
+                    headers: { Accept: 'application/json' },
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!isMounted || !data?.progress) return;
+
+                const p = data.progress;
+                const isDone = Boolean(p.completed || p.percent >= 100);
+
+                if (p.active || p.completed) {
+                    setSyncProgress((prev) => {
+                        const percent = Math.max(
+                            prev?.percent || 0,
+                            Math.min(100, Number(p.percent) || 0),
+                        );
+                        return {
+                            active: Boolean(p.active),
+                            percent,
+                            status: p.status || '',
+                            savedCount: Number(p.saved_count) || 0,
+                            completed: isDone,
+                        };
+                    });
+
+                    if (isDone) {
+                        router.reload({
+                            only: [
+                                'initialFoods',
+                                'totalCachedFoods',
+                                'totalCustomFoods',
+                            ],
+                        });
+                        setTimeout(() => {
+                            if (isMounted) {
+                                setSyncProgress((prev) =>
+                                    prev?.completed ? null : prev,
+                                );
+                            }
+                        }, 6000);
+                    }
+                }
+            } catch {
+                // Ignore network errors in status poll
+            }
+        };
+
+        void checkStatus();
+
+        if (syncProgress?.active) {
+            pollTimer = setInterval(() => {
+                void checkStatus();
+            }, 2000);
+        }
+
+        return () => {
+            isMounted = false;
+            if (pollTimer) clearInterval(pollTimer);
+        };
+    }, [syncProgress?.active]);
+
     const handleTriggerSync = (e: React.FormEvent) => {
         e.preventDefault();
         setIsSyncing(true);
+        setSyncProgress({
+            active: true,
+            percent: 5,
+            status: `Starting sync for ${syncCount} items...`,
+            savedCount: 0,
+            completed: false,
+        });
+        setIsSyncOpen(false);
+
         router.post(
             '/foods/sync',
             {
@@ -240,7 +317,6 @@ export default function FoodsIndex({
             {
                 onFinish: () => {
                     setIsSyncing(false);
-                    setIsSyncOpen(false);
                 },
             },
         );

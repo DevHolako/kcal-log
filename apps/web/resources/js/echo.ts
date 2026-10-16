@@ -5,6 +5,12 @@ declare global {
     interface Window {
         Pusher: typeof Pusher;
         Echo: Echo<any>;
+        __REVERB__?: {
+            key?: string;
+            host?: string;
+            port?: number;
+            scheme?: string;
+        };
     }
 }
 
@@ -19,14 +25,40 @@ export function getEcho(): Echo<any> | null {
         return echoInstance;
     }
 
-    const appKey = import.meta.env.VITE_REVERB_APP_KEY;
-    const host = import.meta.env.VITE_REVERB_HOST || window.location.hostname;
-    const port = Number(import.meta.env.VITE_REVERB_PORT || 9080);
-    const scheme = import.meta.env.VITE_REVERB_SCHEME || 'http';
+    const isHttps = window.location.protocol === 'https:';
+    const globalReverb = window.__REVERB__;
+
+    const appKey =
+        globalReverb?.key || import.meta.env.VITE_REVERB_APP_KEY || '';
 
     if (!appKey) {
         return null;
     }
+
+    const host =
+        globalReverb?.host ||
+        import.meta.env.VITE_REVERB_HOST ||
+        window.location.hostname;
+
+    // For HTTPS connections (production with Caddy / Coolify reverse proxy),
+    // WebSocket traffic connects via the standard port 443 on /app/*
+    // Internal server port 9080 is not exposed externally.
+    const rawPort =
+        globalReverb?.port ||
+        (import.meta.env.VITE_REVERB_PORT
+            ? Number(import.meta.env.VITE_REVERB_PORT)
+            : undefined);
+
+    const port = isHttps
+        ? rawPort === 9080 || !rawPort
+            ? 443
+            : rawPort
+        : rawPort || 9080;
+
+    const forceTLS =
+        isHttps ||
+        globalReverb?.scheme === 'https' ||
+        import.meta.env.VITE_REVERB_SCHEME === 'https';
 
     window.Pusher = Pusher;
 
@@ -37,7 +69,7 @@ export function getEcho(): Echo<any> | null {
             wsHost: host,
             wsPort: port,
             wssPort: port,
-            forceTLS: scheme === 'https',
+            forceTLS,
             enabledTransports: ['ws', 'wss'],
         });
 

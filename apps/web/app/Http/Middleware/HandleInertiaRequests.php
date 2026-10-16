@@ -42,6 +42,12 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'reverb' => [
+                'key' => (string) config('broadcasting.connections.reverb.key', ''),
+                'host' => (string) config('broadcasting.connections.reverb.options.host', ''),
+                'port' => (int) config('broadcasting.connections.reverb.options.port', 443),
+                'scheme' => (string) config('broadcasting.connections.reverb.options.scheme', 'https'),
+            ],
         ];
     }
 }

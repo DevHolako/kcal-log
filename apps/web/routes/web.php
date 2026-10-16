@@ -34,6 +34,7 @@ Route::middleware(['auth', 'verified', EnsureOnboardingIsComplete::class])->grou
     // Food Catalog & Management
     Route::get('foods/search', [WebFoodController::class, 'search'])->name('foods.search');
     Route::get('foods/barcode/{barcode}', [WebFoodController::class, 'barcode'])->name('foods.barcode');
+    Route::get('foods/sync/status', [WebFoodController::class, 'syncStatus'])->name('foods.sync.status');
     Route::get('foods', [WebFoodController::class, 'index'])->name('foods.index');
     Route::get('foods/{food}', [WebFoodController::class, 'show'])->name('foods.show');
     Route::post('foods/sync', [WebFoodController::class, 'sync'])->name('foods.sync');

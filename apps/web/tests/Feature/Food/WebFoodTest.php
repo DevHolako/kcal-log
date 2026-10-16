@@ -6,6 +6,7 @@ use App\Models\Profile;
 use App\Models\TargetProfile;
 use App\Models\User;
 use App\Models\UserOffConnection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
@@ -208,4 +209,22 @@ test('user cannot view another users custom food detail page', function () {
         ->get(route('foods.show', $otherCustomFood));
 
     $response->assertForbidden();
+});
+
+test('user can fetch sync status via polling endpoint', function () {
+    Cache::put("food_sync_progress_{$this->user->id}", [
+        'active' => true,
+        'percent' => 45,
+        'status' => "Syncing 'eggs'...",
+        'saved_count' => 12,
+        'completed' => false,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->getJson(route('foods.sync.status'));
+
+    $response->assertOk()
+        ->assertJsonPath('progress.active', true)
+        ->assertJsonPath('progress.percent', 45)
+        ->assertJsonPath('progress.saved_count', 12);
 });

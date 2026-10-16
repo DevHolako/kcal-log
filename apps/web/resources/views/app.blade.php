@@ -17,6 +17,13 @@
                     }
                 }
             })();
+
+            window.__REVERB__ = {
+                key: "{{ config('broadcasting.connections.reverb.key') ?? env('REVERB_APP_KEY', '') }}",
+                host: "{{ config('broadcasting.connections.reverb.options.host') ?? env('REVERB_HOST', '') }}",
+                port: {{ (int) (config('broadcasting.connections.reverb.options.port') ?? env('REVERB_PORT', 443)) }},
+                scheme: "{{ config('broadcasting.connections.reverb.options.scheme') ?? env('REVERB_SCHEME', 'https') }}"
+            };
         </script>
 
         {{-- Inline style to set the HTML background color based on our theme in app.css --}}

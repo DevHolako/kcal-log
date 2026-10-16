@@ -13,6 +13,7 @@ use App\Services\FoodService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -229,6 +230,18 @@ class FoodController extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        Cache::put("food_sync_progress_{$user->id}", [
+            'active' => true,
+            'current' => 0,
+            'total' => $termsCount,
+            'percent' => 5,
+            'status' => "Sync queued for {$count} {$category} items...",
+            'saved_count' => 0,
+            'completed' => false,
+            'user_id' => $user->id,
+            'updated_at' => now()->toIso8601String(),
+        ], now()->addMinutes(10));
+
         SyncOpenFoodFactsJob::dispatch(
             terms: $terms,
             pagesPerTerm: $pagesPerTerm,
@@ -239,6 +252,22 @@ class FoodController extends Controller
         );
 
         return back()->with('status', "Sync started for {$count} {$category} items from Open Food Facts. Items are streaming in via queue.");
+    }
+
+    /**
+     * Get current background sync status for polling fallback.
+     */
+    public function syncStatus(Request $request): JsonResponse
+    {
+        $userId = $request->user()?->id;
+
+        /** @var array<string, mixed>|null $progress */
+        $progress = ($userId !== null ? Cache::get("food_sync_progress_{$userId}") : null)
+            ?? Cache::get('food_sync_progress_global');
+
+        return response()->json([
+            'progress' => $progress,
+        ]);
     }
 
     /**
