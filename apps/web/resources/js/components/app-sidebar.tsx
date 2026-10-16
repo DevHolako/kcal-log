@@ -64,7 +64,7 @@ export function AppSidebar({ side = 'left' }: { side?: 'left' | 'right' }) {
         },
         {
             title: t('nav.documentation'),
-            href: 'https://laravel.com/docs/starter-kits#react',
+            href: '/docs/api',
             icon: BookOpen,
         },
     ];

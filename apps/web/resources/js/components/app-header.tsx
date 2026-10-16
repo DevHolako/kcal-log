@@ -98,7 +98,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
         },
         {
             title: t('nav.documentation'),
-            href: 'https://laravel.com/docs/starter-kits#react',
+            href: '/docs/api',
             icon: BookOpen,
         },
     ];

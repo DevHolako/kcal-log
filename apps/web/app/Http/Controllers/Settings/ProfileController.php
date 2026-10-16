@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Fortify\Features;
 
 class ProfileController extends Controller
 {
@@ -29,6 +30,22 @@ class ProfileController extends Controller
             'status' => $request->session()->get('status'),
             'activeTarget' => $user->activeTargetProfile,
             'userProfile' => $user->profile,
+            'canManagePasskeys' => Features::canManagePasskeys(),
+            'passkeys' => Features::canManagePasskeys()
+                ? $user->passkeys()
+                    ->select(['id', 'name', 'credential', 'created_at', 'last_used_at'])
+                    ->latest()
+                    ->get()
+                    ->map(fn ($passkey) => [
+                        'id' => $passkey->id,
+                        'name' => $passkey->name,
+                        'authenticator' => $passkey->authenticator,
+                        'created_at_diff' => $passkey->created_at->diffForHumans(),
+                        'last_used_at_diff' => $passkey->last_used_at?->diffForHumans(),
+                    ])
+                    ->values()
+                    ->all()
+                : [],
         ]);
     }
 

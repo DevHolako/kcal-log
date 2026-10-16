@@ -6,6 +6,8 @@ use App\Models\TargetProfile;
 use App\Models\User;
 use App\Models\WeightLog;
 
+use Inertia\Testing\AssertableInertia as Assert;
+
 test('profile page is displayed', function () {
     $user = User::factory()->create();
 
@@ -14,6 +16,11 @@ test('profile page is displayed', function () {
         ->get(route('profile.edit'));
 
     $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('settings/profile')
+        ->has('canManagePasskeys')
+        ->has('passkeys')
+    );
 });
 
 test('profile information can be updated', function () {

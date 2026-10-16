@@ -4,6 +4,8 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import type { Props as ManagePasskeysProps } from '@/components/manage-passkeys';
+import ManagePasskeys from '@/components/manage-passkeys';
 import NutritionSettings, {
     type TargetProfileSummary,
     type UserProfileSummary,
@@ -20,17 +22,21 @@ type PageProps = {
     auth: Auth;
 };
 
+type ProfileProps = {
+    mustVerifyEmail: boolean;
+    status?: string;
+    activeTarget?: TargetProfileSummary | null;
+    userProfile?: UserProfileSummary | null;
+} & ManagePasskeysProps;
+
 export default function Profile({
     mustVerifyEmail,
     status,
     activeTarget,
     userProfile,
-}: {
-    mustVerifyEmail: boolean;
-    status?: string;
-    activeTarget?: TargetProfileSummary | null;
-    userProfile?: UserProfileSummary | null;
-}) {
+    canManagePasskeys,
+    passkeys,
+}: ProfileProps) {
     const { auth } = usePage<PageProps>().props;
 
     return (
@@ -141,6 +147,13 @@ export default function Profile({
                         </>
                     )}
                 </Form>
+            </div>
+
+            <div className="border-t border-border pt-4">
+                <ManagePasskeys
+                    canManagePasskeys={canManagePasskeys}
+                    passkeys={passkeys}
+                />
             </div>
 
             <div className="border-t border-border pt-4">
