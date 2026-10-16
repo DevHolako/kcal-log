@@ -300,7 +300,7 @@ home.form = homeForm
 
 /**
 * @see \App\Http\Controllers\OnboardingController::onboarding
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 export const onboarding = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -315,7 +315,7 @@ onboarding.definition = {
 
 /**
 * @see \App\Http\Controllers\OnboardingController::onboarding
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 onboarding.url = (options?: RouteQueryOptions) => {
@@ -324,7 +324,7 @@ onboarding.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\OnboardingController::onboarding
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 onboarding.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -334,7 +334,7 @@ onboarding.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\OnboardingController::onboarding
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 onboarding.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -344,7 +344,7 @@ onboarding.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\OnboardingController::onboarding
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 const onboardingForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -354,7 +354,7 @@ const onboardingForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'>
 
 /**
 * @see \App\Http\Controllers\OnboardingController::onboarding
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 onboardingForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -364,7 +364,7 @@ onboardingForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> =
 
 /**
 * @see \App\Http\Controllers\OnboardingController::onboarding
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 onboardingForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

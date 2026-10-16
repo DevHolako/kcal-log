@@ -1,389 +1,1589 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { dashboard, login } from '@/routes';
-import { register } from '@/routes';
+import {
+    calculateBMR,
+    calculateTDEE,
+    calculateTargetCalories,
+    calculateMacroGrams,
+    DIET_PRESETS,
+    type DietPreference,
+} from '@kcal-log/nutrition';
+import type { ActivityLevel, GoalType, Sex } from '@kcal-log/types';
+import {
+    Activity,
+    ArrowRight,
+    Barcode,
+    Check,
+    CheckCircle2,
+    ChevronDown,
+    Flame,
+    Layers,
+    Menu,
+    ShieldCheck,
+    Sparkles,
+    Utensils,
+    X,
+    Zap,
+} from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { dashboard, login, register } from '@/routes';
+
+interface NavLinkProps {
+    href: string;
+    children: React.ReactNode;
+    onClick?: () => void;
+}
+
+function NavLink({ href, children, onClick }: NavLinkProps) {
+    return (
+        <a
+            href={href}
+            onClick={onClick}
+            className="cursor-pointer text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+            {children}
+        </a>
+    );
+}
 
 export default function Welcome() {
-    const { auth } = usePage().props;
+    const { auth, name } = usePage().props as {
+        auth: { user: unknown };
+        name?: string;
+    };
+    const appName = name || 'kcal-log';
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Interactive Hero Preview state
+    const [activeTab, setActiveTab] = useState<
+        'diary' | 'barcode' | 'adaptive' | 'trend'
+    >('diary');
+    const [adaptiveAccepted, setAdaptiveAccepted] = useState(false);
+
+    // Interactive Calculator state
+    const [calcSex, setCalcSex] = useState<Sex>('male');
+    const [calcWeight, setCalcWeight] = useState(78);
+    const [calcHeight, setCalcHeight] = useState(178);
+    const [calcAge, setCalcAge] = useState(28);
+    const [calcActivity, setCalcActivity] =
+        useState<ActivityLevel>('moderately_active');
+    const [calcGoal, setCalcGoal] = useState<GoalType>('cut');
+    const [calcDiet, setCalcDiet] = useState<DietPreference>('balanced');
+
+    // Real-time calculation using @kcal-log/nutrition engine
+    const calculatorResults = useMemo(() => {
+        const bmr = calculateBMR({
+            sex: calcSex,
+            weightKg: calcWeight,
+            heightCm: calcHeight,
+            ageYears: calcAge,
+        });
+        const tdee = calculateTDEE(bmr, calcActivity);
+        const weeklyRateKg =
+            calcGoal === 'cut' ? -0.5 : calcGoal === 'bulk' ? 0.25 : 0;
+        const targetCalories = calculateTargetCalories({
+            tdee,
+            goalType: calcGoal,
+            weeklyRateKg,
+            floorCalories: calcSex === 'male' ? 1500 : 1200,
+        });
+        const split = DIET_PRESETS[calcDiet] ?? DIET_PRESETS.balanced;
+        const macros = calculateMacroGrams(targetCalories, split);
+
+        return { bmr, tdee, targetCalories, macros, split };
+    }, [
+        calcSex,
+        calcWeight,
+        calcHeight,
+        calcAge,
+        calcActivity,
+        calcGoal,
+        calcDiet,
+    ]);
+
+    // FAQ Accordion State
+    const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+    const faqs = [
+        {
+            q: 'How does the weekly adaptive adjustment algorithm work?',
+            a: 'kcal-log pairs an exponentially smoothed moving average (EMA) of your scale weight against your logged daily calorie intake. If your real-world progress stalls or drops faster than your chosen rate, the algorithm recalculates your true Total Daily Energy Expenditure (TDEE) and proposes a calibrated ±50–150 kcal adjustment for the following week, which you confirm with one click.',
+        },
+        {
+            q: 'Is barcode scanning included for free?',
+            a: 'Yes, 100% free with unlimited scans. Unlike legacy calorie counting apps that lock barcode scanning behind expensive annual paywalls, kcal-log connects directly to Open Food Facts (over 3 million verified products worldwide) as a first-class feature.',
+        },
+        {
+            q: 'Can I create custom foods and multi-ingredient recipes?',
+            a: 'Absolutely. You can create private custom foods with custom portion sizes (grams, scoops, pieces) and build complex multi-ingredient recipes with automatic per-serving macro division. Custom foods remain strictly yours and are never overwritten by catalog updates.',
+        },
+        {
+            q: 'How is my data protected and can I export it?',
+            a: 'You own your data completely. You can export your full diary history, meal entries, weigh-ins, and weekly progress as clean CSV or structured PDF reports at any time. There is zero telemetry tracking or advertising.',
+        },
+        {
+            q: 'Can kcal-log be self-hosted?',
+            a: 'Yes! kcal-log is built with a production-grade containerized architecture (FrankenPHP, MariaDB, Redis, Laravel Horizon, Reverb) and can be easily deployed via Docker or Coolify in minutes.',
+        },
+    ];
 
     return (
-        <>
-            <Head title="Welcome" />
-            <div className="flex min-h-screen flex-col items-center bg-[#FDFDFC] p-6 text-[#1b1b18] lg:justify-center lg:p-8 dark:bg-[#0a0a0a]">
-                <header className="mb-6 w-full max-w-[335px] text-sm not-has-[nav]:hidden lg:max-w-4xl">
-                    <nav className="flex items-center justify-end gap-4">
-                        {auth.user ? (
-                            <Link
-                                href={dashboard()}
-                                className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+        <div className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
+            <Head title="Precision Nutrition & Adaptive Calorie Tracking" />
+
+            {/* Navigation Header */}
+            <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md transition-all">
+                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+                    {/* Brand */}
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href="/"
+                            className="group flex items-center gap-2.5"
+                        >
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-105">
+                                <Flame className="h-5 w-5" />
+                            </div>
+                            <span className="text-lg font-bold tracking-tight text-foreground">
+                                {appName}
+                            </span>
+                        </Link>
+                        <Badge
+                            variant="secondary"
+                            className="hidden border-primary/20 bg-primary/10 text-[11px] font-semibold text-primary sm:inline-flex"
+                        >
+                            v1.0 Adaptive
+                        </Badge>
+                    </div>
+
+                    {/* Desktop Navigation */}
+                    <nav className="hidden items-center gap-7 md:flex">
+                        <NavLink href="#features">Features</NavLink>
+                        <NavLink href="#preview">Live Demo</NavLink>
+                        <NavLink href="#calculator">Calculator</NavLink>
+                        <NavLink href="#comparison">Compare</NavLink>
+                        <NavLink href="#faq">FAQ</NavLink>
+                        <a
+                            href="/docs/api"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                        >
+                            API Docs
+                        </a>
+                    </nav>
+
+                    {/* Action Buttons & Theme */}
+                    <div className="flex items-center gap-3">
+                        <ThemeToggle />
+
+                        {auth?.user ? (
+                            <Link href={dashboard()}>
+                                <Button className="bg-primary font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
+                                    Dashboard
+                                    <ArrowRight className="ml-1.5 h-4 w-4" />
+                                </Button>
+                            </Link>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <Link href={login()}>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="font-medium"
+                                    >
+                                        Log in
+                                    </Button>
+                                </Link>
+                                <Link href={register()}>
+                                    <Button
+                                        size="sm"
+                                        className="bg-primary font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+                                    >
+                                        Get Started
+                                        <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                                    </Button>
+                                </Link>
+                            </div>
+                        )}
+
+                        {/* Mobile menu trigger */}
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 md:hidden"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            aria-label="Toggle navigation menu"
+                        >
+                            {mobileMenuOpen ? (
+                                <X className="h-6 w-6" />
+                            ) : (
+                                <Menu className="h-6 w-6" />
+                            )}
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Mobile Menu Dropdown */}
+                {mobileMenuOpen && (
+                    <div className="border-b border-border bg-background px-4 py-4 md:hidden">
+                        <nav className="flex flex-col space-y-3 pb-2">
+                            <NavLink
+                                href="#features"
+                                onClick={() => setMobileMenuOpen(false)}
                             >
-                                Dashboard
+                                Features
+                            </NavLink>
+                            <NavLink
+                                href="#preview"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Live Demo
+                            </NavLink>
+                            <NavLink
+                                href="#calculator"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Calculator
+                            </NavLink>
+                            <NavLink
+                                href="#comparison"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Comparison
+                            </NavLink>
+                            <NavLink
+                                href="#faq"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                FAQ
+                            </NavLink>
+                            <a
+                                href="/docs/api"
+                                className="text-sm font-medium text-muted-foreground"
+                            >
+                                API Docs
+                            </a>
+                        </nav>
+                    </div>
+                )}
+            </header>
+
+            {/* Hero Section */}
+            <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28">
+                {/* Subtle emerald background glow */}
+                <div className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-[130px] dark:bg-primary/15" />
+
+                <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+                    {/* Announcement Badge */}
+                    <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary/10">
+                        <span className="flex h-2 w-2 animate-pulse rounded-full bg-primary" />
+                        <span>
+                            Mifflin-St Jeor + Exponential Moving Average
+                            Calibration
+                        </span>
+                    </div>
+
+                    {/* Headline */}
+                    <h1 className="mt-6 text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl">
+                        Precision Nutrition That{' '}
+                        <br className="hidden sm:inline" />
+                        <span className="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-400 bg-clip-text text-transparent dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-200">
+                            Adapts to Your Metabolism
+                        </span>
+                    </h1>
+
+                    {/* Subheadline */}
+                    <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg sm:leading-relaxed">
+                        Say goodbye to weight loss plateaus. Log meals in
+                        seconds, scan barcodes with Open Food Facts integration,
+                        and let our intelligent weekly algorithm auto-calibrate
+                        your targets based on real-world weigh-ins.
+                    </p>
+
+                    {/* CTA Group */}
+                    <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
+                        {auth?.user ? (
+                            <Link href={dashboard()}>
+                                <Button
+                                    size="lg"
+                                    className="w-full bg-primary px-8 py-6 text-base font-semibold text-primary-foreground shadow-md transition-all hover:scale-[1.02] hover:bg-primary/90 sm:w-auto"
+                                >
+                                    Return to Diary Dashboard
+                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                </Button>
                             </Link>
                         ) : (
                             <>
-                                <Link
-                                    href={login()}
-                                    className="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
-                                >
-                                    Log in
+                                <Link href={register()}>
+                                    <Button
+                                        size="lg"
+                                        className="w-full bg-primary px-8 py-6 text-base font-semibold text-primary-foreground shadow-md transition-all hover:scale-[1.02] hover:bg-primary/90 sm:w-auto"
+                                    >
+                                        Start Tracking Free
+                                        <ArrowRight className="ml-2 h-5 w-5" />
+                                    </Button>
                                 </Link>
-                                <Link
-                                    href={register()}
-                                    className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-                                >
-                                    Register
-                                </Link>
+                                <a href="#preview">
+                                    <Button
+                                        size="lg"
+                                        variant="outline"
+                                        className="w-full px-6 py-6 text-base font-medium sm:w-auto"
+                                    >
+                                        Explore Interactive Demo
+                                    </Button>
+                                </a>
                             </>
                         )}
-                    </nav>
-                </header>
-                <div className="flex w-full items-center justify-center opacity-100 transition-opacity duration-750 lg:grow starting:opacity-0">
-                    <main className="flex w-full max-w-[335px] flex-col-reverse lg:max-w-4xl lg:flex-row">
-                        <div className="flex-1 rounded-br-lg rounded-bl-lg bg-white p-6 pb-12 text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] lg:rounded-tl-lg lg:rounded-br-none lg:p-20 dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d]">
-                            <h1 className="mb-1 font-medium">
-                                Let's get started
-                            </h1>
-                            <p className="mb-2 text-[#706f6c] dark:text-[#A1A09A]">
-                                Laravel has an incredibly rich ecosystem.
-                                <br />
-                                We suggest starting with the following.
-                            </p>
-                            <ul className="mb-4 flex flex-col lg:mb-6">
-                                <li className="relative flex items-center gap-4 py-2 before:absolute before:top-1/2 before:bottom-0 before:left-[0.4rem] before:border-l before:border-[#e3e3e0] dark:before:border-[#3E3E3A]">
-                                    <span className="relative bg-white py-1 dark:bg-[#161615]">
-                                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full border border-[#e3e3e0] bg-[#FDFDFC] shadow-[0px_0px_1px_0px_rgba(0,0,0,0.03),0px_1px_2px_0px_rgba(0,0,0,0.06)] dark:border-[#3E3E3A] dark:bg-[#161615]">
-                                            <span className="h-1.5 w-1.5 rounded-full bg-[#dbdbd7] dark:bg-[#3E3E3A]" />
-                                        </span>
-                                    </span>
-                                    <span>
-                                        Read the
-                                        <a
-                                            href="https://laravel.com/docs"
-                                            target="_blank"
-                                            className="ml-1 inline-flex items-center space-x-1 font-medium text-[#f53003] underline underline-offset-4 dark:text-[#FF4433]"
-                                        >
-                                            <span>Documentation</span>
-                                            <svg
-                                                width={10}
-                                                height={11}
-                                                viewBox="0 0 10 11"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-2.5 w-2.5"
-                                            >
-                                                <path
-                                                    d="M7.70833 6.95834V2.79167H3.54167M2.5 8L7.5 3.00001"
-                                                    stroke="currentColor"
-                                                    strokeLinecap="square"
-                                                />
-                                            </svg>
-                                        </a>
-                                    </span>
-                                </li>
-                                <li className="relative flex items-center gap-4 py-2 before:absolute before:top-0 before:bottom-1/2 before:left-[0.4rem] before:border-l before:border-[#e3e3e0] dark:before:border-[#3E3E3A]">
-                                    <span className="relative bg-white py-1 dark:bg-[#161615]">
-                                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full border border-[#e3e3e0] bg-[#FDFDFC] shadow-[0px_0px_1px_0px_rgba(0,0,0,0.03),0px_1px_2px_0px_rgba(0,0,0,0.06)] dark:border-[#3E3E3A] dark:bg-[#161615]">
-                                            <span className="h-1.5 w-1.5 rounded-full bg-[#dbdbd7] dark:bg-[#3E3E3A]" />
-                                        </span>
-                                    </span>
-                                    <span>
-                                        Watch video tutorials at
-                                        <a
-                                            href="https://laracasts.com"
-                                            target="_blank"
-                                            className="ml-1 inline-flex items-center space-x-1 font-medium text-[#f53003] underline underline-offset-4 dark:text-[#FF4433]"
-                                        >
-                                            <span>Laracasts</span>
-                                            <svg
-                                                width={10}
-                                                height={11}
-                                                viewBox="0 0 10 11"
-                                                fill="none"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-2.5 w-2.5"
-                                            >
-                                                <path
-                                                    d="M7.70833 6.95834V2.79167H3.54167M2.5 8L7.5 3.00001"
-                                                    stroke="currentColor"
-                                                    strokeLinecap="square"
-                                                />
-                                            </svg>
-                                        </a>
-                                    </span>
-                                </li>
-                            </ul>
-                            <ul className="flex gap-3 text-sm leading-normal">
-                                <li>
-                                    <a
-                                        href="https://cloud.laravel.com"
-                                        target="_blank"
-                                        className="inline-block rounded-sm border border-black bg-[#1b1b18] px-5 py-1.5 text-sm leading-normal text-white hover:border-black hover:bg-black dark:border-[#eeeeec] dark:bg-[#eeeeec] dark:text-[#1C1C1A] dark:hover:border-white dark:hover:bg-white"
-                                    >
-                                        Deploy now
-                                    </a>
-                                </li>
-                            </ul>
+                    </div>
+
+                    {/* Micro Value Points */}
+                    <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-muted-foreground sm:text-sm">
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-primary" />
+                            <span>Sub-second meal entry</span>
                         </div>
-                        <div className="relative -mb-px aspect-[335/364] w-full shrink-0 overflow-hidden rounded-t-lg bg-[#fff2f2] lg:mb-0 lg:-ml-px lg:aspect-auto lg:w-[438px] lg:rounded-t-none lg:rounded-r-lg dark:bg-[#1D0002]">
-                            {/* Laravel Logo */}
-                            <svg
-                                className="w-full max-w-none translate-y-0 text-[#F53003] opacity-100 transition-all duration-750 dark:text-[#F61500] starting:opacity-0 motion-safe:starting:translate-y-6"
-                                viewBox="0 0 438 104"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    d="M17.2036 -3H0V102.197H49.5189V86.7187H17.2036V-3Z"
-                                    fill="currentColor"
-                                />
-                                <path
-                                    d="M110.256 41.6337C108.061 38.1275 104.945 35.3731 100.905 33.3681C96.8667 31.3647 92.8016 30.3618 88.7131 30.3618C83.4247 30.3618 78.5885 31.3389 74.201 33.2923C69.8111 35.2456 66.0474 37.928 62.9059 41.3333C59.7643 44.7401 57.3198 48.6726 55.5754 53.1293C53.8287 57.589 52.9572 62.274 52.9572 67.1813C52.9572 72.1925 53.8287 76.8995 55.5754 81.3069C57.3191 85.7173 59.7636 89.6241 62.9059 93.0293C66.0474 96.4361 69.8119 99.1155 74.201 101.069C78.5885 103.022 83.4247 103.999 88.7131 103.999C92.8016 103.999 96.8667 102.997 100.905 100.994C104.945 98.9911 108.061 96.2359 110.256 92.7282V102.195H126.563V32.1642H110.256V41.6337ZM108.76 75.7472C107.762 78.4531 106.366 80.8078 104.572 82.8112C102.776 84.8161 100.606 86.4183 98.0637 87.6206C95.5202 88.823 92.7004 89.4238 89.6103 89.4238C86.5178 89.4238 83.7252 88.823 81.2324 87.6206C78.7388 86.4183 76.5949 84.8161 74.7998 82.8112C73.004 80.8078 71.6319 78.4531 70.6856 75.7472C69.7356 73.0421 69.2644 70.1868 69.2644 67.1821C69.2644 64.1758 69.7356 61.3205 70.6856 58.6154C71.6319 55.9102 73.004 53.5571 74.7998 51.5522C76.5949 49.5495 78.738 47.9451 81.2324 46.7427C83.7252 45.5404 86.5178 44.9396 89.6103 44.9396C92.7012 44.9396 95.5202 45.5404 98.0637 46.7427C100.606 47.9451 102.776 49.5487 104.572 51.5522C106.367 53.5571 107.762 55.9102 108.76 58.6154C109.756 61.3205 110.256 64.1758 110.256 67.1821C110.256 70.1868 109.756 73.0421 108.76 75.7472Z"
-                                    fill="currentColor"
-                                />
-                                <path
-                                    d="M242.805 41.6337C240.611 38.1275 237.494 35.3731 233.455 33.3681C229.416 31.3647 225.351 30.3618 221.262 30.3618C215.974 30.3618 211.138 31.3389 206.75 33.2923C202.36 35.2456 198.597 37.928 195.455 41.3333C192.314 44.7401 189.869 48.6726 188.125 53.1293C186.378 57.589 185.507 62.274 185.507 67.1813C185.507 72.1925 186.378 76.8995 188.125 81.3069C189.868 85.7173 192.313 89.6241 195.455 93.0293C198.597 96.4361 202.361 99.1155 206.75 101.069C211.138 103.022 215.974 103.999 221.262 103.999C225.351 103.999 229.416 102.997 233.455 100.994C237.494 98.9911 240.611 96.2359 242.805 92.7282V102.195H259.112V32.1642H242.805V41.6337ZM241.31 75.7472C240.312 78.4531 238.916 80.8078 237.122 82.8112C235.326 84.8161 233.156 86.4183 230.614 87.6206C228.07 88.823 225.251 89.4238 222.16 89.4238C219.068 89.4238 216.275 88.823 213.782 87.6206C211.289 86.4183 209.145 84.8161 207.35 82.8112C205.554 80.8078 204.182 78.4531 203.236 75.7472C202.286 73.0421 201.814 70.1868 201.814 67.1821C201.814 64.1758 202.286 61.3205 203.236 58.6154C204.182 55.9102 205.554 53.5571 207.35 51.5522C209.145 49.5495 211.288 47.9451 213.782 46.7427C216.275 45.5404 219.068 44.9396 222.16 44.9396C225.251 44.9396 228.07 45.5404 230.614 46.7427C233.156 47.9451 235.326 49.5487 237.122 51.5522C238.917 53.5571 240.312 55.9102 241.31 58.6154C242.306 61.3205 242.806 64.1758 242.806 67.1821C242.805 70.1868 242.305 73.0421 241.31 75.7472Z"
-                                    fill="currentColor"
-                                />
-                                <path
-                                    d="M438 -3H421.694V102.197H438V-3Z"
-                                    fill="currentColor"
-                                />
-                                <path
-                                    d="M139.43 102.197H155.735V48.2834H183.712V32.1665H139.43V102.197Z"
-                                    fill="currentColor"
-                                />
-                                <path
-                                    d="M324.49 32.1665L303.995 85.794L283.498 32.1665H266.983L293.748 102.197H314.242L341.006 32.1665H324.49Z"
-                                    fill="currentColor"
-                                />
-                                <path
-                                    d="M376.571 30.3656C356.603 30.3656 340.797 46.8497 340.797 67.1828C340.797 89.6597 356.094 104 378.661 104C391.29 104 399.354 99.1488 409.206 88.5848L398.189 80.0226C398.183 80.031 389.874 90.9895 377.468 90.9895C363.048 90.9895 356.977 79.3111 356.977 73.269H411.075C413.917 50.1328 398.775 30.3656 376.571 30.3656ZM357.02 61.0967C357.145 59.7487 359.023 43.3761 376.442 43.3761C393.861 43.3761 395.978 59.7464 396.099 61.0967H357.02Z"
-                                    fill="currentColor"
-                                />
-                            </svg>
-
-                            {/* 13 */}
-                            <svg
-                                className="relative -mt-[6.6rem] -ml-8 w-[438px] max-w-none [--stroke-color:#1B1B18] lg:ml-0 dark:[--stroke-color:#FF750F]"
-                                viewBox="0 0 440 392"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <g className="text-[#1B1B18] opacity-100 mix-blend-darken transition-all delay-300 duration-750 dark:text-black dark:mix-blend-normal starting:opacity-0">
-                                    <mask
-                                        id="path-1-mask"
-                                        maskUnits="userSpaceOnUse"
-                                        x="-0.328613"
-                                        y="103"
-                                        width="338"
-                                        height="299"
-                                        fill="black"
-                                    >
-                                        <rect
-                                            fill="white"
-                                            x="-0.328613"
-                                            y="103"
-                                            width="338"
-                                            height="299"
-                                        />
-                                        <path d="M234.936 400.8C204.136 400.8 178.936 392.4 159.336 375.6C140.136 358.8 130.536 337 130.536 310.2H200.736C200.736 318.2 203.736 324.8 209.736 330C215.736 335.2 223.736 337.8 233.736 337.8C243.336 337.8 251.136 335 257.136 329.4C263.536 323.8 266.736 316.6 266.736 307.8C266.736 299.8 263.936 293.2 258.336 288C252.736 282.8 245.536 280.2 236.736 280.2H199.536V218.4H236.736C243.536 218.4 249.336 216 254.136 211.2C258.936 206.4 261.336 200.4 261.336 193.2C261.336 184.8 258.736 178.2 253.536 173.4C248.336 168.6 241.736 166.2 233.736 166.2C226.536 166.2 220.336 168.4 215.136 172.8C210.336 177.2 207.936 182.8 207.936 189.6H141.336C141.336 164.8 150.136 144.6 167.736 129C185.336 113 207.936 105 235.536 105C263.136 105 285.536 112.2 302.736 126.6C320.336 141 329.136 160 329.136 183.6C329.136 200.8 324.536 214.8 315.336 225.6C306.136 236 294.336 243.2 279.936 247.2C297.136 252 310.736 260.2 320.736 271.8C331.136 283.4 336.336 298 336.336 315.6C336.336 340.4 326.936 360.8 308.136 376.8C289.336 392.8 264.936 400.8 234.936 400.8Z" />
-                                        <path d="M26.8714 167.6H1.67139V105.2H94.6714V400.2H26.8714V167.6Z" />
-                                    </mask>
-                                    <path
-                                        d="M234.936 400.8C204.136 400.8 178.936 392.4 159.336 375.6C140.136 358.8 130.536 337 130.536 310.2H200.736C200.736 318.2 203.736 324.8 209.736 330C215.736 335.2 223.736 337.8 233.736 337.8C243.336 337.8 251.136 335 257.136 329.4C263.536 323.8 266.736 316.6 266.736 307.8C266.736 299.8 263.936 293.2 258.336 288C252.736 282.8 245.536 280.2 236.736 280.2H199.536V218.4H236.736C243.536 218.4 249.336 216 254.136 211.2C258.936 206.4 261.336 200.4 261.336 193.2C261.336 184.8 258.736 178.2 253.536 173.4C248.336 168.6 241.736 166.2 233.736 166.2C226.536 166.2 220.336 168.4 215.136 172.8C210.336 177.2 207.936 182.8 207.936 189.6H141.336C141.336 164.8 150.136 144.6 167.736 129C185.336 113 207.936 105 235.536 105C263.136 105 285.536 112.2 302.736 126.6C320.336 141 329.136 160 329.136 183.6C329.136 200.8 324.536 214.8 315.336 225.6C306.136 236 294.336 243.2 279.936 247.2C297.136 252 310.736 260.2 320.736 271.8C331.136 283.4 336.336 298 336.336 315.6C336.336 340.4 326.936 360.8 308.136 376.8C289.336 392.8 264.936 400.8 234.936 400.8Z"
-                                        fill="currentColor"
-                                    />
-                                    <path
-                                        d="M26.8714 167.6H1.67139V105.2H94.6714V400.2H26.8714V167.6Z"
-                                        fill="currentColor"
-                                    />
-                                    <path
-                                        d="M234.936 400.8C204.136 400.8 178.936 392.4 159.336 375.6C140.136 358.8 130.536 337 130.536 310.2H200.736C200.736 318.2 203.736 324.8 209.736 330C215.736 335.2 223.736 337.8 233.736 337.8C243.336 337.8 251.136 335 257.136 329.4C263.536 323.8 266.736 316.6 266.736 307.8C266.736 299.8 263.936 293.2 258.336 288C252.736 282.8 245.536 280.2 236.736 280.2H199.536V218.4H236.736C243.536 218.4 249.336 216 254.136 211.2C258.936 206.4 261.336 200.4 261.336 193.2C261.336 184.8 258.736 178.2 253.536 173.4C248.336 168.6 241.736 166.2 233.736 166.2C226.536 166.2 220.336 168.4 215.136 172.8C210.336 177.2 207.936 182.8 207.936 189.6H141.336C141.336 164.8 150.136 144.6 167.736 129C185.336 113 207.936 105 235.536 105C263.136 105 285.536 112.2 302.736 126.6C320.336 141 329.136 160 329.136 183.6C329.136 200.8 324.536 214.8 315.336 225.6C306.136 236 294.336 243.2 279.936 247.2C297.136 252 310.736 260.2 320.736 271.8C331.136 283.4 336.336 298 336.336 315.6C336.336 340.4 326.936 360.8 308.136 376.8C289.336 392.8 264.936 400.8 234.936 400.8Z"
-                                        stroke="var(--stroke-color)"
-                                        strokeWidth="2.4"
-                                        mask="url(#path-1-mask)"
-                                    />
-                                    <path
-                                        d="M26.8714 167.6H1.67139V105.2H94.6714V400.2H26.8714V167.6Z"
-                                        stroke="var(--stroke-color)"
-                                        strokeWidth="2.4"
-                                        mask="url(#path-1-mask)"
-                                    />
-                                </g>
-
-                                <g className="text-[#F3BEC7] opacity-100 transition-all delay-400 duration-750 dark:text-[#4B0600] starting:opacity-0 motion-safe:starting:-translate-x-[26px]">
-                                    <mask
-                                        id="path-2-mask"
-                                        maskUnits="userSpaceOnUse"
-                                        x="25.3357"
-                                        y="103"
-                                        width="338"
-                                        height="299"
-                                        fill="black"
-                                    >
-                                        <rect
-                                            fill="white"
-                                            x="25.3357"
-                                            y="103"
-                                            width="338"
-                                            height="299"
-                                        />
-                                        <path d="M260.6 400.8C229.8 400.8 204.6 392.4 185 375.6C165.8 358.8 156.2 337 156.2 310.2H226.4C226.4 318.2 229.4 324.8 235.4 330C241.4 335.2 249.4 337.8 259.4 337.8C269 337.8 276.8 335 282.8 329.4C289.2 323.8 292.4 316.6 292.4 307.8C292.4 299.8 289.6 293.2 284 288C278.4 282.8 271.2 280.2 262.4 280.2H225.2V218.4H262.4C269.2 218.4 275 216 279.8 211.2C284.6 206.4 287 200.4 287 193.2C287 184.8 284.4 178.2 279.2 173.4C274 168.6 267.4 166.2 259.4 166.2C252.2 166.2 246 168.4 240.8 172.8C236 177.2 233.6 182.8 233.6 189.6H167C167 164.8 175.8 144.6 193.4 129C211 113 233.6 105 261.2 105C288.8 105 311.2 112.2 328.4 126.6C346 141 354.8 160 354.8 183.6C354.8 200.8 350.2 214.8 341 225.6C331.8 236 320 243.2 305.6 247.2C322.8 252 336.4 260.2 346.4 271.8C356.8 283.4 362 298 362 315.6C362 340.4 352.6 360.8 333.8 376.8C315 392.8 290.6 400.8 260.6 400.8Z" />
-                                        <path d="M52.5357 167.6H27.3357V105.2H120.336V400.2H52.5357V167.6Z" />
-                                    </mask>
-                                    <path
-                                        d="M260.6 400.8C229.8 400.8 204.6 392.4 185 375.6C165.8 358.8 156.2 337 156.2 310.2H226.4C226.4 318.2 229.4 324.8 235.4 330C241.4 335.2 249.4 337.8 259.4 337.8C269 337.8 276.8 335 282.8 329.4C289.2 323.8 292.4 316.6 292.4 307.8C292.4 299.8 289.6 293.2 284 288C278.4 282.8 271.2 280.2 262.4 280.2H225.2V218.4H262.4C269.2 218.4 275 216 279.8 211.2C284.6 206.4 287 200.4 287 193.2C287 184.8 284.4 178.2 279.2 173.4C274 168.6 267.4 166.2 259.4 166.2C252.2 166.2 246 168.4 240.8 172.8C236 177.2 233.6 182.8 233.6 189.6H167C167 164.8 175.8 144.6 193.4 129C211 113 233.6 105 261.2 105C288.8 105 311.2 112.2 328.4 126.6C346 141 354.8 160 354.8 183.6C354.8 200.8 350.2 214.8 341 225.6C331.8 236 320 243.2 305.6 247.2C322.8 252 336.4 260.2 346.4 271.8C356.8 283.4 362 298 362 315.6C362 340.4 352.6 360.8 333.8 376.8C315 392.8 290.6 400.8 260.6 400.8Z"
-                                        fill="currentColor"
-                                    />
-                                    <path
-                                        d="M52.5357 167.6H27.3357V105.2H120.336V400.2H52.5357V167.6Z"
-                                        fill="currentColor"
-                                    />
-                                    <path
-                                        d="M260.6 400.8C229.8 400.8 204.6 392.4 185 375.6C165.8 358.8 156.2 337 156.2 310.2H226.4C226.4 318.2 229.4 324.8 235.4 330C241.4 335.2 249.4 337.8 259.4 337.8C269 337.8 276.8 335 282.8 329.4C289.2 323.8 292.4 316.6 292.4 307.8C292.4 299.8 289.6 293.2 284 288C278.4 282.8 271.2 280.2 262.4 280.2H225.2V218.4H262.4C269.2 218.4 275 216 279.8 211.2C284.6 206.4 287 200.4 287 193.2C287 184.8 284.4 178.2 279.2 173.4C274 168.6 267.4 166.2 259.4 166.2C252.2 166.2 246 168.4 240.8 172.8C236 177.2 233.6 182.8 233.6 189.6H167C167 164.8 175.8 144.6 193.4 129C211 113 233.6 105 261.2 105C288.8 105 311.2 112.2 328.4 126.6C346 141 354.8 160 354.8 183.6C354.8 200.8 350.2 214.8 341 225.6C331.8 236 320 243.2 305.6 247.2C322.8 252 336.4 260.2 346.4 271.8C356.8 283.4 362 298 362 315.6C362 340.4 352.6 360.8 333.8 376.8C315 392.8 290.6 400.8 260.6 400.8Z"
-                                        stroke="var(--stroke-color)"
-                                        strokeWidth="2.4"
-                                        mask="url(#path-2-mask)"
-                                    />
-                                    <path
-                                        d="M52.5357 167.6H27.3357V105.2H120.336V400.2H52.5357V167.6Z"
-                                        stroke="var(--stroke-color)"
-                                        strokeWidth="2.4"
-                                        mask="url(#path-2-mask)"
-                                    />
-                                </g>
-
-                                <g className="text-[#F8B803] opacity-100 mix-blend-color transition-all delay-400 duration-750 dark:text-[#391800] dark:mix-blend-hard-light starting:opacity-0 motion-safe:starting:-translate-x-[51px]">
-                                    <mask
-                                        id="path-3-mask"
-                                        maskUnits="userSpaceOnUse"
-                                        x="51"
-                                        y="103"
-                                        width="338"
-                                        height="299"
-                                        fill="black"
-                                    >
-                                        <rect
-                                            fill="white"
-                                            x="51"
-                                            y="103"
-                                            width="338"
-                                            height="299"
-                                        />
-                                        <path d="M286.264 400.8C255.464 400.8 230.264 392.4 210.664 375.6C191.464 358.8 181.864 337 181.864 310.2H252.064C252.064 318.2 255.064 324.8 261.064 330C267.064 335.2 275.064 337.8 285.064 337.8C294.664 337.8 302.464 335 308.464 329.4C314.864 323.8 318.064 316.6 318.064 307.8C318.064 299.8 315.264 293.2 309.664 288C304.064 282.8 296.864 280.2 288.064 280.2H250.864V218.4H288.064C294.864 218.4 300.664 216 305.464 211.2C310.264 206.4 312.664 200.4 312.664 193.2C312.664 184.8 310.064 178.2 304.864 173.4C299.664 168.6 293.064 166.2 285.064 166.2C277.864 166.2 271.664 168.4 266.464 172.8C261.664 177.2 259.264 182.8 259.264 189.6H192.664C192.664 164.8 201.464 144.6 219.064 129C236.664 113 259.264 105 286.864 105C314.464 105 336.864 112.2 354.064 126.6C371.664 141 380.464 160 380.464 183.6C380.464 200.8 375.864 214.8 366.664 225.6C357.464 236 345.664 243.2 331.264 247.2C348.464 252 362.064 260.2 372.064 271.8C382.464 283.4 387.664 298 387.664 315.6C387.664 340.4 378.264 360.8 359.464 376.8C340.664 392.8 316.264 400.8 286.264 400.8Z" />
-                                        <path d="M78.2 167.6H53V105.2H146V400.2H78.2V167.6Z" />
-                                    </mask>
-                                    <path
-                                        d="M286.264 400.8C255.464 400.8 230.264 392.4 210.664 375.6C191.464 358.8 181.864 337 181.864 310.2H252.064C252.064 318.2 255.064 324.8 261.064 330C267.064 335.2 275.064 337.8 285.064 337.8C294.664 337.8 302.464 335 308.464 329.4C314.864 323.8 318.064 316.6 318.064 307.8C318.064 299.8 315.264 293.2 309.664 288C304.064 282.8 296.864 280.2 288.064 280.2H250.864V218.4H288.064C294.864 218.4 300.664 216 305.464 211.2C310.264 206.4 312.664 200.4 312.664 193.2C312.664 184.8 310.064 178.2 304.864 173.4C299.664 168.6 293.064 166.2 285.064 166.2C277.864 166.2 271.664 168.4 266.464 172.8C261.664 177.2 259.264 182.8 259.264 189.6H192.664C192.664 164.8 201.464 144.6 219.064 129C236.664 113 259.264 105 286.864 105C314.464 105 336.864 112.2 354.064 126.6C371.664 141 380.464 160 380.464 183.6C380.464 200.8 375.864 214.8 366.664 225.6C357.464 236 345.664 243.2 331.264 247.2C348.464 252 362.064 260.2 372.064 271.8C382.464 283.4 387.664 298 387.664 315.6C387.664 340.4 378.264 360.8 359.464 376.8C340.664 392.8 316.264 400.8 286.264 400.8Z"
-                                        fill="currentColor"
-                                    />
-                                    <path
-                                        d="M78.2 167.6H53V105.2H146V400.2H78.2V167.6Z"
-                                        fill="currentColor"
-                                    />
-                                    <path
-                                        d="M286.264 400.8C255.464 400.8 230.264 392.4 210.664 375.6C191.464 358.8 181.864 337 181.864 310.2H252.064C252.064 318.2 255.064 324.8 261.064 330C267.064 335.2 275.064 337.8 285.064 337.8C294.664 337.8 302.464 335 308.464 329.4C314.864 323.8 318.064 316.6 318.064 307.8C318.064 299.8 315.264 293.2 309.664 288C304.064 282.8 296.864 280.2 288.064 280.2H250.864V218.4H288.064C294.864 218.4 300.664 216 305.464 211.2C310.264 206.4 312.664 200.4 312.664 193.2C312.664 184.8 310.064 178.2 304.864 173.4C299.664 168.6 293.064 166.2 285.064 166.2C277.864 166.2 271.664 168.4 266.464 172.8C261.664 177.2 259.264 182.8 259.264 189.6H192.664C192.664 164.8 201.464 144.6 219.064 129C236.664 113 259.264 105 286.864 105C314.464 105 336.864 112.2 354.064 126.6C371.664 141 380.464 160 380.464 183.6C380.464 200.8 375.864 214.8 366.664 225.6C357.464 236 345.664 243.2 331.264 247.2C348.464 252 362.064 260.2 372.064 271.8C382.464 283.4 387.664 298 387.664 315.6C387.664 340.4 378.264 360.8 359.464 376.8C340.664 392.8 316.264 400.8 286.264 400.8Z"
-                                        stroke="var(--stroke-color)"
-                                        strokeWidth="2.4"
-                                        mask="url(#path-3-mask)"
-                                    />
-                                    <path
-                                        d="M78.2 167.6H53V105.2H146V400.2H78.2V167.6Z"
-                                        stroke="var(--stroke-color)"
-                                        strokeWidth="2.4"
-                                        mask="url(#path-3-mask)"
-                                    />
-                                </g>
-
-                                <g className="text-[#F3BEC7] opacity-100 mix-blend-multiply transition-all delay-400 duration-750 dark:text-[#733000] dark:mix-blend-normal starting:opacity-0 motion-safe:starting:-translate-x-[78px]">
-                                    <mask
-                                        id="path-4-mask"
-                                        maskUnits="userSpaceOnUse"
-                                        x="76.6643"
-                                        y="103"
-                                        width="338"
-                                        height="299"
-                                        fill="black"
-                                    >
-                                        <rect
-                                            fill="white"
-                                            x="76.6643"
-                                            y="103"
-                                            width="338"
-                                            height="299"
-                                        />
-                                        <path d="M311.929 400.8C281.129 400.8 255.929 392.4 236.329 375.6C217.129 358.8 207.529 337 207.529 310.2H277.729C277.729 318.2 280.729 324.8 286.729 330C292.729 335.2 300.729 337.8 310.729 337.8C320.329 337.8 328.129 335 334.129 329.4C340.529 323.8 343.729 316.6 343.729 307.8C343.729 299.8 340.929 293.2 335.329 288C329.729 282.8 322.529 280.2 313.729 280.2H276.529V218.4H313.729C320.529 218.4 326.329 216 331.129 211.2C335.929 206.4 338.329 200.4 338.329 193.2C338.329 184.8 335.729 178.2 330.529 173.4C325.329 168.6 318.729 166.2 310.729 166.2C303.529 166.2 297.329 168.4 292.129 172.8C287.329 177.2 284.929 182.8 284.929 189.6H218.329C218.329 164.8 227.129 144.6 244.729 129C262.329 113 284.929 105 312.529 105C340.129 105 362.529 112.2 379.729 126.6C397.329 141 406.129 160 406.129 183.6C406.129 200.8 401.529 214.8 392.329 225.6C383.129 236 371.329 243.2 356.929 247.2C374.129 252 387.729 260.2 397.729 271.8C408.129 283.4 413.329 298 413.329 315.6C413.329 340.4 403.929 360.8 385.129 376.8C366.329 392.8 341.929 400.8 311.929 400.8Z" />
-                                        <path d="M103.864 167.6H78.6643V105.2H171.664V400.2H103.864V167.6Z" />
-                                    </mask>
-                                    <path
-                                        d="M311.929 400.8C281.129 400.8 255.929 392.4 236.329 375.6C217.129 358.8 207.529 337 207.529 310.2H277.729C277.729 318.2 280.729 324.8 286.729 330C292.729 335.2 300.729 337.8 310.729 337.8C320.329 337.8 328.129 335 334.129 329.4C340.529 323.8 343.729 316.6 343.729 307.8C343.729 299.8 340.929 293.2 335.329 288C329.729 282.8 322.529 280.2 313.729 280.2H276.529V218.4H313.729C320.529 218.4 326.329 216 331.129 211.2C335.929 206.4 338.329 200.4 338.329 193.2C338.329 184.8 335.729 178.2 330.529 173.4C325.329 168.6 318.729 166.2 310.729 166.2C303.529 166.2 297.329 168.4 292.129 172.8C287.329 177.2 284.929 182.8 284.929 189.6H218.329C218.329 164.8 227.129 144.6 244.729 129C262.329 113 284.929 105 312.529 105C340.129 105 362.529 112.2 379.729 126.6C397.329 141 406.129 160 406.129 183.6C406.129 200.8 401.529 214.8 392.329 225.6C383.129 236 371.329 243.2 356.929 247.2C374.129 252 387.729 260.2 397.729 271.8C408.129 283.4 413.329 298 413.329 315.6C413.329 340.4 403.929 360.8 385.129 376.8C366.329 392.8 341.929 400.8 311.929 400.8Z"
-                                        fill="currentColor"
-                                    />
-                                    <path
-                                        d="M103.864 167.6H78.6643V105.2H171.664V400.2H103.864V167.6Z"
-                                        fill="currentColor"
-                                    />
-                                    <path
-                                        d="M311.929 400.8C281.129 400.8 255.929 392.4 236.329 375.6C217.129 358.8 207.529 337 207.529 310.2H277.729C277.729 318.2 280.729 324.8 286.729 330C292.729 335.2 300.729 337.8 310.729 337.8C320.329 337.8 328.129 335 334.129 329.4C340.529 323.8 343.729 316.6 343.729 307.8C343.729 299.8 340.929 293.2 335.329 288C329.729 282.8 322.529 280.2 313.729 280.2H276.529V218.4H313.729C320.529 218.4 326.329 216 331.129 211.2C335.929 206.4 338.329 200.4 338.329 193.2C338.329 184.8 335.729 178.2 330.529 173.4C325.329 168.6 318.729 166.2 310.729 166.2C303.529 166.2 297.329 168.4 292.129 172.8C287.329 177.2 284.929 182.8 284.929 189.6H218.329C218.329 164.8 227.129 144.6 244.729 129C262.329 113 284.929 105 312.529 105C340.129 105 362.529 112.2 379.729 126.6C397.329 141 406.129 160 406.129 183.6C406.129 200.8 401.529 214.8 392.329 225.6C383.129 236 371.329 243.2 356.929 247.2C374.129 252 387.729 260.2 397.729 271.8C408.129 283.4 413.329 298 413.329 315.6C413.329 340.4 403.929 360.8 385.129 376.8C366.329 392.8 341.929 400.8 311.929 400.8Z"
-                                        stroke="var(--stroke-color)"
-                                        strokeWidth="2.4"
-                                        mask="url(#path-4-mask)"
-                                    />
-                                    <path
-                                        d="M103.864 167.6H78.6643V105.2H171.664V400.2H103.864V167.6Z"
-                                        stroke="var(--stroke-color)"
-                                        strokeWidth="2.4"
-                                        mask="url(#path-4-mask)"
-                                    />
-                                </g>
-
-                                <g className="text-[#F3BEC7] opacity-100 mix-blend-hard-light transition-all delay-400 duration-750 dark:text-[#4B0600] starting:opacity-0 motion-safe:starting:-translate-x-[102px]">
-                                    <mask
-                                        id="path-5-mask"
-                                        maskUnits="userSpaceOnUse"
-                                        x="102.329"
-                                        y="103"
-                                        width="338"
-                                        height="299"
-                                        fill="black"
-                                    >
-                                        <rect
-                                            fill="white"
-                                            x="102.329"
-                                            y="103"
-                                            width="338"
-                                            height="299"
-                                        />
-                                        <path d="M337.593 400.8C306.793 400.8 281.593 392.4 261.993 375.6C242.793 358.8 233.193 337 233.193 310.2H303.393C303.393 318.2 306.393 324.8 312.393 330C318.393 335.2 326.393 337.8 336.393 337.8C345.993 337.8 353.793 335 359.793 329.4C366.193 323.8 369.393 316.6 369.393 307.8C369.393 299.8 366.593 293.2 360.993 288C355.393 282.8 348.193 280.2 339.393 280.2H302.193V218.4H339.393C346.193 218.4 351.993 216 356.793 211.2C361.593 206.4 363.993 200.4 363.993 193.2C363.993 184.8 361.393 178.2 356.193 173.4C350.993 168.6 344.393 166.2 336.393 166.2C329.193 166.2 322.993 168.4 317.793 172.8C312.993 177.2 310.593 182.8 310.593 189.6H243.993C243.993 164.8 252.793 144.6 270.393 129C287.993 113 310.593 105 338.193 105C365.793 105 388.193 112.2 405.393 126.6C422.993 141 431.793 160 431.793 183.6C431.793 200.8 427.193 214.8 417.993 225.6C408.793 236 396.993 243.2 382.593 247.2C399.793 252 413.393 260.2 423.393 271.8C433.793 283.4 438.993 298 438.993 315.6C438.993 340.4 429.593 360.8 410.793 376.8C391.993 392.8 367.593 400.8 337.593 400.8Z" />
-                                        <path d="M129.529 167.6H104.329V105.2H197.329V400.2H129.529V167.6Z" />
-                                    </mask>
-                                    <path
-                                        d="M337.593 400.8C306.793 400.8 281.593 392.4 261.993 375.6C242.793 358.8 233.193 337 233.193 310.2H303.393C303.393 318.2 306.393 324.8 312.393 330C318.393 335.2 326.393 337.8 336.393 337.8C345.993 337.8 353.793 335 359.793 329.4C366.193 323.8 369.393 316.6 369.393 307.8C369.393 299.8 366.593 293.2 360.993 288C355.393 282.8 348.193 280.2 339.393 280.2H302.193V218.4H339.393C346.193 218.4 351.993 216 356.793 211.2C361.593 206.4 363.993 200.4 363.993 193.2C363.993 184.8 361.393 178.2 356.193 173.4C350.993 168.6 344.393 166.2 336.393 166.2C329.193 166.2 322.993 168.4 317.793 172.8C312.993 177.2 310.593 182.8 310.593 189.6H243.993C243.993 164.8 252.793 144.6 270.393 129C287.993 113 310.593 105 338.193 105C365.793 105 388.193 112.2 405.393 126.6C422.993 141 431.793 160 431.793 183.6C431.793 200.8 427.193 214.8 417.993 225.6C408.793 236 396.993 243.2 382.593 247.2C399.793 252 413.393 260.2 423.393 271.8C433.793 283.4 438.993 298 438.993 315.6C438.993 340.4 429.593 360.8 410.793 376.8C391.993 392.8 367.593 400.8 337.593 400.8Z"
-                                        fill="currentColor"
-                                    />
-                                    <path
-                                        d="M129.529 167.6H104.329V105.2H197.329V400.2H129.529V167.6Z"
-                                        fill="currentColor"
-                                    />
-                                    <path
-                                        d="M337.593 400.8C306.793 400.8 281.593 392.4 261.993 375.6C242.793 358.8 233.193 337 233.193 310.2H303.393C303.393 318.2 306.393 324.8 312.393 330C318.393 335.2 326.393 337.8 336.393 337.8C345.993 337.8 353.793 335 359.793 329.4C366.193 323.8 369.393 316.6 369.393 307.8C369.393 299.8 366.593 293.2 360.993 288C355.393 282.8 348.193 280.2 339.393 280.2H302.193V218.4H339.393C346.193 218.4 351.993 216 356.793 211.2C361.593 206.4 363.993 200.4 363.993 193.2C363.993 184.8 361.393 178.2 356.193 173.4C350.993 168.6 344.393 166.2 336.393 166.2C329.193 166.2 322.993 168.4 317.793 172.8C312.993 177.2 310.593 182.8 310.593 189.6H243.993C243.993 164.8 252.793 144.6 270.393 129C287.993 113 310.593 105 338.193 105C365.793 105 388.193 112.2 405.393 126.6C422.993 141 431.793 160 431.793 183.6C431.793 200.8 427.193 214.8 417.993 225.6C408.793 236 396.993 243.2 382.593 247.2C399.793 252 413.393 260.2 423.393 271.8C433.793 283.4 438.993 298 438.993 315.6C438.993 340.4 429.593 360.8 410.793 376.8C391.993 392.8 367.593 400.8 337.593 400.8Z"
-                                        stroke="var(--stroke-color)"
-                                        strokeWidth="2.4"
-                                        mask="url(#path-5-mask)"
-                                    />
-                                    <path
-                                        d="M129.529 167.6H104.329V105.2H197.329V400.2H129.529V167.6Z"
-                                        stroke="var(--stroke-color)"
-                                        strokeWidth="2.4"
-                                        mask="url(#path-5-mask)"
-                                    />
-                                </g>
-                            </svg>
-                            <div className="absolute inset-0 rounded-t-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] lg:rounded-t-none lg:rounded-r-lg dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d]"></div>
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-primary" />
+                            <span>Free barcode scanner (3M+ items)</span>
                         </div>
-                    </main>
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-primary" />
+                            <span>Weekly adaptive recalibration</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-primary" />
+                            <span>100% data exportable (CSV & PDF)</span>
+                        </div>
+                    </div>
                 </div>
-                <div className="hidden h-14.5 lg:block"></div>
-            </div>
-        </>
+            </section>
+
+            {/* Interactive Hero App Demo */}
+            <section
+                id="preview"
+                className="border-y border-border/70 bg-muted/30 py-12 lg:py-16"
+            >
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="mb-8 text-center">
+                        <Badge
+                            variant="outline"
+                            className="mb-2 border-primary/30 bg-primary/5 text-primary"
+                        >
+                            Product Experience
+                        </Badge>
+                        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                            Experience the kcal-log Workflow
+                        </h2>
+                        <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
+                            Switch between the views below to see how our diary,
+                            barcode lookup, adaptive strategy, and trends work
+                            together.
+                        </p>
+                    </div>
+
+                    {/* App Frame */}
+                    <div className="mx-auto max-w-5xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+                        {/* Mock App Window Header */}
+                        <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-3">
+                            <div className="flex items-center gap-2">
+                                <span className="h-3 w-3 rounded-full bg-red-500/80" />
+                                <span className="h-3 w-3 rounded-full bg-amber-500/80" />
+                                <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+                                <span className="ml-2 hidden font-mono text-xs text-muted-foreground sm:inline">
+                                    kcal.holako.dev/diary
+                                </span>
+                            </div>
+
+                            {/* View Switcher Tabs */}
+                            <div className="flex items-center rounded-lg border border-border bg-background p-1 text-xs font-medium">
+                                <button
+                                    onClick={() => setActiveTab('diary')}
+                                    className={`rounded-md px-3 py-1 transition-all ${
+                                        activeTab === 'diary'
+                                            ? 'bg-primary text-primary-foreground shadow-xs'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    Diary & Macros
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('barcode')}
+                                    className={`rounded-md px-3 py-1 transition-all ${
+                                        activeTab === 'barcode'
+                                            ? 'bg-primary text-primary-foreground shadow-xs'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    Barcode Scanner
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('adaptive')}
+                                    className={`rounded-md px-3 py-1 transition-all ${
+                                        activeTab === 'adaptive'
+                                            ? 'bg-primary text-primary-foreground shadow-xs'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    Adaptive Engine
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('trend')}
+                                    className={`rounded-md px-3 py-1 transition-all ${
+                                        activeTab === 'trend'
+                                            ? 'bg-primary text-primary-foreground shadow-xs'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    Trends
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Mock App Body */}
+                        <div className="bg-background p-4 sm:p-6 lg:p-8">
+                            {/* TAB 1: DIARY VIEW */}
+                            {activeTab === 'diary' && (
+                                <div className="space-y-6">
+                                    {/* Summary Banner */}
+                                    <div className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-muted/40 p-4 sm:grid-cols-5">
+                                        <div>
+                                            <div className="text-xs text-muted-foreground">
+                                                Calories Remaining
+                                            </div>
+                                            <div className="text-2xl font-extrabold text-primary">
+                                                530{' '}
+                                                <span className="text-xs font-normal text-muted-foreground">
+                                                    kcal
+                                                </span>
+                                            </div>
+                                            <div className="text-[11px] text-muted-foreground">
+                                                1,620 of 2,150 goal
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-muted-foreground">
+                                                Protein (80%)
+                                            </div>
+                                            <div className="text-xl font-bold text-blue-500">
+                                                145g{' '}
+                                                <span className="text-xs font-normal text-muted-foreground">
+                                                    / 180g
+                                                </span>
+                                            </div>
+                                            <div className="mt-1 h-1.5 w-full rounded-full bg-border">
+                                                <div
+                                                    className="h-1.5 rounded-full bg-blue-500"
+                                                    style={{ width: '80%' }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-muted-foreground">
+                                                Carbs (76%)
+                                            </div>
+                                            <div className="text-xl font-bold text-amber-500">
+                                                165g{' '}
+                                                <span className="text-xs font-normal text-muted-foreground">
+                                                    / 215g
+                                                </span>
+                                            </div>
+                                            <div className="mt-1 h-1.5 w-full rounded-full bg-border">
+                                                <div
+                                                    className="h-1.5 rounded-full bg-amber-500"
+                                                    style={{ width: '76%' }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-muted-foreground">
+                                                Fat (64%)
+                                            </div>
+                                            <div className="text-xl font-bold text-rose-500">
+                                                42g{' '}
+                                                <span className="text-xs font-normal text-muted-foreground">
+                                                    / 65g
+                                                </span>
+                                            </div>
+                                            <div className="mt-1 h-1.5 w-full rounded-full bg-border">
+                                                <div
+                                                    className="h-1.5 rounded-full bg-rose-500"
+                                                    style={{ width: '64%' }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-span-2 sm:col-span-1">
+                                            <div className="text-xs text-muted-foreground">
+                                                Water (75%)
+                                            </div>
+                                            <div className="text-xl font-bold text-cyan-500">
+                                                2,250{' '}
+                                                <span className="text-xs font-normal text-muted-foreground">
+                                                    / 3,000ml
+                                                </span>
+                                            </div>
+                                            <div className="mt-1 h-1.5 w-full rounded-full bg-border">
+                                                <div
+                                                    className="h-1.5 rounded-full bg-cyan-500"
+                                                    style={{ width: '75%' }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Meal Slots Grid */}
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        {/* Breakfast */}
+                                        <div className="rounded-xl border border-border bg-card p-4">
+                                            <div className="mb-2 flex items-center justify-between border-b border-border/60 pb-2">
+                                                <div className="flex items-center gap-2 text-sm font-semibold">
+                                                    <span className="rounded-md bg-amber-500/10 p-1 text-amber-600">
+                                                        🍳
+                                                    </span>
+                                                    Breakfast
+                                                </div>
+                                                <span className="text-xs font-bold text-foreground">
+                                                    480 kcal
+                                                </span>
+                                            </div>
+                                            <div className="space-y-2 text-xs">
+                                                <div className="flex items-center justify-between text-muted-foreground">
+                                                    <span>
+                                                        Rolled Oats with Whey &
+                                                        Berries (80g)
+                                                    </span>
+                                                    <span className="font-mono text-foreground">
+                                                        38P • 62C • 9F
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between text-muted-foreground">
+                                                    <span>Black Coffee</span>
+                                                    <span className="font-mono text-foreground">
+                                                        2 kcal
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Lunch */}
+                                        <div className="rounded-xl border border-border bg-card p-4">
+                                            <div className="mb-2 flex items-center justify-between border-b border-border/60 pb-2">
+                                                <div className="flex items-center gap-2 text-sm font-semibold">
+                                                    <span className="rounded-md bg-emerald-500/10 p-1 text-emerald-600">
+                                                        🥗
+                                                    </span>
+                                                    Lunch
+                                                </div>
+                                                <span className="text-xs font-bold text-foreground">
+                                                    650 kcal
+                                                </span>
+                                            </div>
+                                            <div className="space-y-2 text-xs">
+                                                <div className="flex items-center justify-between text-muted-foreground">
+                                                    <span>
+                                                        Grilled Chicken Salad
+                                                        with Quinoa (320g)
+                                                    </span>
+                                                    <span className="font-mono text-foreground">
+                                                        54P • 48C • 22F
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Dinner */}
+                                        <div className="rounded-xl border border-border bg-card p-4">
+                                            <div className="mb-2 flex items-center justify-between border-b border-border/60 pb-2">
+                                                <div className="flex items-center gap-2 text-sm font-semibold">
+                                                    <span className="rounded-md bg-blue-500/10 p-1 text-blue-600">
+                                                        🍽️
+                                                    </span>
+                                                    Dinner
+                                                </div>
+                                                <span className="text-xs font-bold text-foreground">
+                                                    270 kcal
+                                                </span>
+                                            </div>
+                                            <div className="space-y-2 text-xs">
+                                                <div className="flex items-center justify-between text-muted-foreground">
+                                                    <span>
+                                                        Baked Salmon with
+                                                        Steamed Asparagus
+                                                    </span>
+                                                    <span className="font-mono text-foreground">
+                                                        32P • 6C • 12F
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Snack */}
+                                        <div className="rounded-xl border border-border bg-card p-4">
+                                            <div className="mb-2 flex items-center justify-between border-b border-border/60 pb-2">
+                                                <div className="flex items-center gap-2 text-sm font-semibold">
+                                                    <span className="rounded-md bg-purple-500/10 p-1 text-purple-600">
+                                                        🍎
+                                                    </span>
+                                                    Snack
+                                                </div>
+                                                <span className="text-xs font-bold text-foreground">
+                                                    220 kcal
+                                                </span>
+                                            </div>
+                                            <div className="space-y-2 text-xs">
+                                                <div className="flex items-center justify-between text-muted-foreground">
+                                                    <span>
+                                                        Greek Yogurt 0% with Raw
+                                                        Almonds
+                                                    </span>
+                                                    <span className="font-mono text-foreground">
+                                                        21P • 7C • 11F
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TAB 2: BARCODE SCANNER PREVIEW */}
+                            {activeTab === 'barcode' && (
+                                <div className="grid items-center gap-6 p-4 md:grid-cols-2">
+                                    <div className="space-y-4 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-6 text-center">
+                                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                                            <Barcode className="h-8 w-8" />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-bold">
+                                                Live Camera Scanner Simulated
+                                            </div>
+                                            <div className="mt-1 text-xs text-muted-foreground">
+                                                EAN-13: 3017620422003 (Open Food
+                                                Facts Database)
+                                            </div>
+                                        </div>
+                                        <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600">
+                                            <Check className="h-3.5 w-3.5" />{' '}
+                                            Instant Match Verified
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 rounded-xl border border-border bg-card p-5">
+                                        <div className="flex items-center justify-between">
+                                            <Badge
+                                                variant="secondary"
+                                                className="bg-emerald-500/15 font-bold text-emerald-600"
+                                            >
+                                                Nutri-Score A
+                                            </Badge>
+                                            <span className="font-mono text-xs text-muted-foreground">
+                                                100g portion
+                                            </span>
+                                        </div>
+                                        <div className="text-base font-bold">
+                                            Fage Total 0% Plain Greek Yogurt
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                            Brand: FAGE International • High
+                                            Protein Cultured Dairy
+                                        </p>
+                                        <div className="grid grid-cols-4 gap-2 border-t border-border pt-2 text-center">
+                                            <div className="rounded-lg bg-muted/60 p-2">
+                                                <div className="text-[10px] text-muted-foreground">
+                                                    Calories
+                                                </div>
+                                                <div className="text-sm font-bold text-foreground">
+                                                    54
+                                                </div>
+                                            </div>
+                                            <div className="rounded-lg bg-muted/60 p-2">
+                                                <div className="text-[10px] text-blue-500">
+                                                    Protein
+                                                </div>
+                                                <div className="text-sm font-bold text-blue-600">
+                                                    10.3g
+                                                </div>
+                                            </div>
+                                            <div className="rounded-lg bg-muted/60 p-2">
+                                                <div className="text-[10px] text-amber-500">
+                                                    Carbs
+                                                </div>
+                                                <div className="text-sm font-bold text-amber-600">
+                                                    3.0g
+                                                </div>
+                                            </div>
+                                            <div className="rounded-lg bg-muted/60 p-2">
+                                                <div className="text-[10px] text-rose-500">
+                                                    Fat
+                                                </div>
+                                                <div className="text-sm font-bold text-rose-600">
+                                                    0.0g
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            className="mt-2 w-full bg-primary font-medium text-primary-foreground"
+                                        >
+                                            Log to Breakfast
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TAB 3: ADAPTIVE CALIBRATION ENGINE */}
+                            {activeTab === 'adaptive' && (
+                                <div className="space-y-5 rounded-xl border border-border bg-card p-4 sm:p-6">
+                                    <div className="flex flex-col justify-between gap-2 border-b border-border pb-4 sm:flex-row sm:items-center">
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <Sparkles className="h-4 w-4 text-primary" />
+                                                <span className="text-sm font-bold sm:text-base">
+                                                    Weekly Adaptive Checkpoint
+                                                </span>
+                                                <Badge className="border-primary/20 bg-primary/10 text-[11px] text-primary">
+                                                    Proposed
+                                                </Badge>
+                                            </div>
+                                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                                Based on 7 daily weigh-ins and
+                                                an average logged intake of
+                                                2,120 kcal.
+                                            </p>
+                                        </div>
+                                        <div className="font-mono text-xs text-muted-foreground">
+                                            Recalibration Cycle #4
+                                        </div>
+                                    </div>
+
+                                    <div className="grid gap-4 sm:grid-cols-3">
+                                        <div className="rounded-lg border border-border bg-muted/40 p-3">
+                                            <div className="text-xs text-muted-foreground">
+                                                Target Weight Change
+                                            </div>
+                                            <div className="text-lg font-bold text-foreground">
+                                                -0.40 kg/wk
+                                            </div>
+                                            <div className="text-[11px] text-muted-foreground">
+                                                Moderate fat loss rate
+                                            </div>
+                                        </div>
+                                        <div className="rounded-lg border border-border bg-muted/40 p-3">
+                                            <div className="text-xs text-muted-foreground">
+                                                Actual Smoothed Trend
+                                            </div>
+                                            <div className="text-lg font-bold text-emerald-600">
+                                                -0.65 kg/wk
+                                            </div>
+                                            <div className="text-[11px] text-muted-foreground">
+                                                Losing faster than planned
+                                            </div>
+                                        </div>
+                                        <div className="rounded-lg border border-primary/20 bg-primary/10 p-3">
+                                            <div className="text-xs font-medium text-primary">
+                                                Proposed Target Adjustment
+                                            </div>
+                                            <div className="text-lg font-extrabold text-primary">
+                                                +120 kcal/day
+                                            </div>
+                                            <div className="text-[11px] text-primary/80">
+                                                Protects lean mass & energy
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-2.5 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+                                        <Activity className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                                        <span>
+                                            Your measured energy expenditure is
+                                            higher than initially estimated.
+                                            Increasing your daily ceiling from{' '}
+                                            <strong>2,150 kcal</strong> to{' '}
+                                            <strong>2,270 kcal</strong> keeps
+                                            your fat loss sustainable while
+                                            sparing muscle tissue.
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-end gap-3 pt-2">
+                                        {adaptiveAccepted ? (
+                                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600">
+                                                <CheckCircle2 className="h-4 w-4" />{' '}
+                                                Adjustment Applied (+120 kcal
+                                                updated)
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        alert(
+                                                            'Proposal rejected. Target remains 2,150 kcal.',
+                                                        )
+                                                    }
+                                                >
+                                                    Keep 2,150 kcal
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    className="bg-primary font-semibold text-primary-foreground"
+                                                    onClick={() =>
+                                                        setAdaptiveAccepted(
+                                                            true,
+                                                        )
+                                                    }
+                                                >
+                                                    Accept New Target (2,270
+                                                    kcal)
+                                                </Button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TAB 4: TRENDS PREVIEW */}
+                            {activeTab === 'trend' && (
+                                <div className="space-y-4 p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-sm font-semibold">
+                                            Weight Trend vs Raw Weigh-Ins (Last
+                                            30 Days)
+                                        </div>
+                                        <div className="flex items-center gap-4 text-xs">
+                                            <span className="flex items-center gap-1.5">
+                                                <span className="h-2 w-2 rounded-full bg-slate-400" />{' '}
+                                                Daily Scale
+                                            </span>
+                                            <span className="flex items-center gap-1.5 font-bold text-primary">
+                                                <span className="h-2 w-2 rounded-full bg-primary" />{' '}
+                                                Exponential Trend (EMA)
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Simulated Trend SVG Chart */}
+                                    <div className="relative flex h-44 w-full items-end justify-between overflow-hidden rounded-xl border border-border bg-muted/30 p-4">
+                                        <svg
+                                            className="absolute inset-0 h-full w-full"
+                                            preserveAspectRatio="none"
+                                            viewBox="0 0 100 50"
+                                        >
+                                            {/* Grid lines */}
+                                            <line
+                                                x1="0"
+                                                y1="12"
+                                                x2="100"
+                                                y2="12"
+                                                stroke="currentColor"
+                                                strokeOpacity="0.08"
+                                            />
+                                            <line
+                                                x1="0"
+                                                y1="25"
+                                                x2="100"
+                                                y2="25"
+                                                stroke="currentColor"
+                                                strokeOpacity="0.08"
+                                            />
+                                            <line
+                                                x1="0"
+                                                y1="37"
+                                                x2="100"
+                                                y2="37"
+                                                stroke="currentColor"
+                                                strokeOpacity="0.08"
+                                            />
+
+                                            {/* Raw weigh-in dots & line */}
+                                            <path
+                                                d="M 5,10 L 15,14 L 25,12 L 35,19 L 45,17 L 55,24 L 65,22 L 75,29 L 85,31 L 95,37"
+                                                fill="none"
+                                                stroke="#94a3b8"
+                                                strokeWidth="1"
+                                                strokeDasharray="2,2"
+                                            />
+                                            {/* Smoothed trend line */}
+                                            <path
+                                                d="M 5,11 Q 25,14 45,18 T 95,36"
+                                                fill="none"
+                                                stroke="#10b981"
+                                                strokeWidth="2.5"
+                                            />
+                                        </svg>
+                                        <div className="relative z-10 flex w-full justify-between pt-36 text-[10px] text-muted-foreground">
+                                            <span>Week 1 (80.2 kg)</span>
+                                            <span>Week 2 (79.5 kg)</span>
+                                            <span>Week 3 (78.9 kg)</span>
+                                            <span>Week 4 (78.1 kg)</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-center text-xs text-muted-foreground">
+                                        Daily water weight fluctuates up to ±1.5
+                                        kg. The trend line filters out noise to
+                                        measure true tissue loss.
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Core Features Bento Grid */}
+            <section id="features" className="py-20 lg:py-28">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="mb-16 text-center">
+                        <Badge
+                            variant="outline"
+                            className="mb-3 border-primary/30 bg-primary/5 text-primary"
+                        >
+                            Engineered for Clarity
+                        </Badge>
+                        <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
+                            Everything You Need to Master Your Nutrition
+                        </h2>
+                        <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground">
+                            No gimmicks, no social media bloat. Just deep
+                            nutrition intelligence, fast logging, and
+                            mathematically sound coaching.
+                        </p>
+                    </div>
+
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {/* Feature 1 */}
+                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
+                            <CardContent className="space-y-3 p-6">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                    <Sparkles className="h-6 w-6" />
+                                </div>
+                                <h3 className="text-lg font-bold text-foreground">
+                                    Adaptive Target Engine
+                                </h3>
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                    Weekly automatic check-ins calculate your
+                                    real-world metabolic expenditure. Stop
+                                    hitting confusing plateaus with automated,
+                                    actionable calorie adjustments.
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        {/* Feature 2 */}
+                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
+                            <CardContent className="space-y-3 p-6">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                                    <Barcode className="h-6 w-6" />
+                                </div>
+                                <h3 className="text-lg font-bold text-foreground">
+                                    3M+ Open Food Facts Catalog
+                                </h3>
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                    Scan packaged food barcodes directly from
+                                    your phone camera or browser. Unlimited
+                                    scans, verified Nutri-Scores, and full macro
+                                    breakdowns included.
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        {/* Feature 3 */}
+                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
+                            <CardContent className="space-y-3 p-6">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                    <Utensils className="h-6 w-6" />
+                                </div>
+                                <h3 className="text-lg font-bold text-foreground">
+                                    4 Standardized Meal Slots
+                                </h3>
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                    Structured Breakfast, Lunch, Dinner, and
+                                    Snack logging with gram-weight serving
+                                    conversions and quick-add calorie support
+                                    when eating on the go.
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        {/* Feature 4 */}
+                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
+                            <CardContent className="space-y-3 p-6">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                                    <Layers className="h-6 w-6" />
+                                </div>
+                                <h3 className="text-lg font-bold text-foreground">
+                                    Custom Foods & Recipe Builder
+                                </h3>
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                    Create private foods that are never
+                                    overridden by external catalog syncs. Build
+                                    multi-ingredient meal preps and calculate
+                                    precise portions effortlessly.
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        {/* Feature 5 */}
+                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
+                            <CardContent className="space-y-3 p-6">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+                                    <Zap className="h-6 w-6" />
+                                </div>
+                                <h3 className="text-lg font-bold text-foreground">
+                                    Sub-Second Realtime Sync
+                                </h3>
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                    Powered by Laravel Reverb websockets and
+                                    Redis Horizon queues. Log on your laptop and
+                                    see the rings update immediately on your
+                                    phone without refreshing.
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        {/* Feature 6 */}
+                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
+                            <CardContent className="space-y-3 p-6">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                                    <ShieldCheck className="h-6 w-6" />
+                                </div>
+                                <h3 className="text-lg font-bold text-foreground">
+                                    Privacy First & Instant Exports
+                                </h3>
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                    Your personal health data stays yours.
+                                    Generate structured PDF nutrition audits and
+                                    CSV exports with a single click. Zero 3rd
+                                    party trackers.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </section>
+
+            {/* Interactive Nutrition & TDEE Calculator Widget */}
+            <section
+                id="calculator"
+                className="border-t border-border bg-muted/20 py-20"
+            >
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="mb-12 text-center">
+                        <Badge
+                            variant="outline"
+                            className="mb-2 border-primary/30 bg-primary/5 text-primary"
+                        >
+                            Interactive Tool
+                        </Badge>
+                        <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+                            Instant Scientific Macro Calculator
+                        </h2>
+                        <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
+                            Test the Mifflin-St Jeor formula and see your
+                            personalized baseline numbers right now.
+                        </p>
+                    </div>
+
+                    <div className="mx-auto grid max-w-5xl items-start gap-8 lg:grid-cols-12">
+                        {/* Calculator Controls */}
+                        <div className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-sm lg:col-span-7">
+                            <h3 className="border-b border-border pb-3 text-base font-bold">
+                                Your Baseline Parameters
+                            </h3>
+
+                            {/* Sex Selector */}
+                            <div>
+                                <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                    Biological Sex
+                                </label>
+                                <div className="mt-1.5 grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCalcSex('male')}
+                                        className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-all ${
+                                            calcSex === 'male'
+                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                : 'border-border text-foreground hover:bg-muted'
+                                        }`}
+                                    >
+                                        Male
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCalcSex('female')}
+                                        className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-all ${
+                                            calcSex === 'female'
+                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                : 'border-border text-foreground hover:bg-muted'
+                                        }`}
+                                    >
+                                        Female
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Weight, Height, Age */}
+                            <div className="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label className="text-xs font-semibold text-muted-foreground">
+                                        Weight (kg)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={calcWeight}
+                                        onChange={(e) =>
+                                            setCalcWeight(
+                                                Number(e.target.value) || 60,
+                                            )
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-bold text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-semibold text-muted-foreground">
+                                        Height (cm)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={calcHeight}
+                                        onChange={(e) =>
+                                            setCalcHeight(
+                                                Number(e.target.value) || 170,
+                                            )
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-bold text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-semibold text-muted-foreground">
+                                        Age (years)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={calcAge}
+                                        onChange={(e) =>
+                                            setCalcAge(
+                                                Number(e.target.value) || 25,
+                                            )
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-bold text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Activity Level */}
+                            <div>
+                                <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                    Weekly Activity
+                                </label>
+                                <select
+                                    value={calcActivity}
+                                    onChange={(e) =>
+                                        setCalcActivity(
+                                            e.target.value as ActivityLevel,
+                                        )
+                                    }
+                                    className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                >
+                                    <option value="sedentary">
+                                        Sedentary (Desk job, little exercise)
+                                    </option>
+                                    <option value="lightly_active">
+                                        Lightly Active (1-3 workouts / week)
+                                    </option>
+                                    <option value="moderately_active">
+                                        Moderately Active (3-5 workouts / week)
+                                    </option>
+                                    <option value="very_active">
+                                        Very Active (6-7 hard workouts / week)
+                                    </option>
+                                </select>
+                            </div>
+
+                            {/* Primary Goal & Diet */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                        Primary Goal
+                                    </label>
+                                    <select
+                                        value={calcGoal}
+                                        onChange={(e) =>
+                                            setCalcGoal(
+                                                e.target.value as GoalType,
+                                            )
+                                        }
+                                        className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                    >
+                                        <option value="cut">
+                                            Fat Loss (-0.5 kg/week)
+                                        </option>
+                                        <option value="maintain">
+                                            Maintain Current Weight
+                                        </option>
+                                        <option value="bulk">
+                                            Muscle Gain (+0.25 kg/week)
+                                        </option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                        Diet Split
+                                    </label>
+                                    <select
+                                        value={calcDiet}
+                                        onChange={(e) =>
+                                            setCalcDiet(
+                                                e.target
+                                                    .value as DietPreference,
+                                            )
+                                        }
+                                        className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                    >
+                                        <option value="balanced">
+                                            Balanced (30P / 40C / 30F)
+                                        </option>
+                                        <option value="high_protein">
+                                            High Protein (35P / 45C / 20F)
+                                        </option>
+                                        <option value="low_carb">
+                                            Low Carb (40P / 20C / 40F)
+                                        </option>
+                                        <option value="keto">
+                                            Keto (25P / 5C / 70F)
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Calculated Target Results Card */}
+                        <div className="space-y-6 rounded-2xl border border-primary/30 bg-primary/5 p-6 shadow-sm lg:col-span-5">
+                            <div className="border-b border-primary/20 pb-4">
+                                <div className="text-xs font-bold tracking-wider text-primary uppercase">
+                                    Recommended Starting Target
+                                </div>
+                                <div className="mt-2 text-4xl font-extrabold text-foreground">
+                                    {calculatorResults.targetCalories.toLocaleString()}{' '}
+                                    <span className="text-base font-normal text-muted-foreground">
+                                        kcal / day
+                                    </span>
+                                </div>
+                                <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                                    <span>
+                                        BMR:{' '}
+                                        <strong>
+                                            {calculatorResults.bmr} kcal
+                                        </strong>
+                                    </span>
+                                    <span>•</span>
+                                    <span>
+                                        Maintenance (TDEE):{' '}
+                                        <strong>
+                                            {calculatorResults.tdee} kcal
+                                        </strong>
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Macro Gram Breakdown */}
+                            <div className="space-y-3">
+                                <div className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                    Target Daily Macros
+                                </div>
+
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex items-center justify-between rounded-lg border border-border bg-background/80 p-2.5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="h-3 w-3 rounded-full bg-blue-500" />
+                                            <span className="font-semibold">
+                                                Protein (
+                                                {
+                                                    calculatorResults.split
+                                                        .proteinPercent
+                                                }
+                                                %)
+                                            </span>
+                                        </div>
+                                        <span className="font-mono font-extrabold text-blue-600">
+                                            {calculatorResults.macros.proteinG}g
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between rounded-lg border border-border bg-background/80 p-2.5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="h-3 w-3 rounded-full bg-amber-500" />
+                                            <span className="font-semibold">
+                                                Carbohydrates (
+                                                {
+                                                    calculatorResults.split
+                                                        .carbsPercent
+                                                }
+                                                %)
+                                            </span>
+                                        </div>
+                                        <span className="font-mono font-extrabold text-amber-600">
+                                            {calculatorResults.macros.carbsG}g
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between rounded-lg border border-border bg-background/80 p-2.5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="h-3 w-3 rounded-full bg-rose-500" />
+                                            <span className="font-semibold">
+                                                Fat (
+                                                {
+                                                    calculatorResults.split
+                                                        .fatPercent
+                                                }
+                                                %)
+                                            </span>
+                                        </div>
+                                        <span className="font-mono font-extrabold text-rose-600">
+                                            {calculatorResults.macros.fatG}g
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Link href={register()} className="block">
+                                <Button className="w-full bg-primary py-5 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
+                                    Lock in this plan & start tracking
+                                    <ArrowRight className="ml-1.5 h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Comparison Table */}
+            <section
+                id="comparison"
+                className="border-t border-border py-20 lg:py-24"
+            >
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="mb-12 text-center">
+                        <Badge
+                            variant="outline"
+                            className="mb-2 border-primary/30 bg-primary/5 text-primary"
+                        >
+                            Honest Comparison
+                        </Badge>
+                        <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+                            Why Athletes & Trackers Switch to kcal-log
+                        </h2>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="mx-auto w-full max-w-4xl border-collapse text-left text-sm">
+                            <thead>
+                                <tr className="border-b border-border">
+                                    <th className="px-4 py-4 font-bold text-muted-foreground">
+                                        Feature
+                                    </th>
+                                    <th className="rounded-t-xl bg-primary/5 px-4 py-4 text-center font-extrabold text-primary">
+                                        kcal-log
+                                    </th>
+                                    <th className="px-4 py-4 text-center font-semibold text-muted-foreground">
+                                        Legacy Apps (MFP / LoseIt)
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                                <tr>
+                                    <td className="px-4 py-3.5 font-medium text-foreground">
+                                        Weekly Adaptive Target Adjustments
+                                    </td>
+                                    <td className="bg-primary/5 px-4 py-3.5 text-center font-bold text-primary">
+                                        ✅ Automated & Mathematical
+                                    </td>
+                                    <td className="px-4 py-3.5 text-center text-muted-foreground">
+                                        ❌ Static / None
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="px-4 py-3.5 font-medium text-foreground">
+                                        Barcode Scanner
+                                    </td>
+                                    <td className="bg-primary/5 px-4 py-3.5 text-center font-bold text-primary">
+                                        ✅ 100% Free & Unlimited
+                                    </td>
+                                    <td className="px-4 py-3.5 text-center text-muted-foreground">
+                                        ❌ Paywalled ($80/year)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="px-4 py-3.5 font-medium text-foreground">
+                                        Open Food Facts Integration
+                                    </td>
+                                    <td className="bg-primary/5 px-4 py-3.5 text-center font-bold text-primary">
+                                        ✅ 3M+ Global Foods
+                                    </td>
+                                    <td className="px-4 py-3.5 text-center text-muted-foreground">
+                                        ❌ Proprietary Lock-in
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="px-4 py-3.5 font-medium text-foreground">
+                                        Data Export (CSV & PDF)
+                                    </td>
+                                    <td className="bg-primary/5 px-4 py-3.5 text-center font-bold text-primary">
+                                        ✅ Complete Sovereignty
+                                    </td>
+                                    <td className="px-4 py-3.5 text-center text-muted-foreground">
+                                        ❌ Restricted
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="px-4 py-3.5 font-medium text-foreground">
+                                        Speed & Ad-Free Experience
+                                    </td>
+                                    <td className="bg-primary/5 px-4 py-3.5 text-center font-bold text-primary">
+                                        ✅ Sub-second & Zero Ads
+                                    </td>
+                                    <td className="px-4 py-3.5 text-center text-muted-foreground">
+                                        ❌ Cluttered with Ads
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            {/* FAQ Accordion */}
+            <section
+                id="faq"
+                className="border-t border-border bg-muted/20 py-20"
+            >
+                <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+                    <div className="mb-12 text-center">
+                        <Badge
+                            variant="outline"
+                            className="mb-2 border-primary/30 bg-primary/5 text-primary"
+                        >
+                            Got Questions?
+                        </Badge>
+                        <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+                            Frequently Asked Questions
+                        </h2>
+                    </div>
+
+                    <div className="space-y-3">
+                        {faqs.map((faq, idx) => {
+                            const isOpen = openFaq === idx;
+                            return (
+                                <div
+                                    key={idx}
+                                    className="overflow-hidden rounded-xl border border-border bg-card"
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setOpenFaq(isOpen ? null : idx)
+                                        }
+                                        className="flex w-full items-center justify-between p-4 text-left font-semibold text-foreground transition-colors hover:bg-muted/30 sm:p-5"
+                                    >
+                                        <span>{faq.q}</span>
+                                        <ChevronDown
+                                            className={`h-4 w-4 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                                        />
+                                    </button>
+                                    {isOpen && (
+                                        <div className="border-t border-border/40 px-4 pt-3 pb-5 text-sm leading-relaxed text-muted-foreground sm:px-5">
+                                            {faq.a}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </section>
+
+            {/* Final CTA Banner */}
+            <section className="border-t border-border py-20 lg:py-24">
+                <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+                    <div className="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950 via-slate-900 to-black p-8 text-center text-white shadow-2xl sm:p-14">
+                        {/* Decorative background circle */}
+                        <div className="pointer-events-none absolute -right-24 -bottom-24 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
+
+                        <div className="relative z-10 mx-auto max-w-2xl space-y-6">
+                            <Badge className="border-emerald-400/30 bg-emerald-500/20 text-emerald-300">
+                                Stop Guessing. Start Adapting.
+                            </Badge>
+                            <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
+                                Take Control of Your Nutrition Today
+                            </h2>
+                            <p className="mx-auto max-w-xl text-sm text-emerald-100/80 sm:text-base">
+                                Experience fast, science-backed nutrition
+                                tracking with weekly metabolic recalibration and
+                                zero paywalls.
+                            </p>
+                            <div className="pt-2">
+                                <Link href={register()}>
+                                    <Button
+                                        size="lg"
+                                        className="bg-emerald-500 px-8 py-6 text-base font-bold text-slate-950 shadow-lg transition-all hover:scale-105 hover:bg-emerald-400"
+                                    >
+                                        Create Your Free Account
+                                        <ArrowRight className="ml-2 h-5 w-5" />
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="border-t border-border bg-background py-12 text-sm text-muted-foreground">
+                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-4 sm:flex-row sm:px-6 lg:px-8">
+                    <div className="flex items-center gap-2.5">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                            <Flame className="h-4 w-4" />
+                        </div>
+                        <span className="font-bold text-foreground">
+                            {appName}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                            © {new Date().getFullYear()} Precision Nutrition.
+                        </span>
+                    </div>
+
+                    <div className="flex items-center gap-6 text-xs">
+                        <Link href={login()} className="hover:text-foreground">
+                            Log in
+                        </Link>
+                        <Link
+                            href={register()}
+                            className="hover:text-foreground"
+                        >
+                            Register
+                        </Link>
+                        <a
+                            href="/docs/api"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="hover:text-foreground"
+                        >
+                            API Documentation
+                        </a>
+                        <a
+                            href="https://github.com/DevHolako/kcal-log"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="hover:text-foreground"
+                        >
+                            GitHub
+                        </a>
+                    </div>
+                </div>
+            </footer>
+        </div>
     );
 }

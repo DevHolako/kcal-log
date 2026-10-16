@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\OnboardingController::create
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 export const create = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ create.definition = {
 
 /**
 * @see \App\Http\Controllers\OnboardingController::create
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 create.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ create.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\OnboardingController::create
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 create.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ create.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\OnboardingController::create
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\OnboardingController::create
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 const createForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -55,7 +55,7 @@ const createForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => 
 
 /**
 * @see \App\Http\Controllers\OnboardingController::create
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 createForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -65,7 +65,7 @@ createForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\OnboardingController::create
-* @see app/Http/Controllers/OnboardingController.php:19
+* @see app/Http/Controllers/OnboardingController.php:21
 * @route '/onboarding'
 */
 createForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ create.form = createForm
 
 /**
 * @see \App\Http\Controllers\OnboardingController::store
-* @see app/Http/Controllers/OnboardingController.php:71
+* @see app/Http/Controllers/OnboardingController.php:73
 * @route '/onboarding'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -97,7 +97,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\OnboardingController::store
-* @see app/Http/Controllers/OnboardingController.php:71
+* @see app/Http/Controllers/OnboardingController.php:73
 * @route '/onboarding'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -106,7 +106,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\OnboardingController::store
-* @see app/Http/Controllers/OnboardingController.php:71
+* @see app/Http/Controllers/OnboardingController.php:73
 * @route '/onboarding'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -116,7 +116,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\OnboardingController::store
-* @see app/Http/Controllers/OnboardingController.php:71
+* @see app/Http/Controllers/OnboardingController.php:73
 * @route '/onboarding'
 */
 const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -126,7 +126,7 @@ const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => 
 
 /**
 * @see \App\Http\Controllers\OnboardingController::store
-* @see app/Http/Controllers/OnboardingController.php:71
+* @see app/Http/Controllers/OnboardingController.php:73
 * @route '/onboarding'
 */
 storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

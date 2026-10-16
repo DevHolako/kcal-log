@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\ExportController::index
-* @see app/Http/Controllers/ExportController.php:27
+* @see app/Http/Controllers/ExportController.php:28
 * @route '/reports'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\ExportController::index
-* @see app/Http/Controllers/ExportController.php:27
+* @see app/Http/Controllers/ExportController.php:28
 * @route '/reports'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ExportController::index
-* @see app/Http/Controllers/ExportController.php:27
+* @see app/Http/Controllers/ExportController.php:28
 * @route '/reports'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ExportController::index
-* @see app/Http/Controllers/ExportController.php:27
+* @see app/Http/Controllers/ExportController.php:28
 * @route '/reports'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\ExportController::index
-* @see app/Http/Controllers/ExportController.php:27
+* @see app/Http/Controllers/ExportController.php:28
 * @route '/reports'
 */
 const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -55,7 +55,7 @@ const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => (
 
 /**
 * @see \App\Http\Controllers\ExportController::index
-* @see app/Http/Controllers/ExportController.php:27
+* @see app/Http/Controllers/ExportController.php:28
 * @route '/reports'
 */
 indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -65,7 +65,7 @@ indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ExportController::index
-* @see app/Http/Controllers/ExportController.php:27
+* @see app/Http/Controllers/ExportController.php:28
 * @route '/reports'
 */
 indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ index.form = indexForm
 
 /**
 * @see \App\Http\Controllers\ExportController::store
-* @see app/Http/Controllers/ExportController.php:47
+* @see app/Http/Controllers/ExportController.php:48
 * @route '/reports/exports'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -97,7 +97,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\ExportController::store
-* @see app/Http/Controllers/ExportController.php:47
+* @see app/Http/Controllers/ExportController.php:48
 * @route '/reports/exports'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -106,7 +106,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ExportController::store
-* @see app/Http/Controllers/ExportController.php:47
+* @see app/Http/Controllers/ExportController.php:48
 * @route '/reports/exports'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -116,7 +116,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\ExportController::store
-* @see app/Http/Controllers/ExportController.php:47
+* @see app/Http/Controllers/ExportController.php:48
 * @route '/reports/exports'
 */
 const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -126,7 +126,7 @@ const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => 
 
 /**
 * @see \App\Http\Controllers\ExportController::store
-* @see app/Http/Controllers/ExportController.php:47
+* @see app/Http/Controllers/ExportController.php:48
 * @route '/reports/exports'
 */
 storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -138,7 +138,7 @@ store.form = storeForm
 
 /**
 * @see \App\Http\Controllers\ExportController::download
-* @see app/Http/Controllers/ExportController.php:61
+* @see app/Http/Controllers/ExportController.php:62
 * @route '/reports/exports/{export}/download'
 */
 export const download = (args: { export: number | { id: number } } | [exportParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -153,7 +153,7 @@ download.definition = {
 
 /**
 * @see \App\Http\Controllers\ExportController::download
-* @see app/Http/Controllers/ExportController.php:61
+* @see app/Http/Controllers/ExportController.php:62
 * @route '/reports/exports/{export}/download'
 */
 download.url = (args: { export: number | { id: number } } | [exportParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -186,7 +186,7 @@ download.url = (args: { export: number | { id: number } } | [exportParam: number
 
 /**
 * @see \App\Http\Controllers\ExportController::download
-* @see app/Http/Controllers/ExportController.php:61
+* @see app/Http/Controllers/ExportController.php:62
 * @route '/reports/exports/{export}/download'
 */
 download.get = (args: { export: number | { id: number } } | [exportParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -196,7 +196,7 @@ download.get = (args: { export: number | { id: number } } | [exportParam: number
 
 /**
 * @see \App\Http\Controllers\ExportController::download
-* @see app/Http/Controllers/ExportController.php:61
+* @see app/Http/Controllers/ExportController.php:62
 * @route '/reports/exports/{export}/download'
 */
 download.head = (args: { export: number | { id: number } } | [exportParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -206,7 +206,7 @@ download.head = (args: { export: number | { id: number } } | [exportParam: numbe
 
 /**
 * @see \App\Http\Controllers\ExportController::download
-* @see app/Http/Controllers/ExportController.php:61
+* @see app/Http/Controllers/ExportController.php:62
 * @route '/reports/exports/{export}/download'
 */
 const downloadForm = (args: { export: number | { id: number } } | [exportParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -216,7 +216,7 @@ const downloadForm = (args: { export: number | { id: number } } | [exportParam: 
 
 /**
 * @see \App\Http\Controllers\ExportController::download
-* @see app/Http/Controllers/ExportController.php:61
+* @see app/Http/Controllers/ExportController.php:62
 * @route '/reports/exports/{export}/download'
 */
 downloadForm.get = (args: { export: number | { id: number } } | [exportParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -226,7 +226,7 @@ downloadForm.get = (args: { export: number | { id: number } } | [exportParam: nu
 
 /**
 * @see \App\Http\Controllers\ExportController::download
-* @see app/Http/Controllers/ExportController.php:61
+* @see app/Http/Controllers/ExportController.php:62
 * @route '/reports/exports/{export}/download'
 */
 downloadForm.head = (args: { export: number | { id: number } } | [exportParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

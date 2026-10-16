@@ -154,6 +154,12 @@ jobs:
           DB_PASSWORD: ''
         run: php artisan migrate --env=testing --force
 
+      - name: Ensure Vite Manifest for Testing
+        working-directory: apps/web
+        run: |
+          mkdir -p public/build
+          echo '{"resources/js/app.tsx":{"file":"assets/app.js","isEntry":true,"src":"resources/js/app.tsx"}}' > public/build/manifest.json
+
       - name: Run Pest Tests
         working-directory: apps/web
         env:
@@ -265,3 +271,23 @@ jobs:
           tags: kcal-log-web:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy-coolify:
+    name: Deploy to Production (Coolify)
+    needs: [secret-scan, packages-and-lint, phpstan, backend-tests, e2e-playwright, docker-build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify Deployment via API
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          if [ -z "$COOLIFY_TOKEN" ]; then
+            echo "COOLIFY_TOKEN secret is not set, skipping deployment."
+            exit 1
+          fi
+          echo "Triggering deployment for resource wkmahwtelnowod7prfdxd9dq..."
+          response=$(curl -fsSL -X POST \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            "https://apps.holako.dev/api/v1/deploy?uuid=wkmahwtelnowod7prfdxd9dq")
+          echo "Deployment triggered: $response"
