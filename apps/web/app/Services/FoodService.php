@@ -26,6 +26,22 @@ class FoodService
      */
     public function findByBarcode(string $barcode, ?User $user = null): ?FoodLookupResult
     {
+        // Check user's custom food first (if any)
+        if ($user) {
+            /** @var Food|null $customFood */
+            $customFood = Food::where('barcode', $barcode)
+                ->where('user_id', $user->id)
+                ->where('is_custom', true)
+                ->with('servings')
+                ->first();
+
+            if ($customFood) {
+                $customFood->setAttribute('search_origin', 'custom');
+
+                return new FoodLookupResult($customFood, 'cache', isDegraded: false);
+            }
+        }
+
         $connection = $this->getUserOffConnection($user);
 
         // Tier 1: Authenticated OFF
@@ -34,6 +50,7 @@ class FoodService
                 $offResult = $this->openFoodFactsService->findBarcode($barcode, $connection);
                 if ($offResult) {
                     $food = $this->cacheOffProduct($offResult['product'], $barcode);
+                    $food->setAttribute('search_origin', 'openfoodfacts');
 
                     return new FoodLookupResult($food, 'off_authenticated', isDegraded: false);
                 }
@@ -51,6 +68,7 @@ class FoodService
             $offResult = $this->openFoodFactsService->findBarcode($barcode, null);
             if ($offResult) {
                 $food = $this->cacheOffProduct($offResult['product'], $barcode);
+                $food->setAttribute('search_origin', 'openfoodfacts');
 
                 return new FoodLookupResult($food, 'off_anonymous', isDegraded: false);
             }
@@ -62,7 +80,7 @@ class FoodService
             $offFailed = true;
         }
 
-        // Tier 3: Local database cache
+        // Tier 3: Local database cache fallback
         /** @var Food|null $cachedFood */
         $cachedFood = Food::where('barcode', $barcode)
             ->availableTo($user?->id)
@@ -70,6 +88,8 @@ class FoodService
             ->first();
 
         if ($cachedFood) {
+            $cachedFood->setAttribute('search_origin', $cachedFood->is_custom ? 'custom' : 'database');
+
             return new FoodLookupResult($cachedFood, 'cache', isDegraded: $offFailed);
         }
 
@@ -89,30 +109,55 @@ class FoodService
                 ->where('user_id', $user->id)
                 ->where(function ($q) use ($query) {
                     $q->where('name', 'like', "%{$query}%")
-                        ->orWhere('brand', 'like', "%{$query}%");
+                        ->orWhere('brand', 'like', "%{$query}%")
+                        ->orWhere('barcode', $query);
                 })
                 ->with('servings')
                 ->get()
+                ->each(function (Food $f) {
+                    $f->setAttribute('search_origin', 'custom');
+                })
             : collect();
+
+        // Also check cached non-custom foods in local DB
+        /** @var Collection<int, Food> $cachedFoods */
+        $cachedFoods = Food::where('is_custom', false)
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                    ->orWhere('brand', 'like', "%{$query}%")
+                    ->orWhere('barcode', $query);
+            })
+            ->with('servings')
+            ->limit(20)
+            ->get()
+            ->each(function (Food $f) {
+                $f->setAttribute('search_origin', 'database');
+            });
 
         // Attempt OFF search (Tier 1 or Tier 2)
         try {
             $offResult = $this->openFoodFactsService->search($query, $page, $perPage, $connection);
 
             $offFoods = collect();
+            $existingBarcodes = $cachedFoods->pluck('barcode')->filter()->all();
             foreach ($offResult['products'] as $product) {
-                $food = $this->cacheOffProduct($product);
+                $code = (string) ($product['code'] ?? '');
+                if ($code && in_array($code, $existingBarcodes, true)) {
+                    continue;
+                }
+                $food = $this->cacheOffProduct($product, $code ?: null);
+                $food->setAttribute('search_origin', 'openfoodfacts');
                 $offFoods->push($food);
             }
 
             /** @var Collection<int, Food> $combined */
-            $combined = $customFoods->concat($offFoods)->values();
+            $combined = $customFoods->concat($cachedFoods)->concat($offFoods)->unique('id')->values();
 
             return new FoodSearchResult(
                 items: $combined,
                 source: $offResult['source'],
                 isDegraded: false,
-                total: $offResult['total'] + $customFoods->count(),
+                total: $offResult['total'] + $customFoods->count() + $cachedFoods->count(),
                 page: $page,
                 perPage: $perPage,
             );
@@ -133,7 +178,10 @@ class FoodService
 
             $total = $queryBuilder->count();
             /** @var Collection<int, Food> $items */
-            $items = $queryBuilder->forPage($page, $perPage)->get();
+            $items = $queryBuilder->forPage($page, $perPage)->get()
+                ->each(function (Food $f) {
+                    $f->setAttribute('search_origin', $f->is_custom ? 'custom' : 'database');
+                });
 
             return new FoodSearchResult(
                 items: $items,

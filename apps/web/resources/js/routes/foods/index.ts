@@ -263,7 +263,7 @@ index.form = indexForm
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:164
+* @see app/Http/Controllers/FoodController.php:179
 * @route '/foods/sync'
 */
 export const sync = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -278,7 +278,7 @@ sync.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:164
+* @see app/Http/Controllers/FoodController.php:179
 * @route '/foods/sync'
 */
 sync.url = (options?: RouteQueryOptions) => {
@@ -287,7 +287,7 @@ sync.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:164
+* @see app/Http/Controllers/FoodController.php:179
 * @route '/foods/sync'
 */
 sync.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -297,7 +297,7 @@ sync.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:164
+* @see app/Http/Controllers/FoodController.php:179
 * @route '/foods/sync'
 */
 const syncForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -307,7 +307,7 @@ const syncForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => (
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:164
+* @see app/Http/Controllers/FoodController.php:179
 * @route '/foods/sync'
 */
 syncForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

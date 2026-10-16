@@ -148,7 +148,14 @@ export const translations: Record<Locale, Record<string, string>> = {
         'foods.add_custom': 'Add Custom Food',
         'foods.create_custom_food': 'Create Custom Food',
         'foods.search_placeholder':
-            'Search by product name, brand, or ingredients (e.g. Oats, Greek Yogurt, Nutella)...',
+            'Search by name, brand, or barcode (e.g. Oats, Danone, 6111035000058)...',
+        'foods.unified_search_label': 'Search Food Database & Open Food Facts',
+        'foods.badge_in_database': 'In Database',
+        'foods.badge_custom': 'Custom Food',
+        'foods.badge_openfoodfacts': 'Open Food Facts',
+        'foods.sync_progress_title': 'Open Food Facts Sync in Progress',
+        'foods.sync_progress_items': '{count} items saved',
+        'foods.sync_completed': 'Catalog sync completed successfully!',
         'foods.barcode_placeholder':
             'Enter barcode number (e.g. 3017620422003, 3229820129488)...',
         'foods.text_search': 'Text Search',
@@ -456,7 +463,15 @@ export const translations: Record<Locale, Record<string, string>> = {
         'foods.add_custom': 'Créer un aliment',
         'foods.create_custom_food': 'Créer un aliment personnalisé',
         'foods.search_placeholder':
-            'Rechercher par nom, marque ou code-barres...',
+            'Rechercher par aliment, marque ou code-barres (ex. Avoine, Danone, 6111035000058)...',
+        'foods.unified_search_label':
+            'Recherche dans la base & Open Food Facts',
+        'foods.badge_in_database': 'En base locale',
+        'foods.badge_custom': 'Aliment personnalisé',
+        'foods.badge_openfoodfacts': 'Open Food Facts',
+        'foods.sync_progress_title': 'Synchronisation Open Food Facts en cours',
+        'foods.sync_progress_items': '{count} aliments ajoutés',
+        'foods.sync_completed': 'Synchronisation terminée avec succès !',
         'foods.barcode_placeholder':
             'Saisir le code-barres (ex. 3017620422003)...',
         'foods.text_search': 'Recherche textuelle',

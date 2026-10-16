@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Events\FoodCatalogSynced;
+use App\Events\FoodCatalogSyncProgress;
 use App\Models\Food;
 use App\Services\FoodService;
 use App\Services\OpenFoodFactsService;
@@ -85,16 +86,44 @@ class SyncOpenFoodFactsJob implements ShouldQueue
         $savedCount = 0;
         $failedQueries = 0;
         $refreshedCount = 0;
+        $totalTerms = count($terms);
 
         Log::info('Starting scheduled Open Food Facts daily sync', [
-            'terms_count' => count($terms),
+            'terms_count' => $totalTerms,
             'pages_per_term' => $this->pagesPerTerm,
             'page_size' => $this->pageSize,
             'refresh_stale' => $this->refreshStale,
         ]);
 
+        try {
+            FoodCatalogSyncProgress::dispatch(
+                current: 0,
+                total: $totalTerms,
+                percent: 0,
+                status: 'Starting Open Food Facts catalog sync...',
+                savedCount: 0,
+                userId: $this->userId,
+            );
+        } catch (\Throwable $e) {
+            // Ignore broadcasting failure
+        }
+
         // 1. Fetch & cache staple products by terms
-        foreach ($terms as $term) {
+        foreach ($terms as $index => $term) {
+            $percent = (int) round((($index) / max(1, $totalTerms)) * 100);
+            try {
+                FoodCatalogSyncProgress::dispatch(
+                    current: $index + 1,
+                    total: $totalTerms,
+                    percent: $percent,
+                    status: "Syncing '{$term}' from Open Food Facts...",
+                    savedCount: $savedCount,
+                    userId: $this->userId,
+                );
+            } catch (\Throwable $e) {
+                // Ignore broadcasting failure
+            }
+
             for ($page = 1; $page <= $this->pagesPerTerm; $page++) {
                 try {
                     $result = $offService->search($term, page: $page, perPage: $this->pageSize);
@@ -175,6 +204,16 @@ class SyncOpenFoodFactsJob implements ShouldQueue
         $totalCount = Food::where('is_custom', false)->count();
 
         try {
+            FoodCatalogSyncProgress::dispatch(
+                current: $totalTerms,
+                total: $totalTerms,
+                percent: 100,
+                status: "Catalog sync complete! {$savedCount} items added.",
+                savedCount: $savedCount,
+                userId: $this->userId,
+                isCompleted: true,
+            );
+
             FoodCatalogSynced::dispatch(
                 $savedCount,
                 $totalCount,

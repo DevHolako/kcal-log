@@ -1,4 +1,4 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     AlertTriangle,
     Apple,
@@ -8,8 +8,10 @@ import {
     CalendarPlus,
     Camera,
     Check,
+    CheckCircle2,
     Database,
     Globe,
+    Loader2,
     Plus,
     RefreshCw,
     Search,
@@ -23,6 +25,7 @@ import BarcodeScannerModal from '@/components/barcode-scanner-modal';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { getEcho } from '@/echo';
 import { useTranslation } from '@/lib/i18n';
 import {
     Card,
@@ -74,6 +77,7 @@ export interface FoodItem {
     nova_group?: number | null;
     eco_score?: string | null;
     servings: FoodServingData[];
+    search_origin?: string | null;
 }
 
 interface Props {
@@ -105,12 +109,20 @@ export default function FoodsIndex({
     isOffConnected = false,
 }: Props) {
     const { t } = useTranslation();
-    const [query, setQuery] = useState(searchQuery || '');
-    const [barcodeInput, setBarcodeInput] = useState(searchBarcode || '');
-    const [searchMode, setSearchMode] = useState<'text' | 'barcode'>(
-        searchBarcode ? 'barcode' : 'text',
+    const { auth } = usePage().props as { auth?: { user?: { id: number } } };
+    const [searchTerm, setSearchTerm] = useState(
+        searchQuery || searchBarcode || '',
     );
     const [activeTab, setActiveTab] = useState<'all' | 'custom'>('all');
+
+    // Reverb Sync Progress State
+    const [syncProgress, setSyncProgress] = useState<{
+        active: boolean;
+        percent: number;
+        status: string;
+        savedCount: number;
+        completed: boolean;
+    } | null>(null);
 
     // Dismissible Open Food Facts Information Banner
     const [showOffBanner, setShowOffBanner] = useState<boolean>(() => {
@@ -134,25 +146,82 @@ export default function FoodsIndex({
     const [syncTerms, setSyncTerms] = useState<string>('');
     const [isSyncing, setIsSyncing] = useState(false);
 
-    // Listen for background sync completion events via WebSockets (Reverb)
+    // Listen for background sync progress & completion events via WebSockets (Reverb)
     useEffect(() => {
-        const echo = (
-            window as unknown as {
-                Echo?: {
-                    channel: (name: string) => {
-                        listen: (event: string, callback: () => void) => void;
-                    };
-                };
-            }
-        ).Echo;
-
+        const echo = getEcho();
         if (!echo) return;
 
+        const userId = auth?.user?.id;
         const channel = echo.channel('foods');
-        channel.listen('.FoodCatalogSynced', () => {
-            router.reload({ only: ['initialFoods', 'totalCachedFoods'] });
-        });
-    }, []);
+        const userChannel = userId ? echo.private(`user.${userId}`) : null;
+
+        const handleProgress = (event: {
+            current: number;
+            total: number;
+            percent: number;
+            status: string;
+            saved_count: number;
+            is_completed?: boolean;
+        }) => {
+            const isDone = Boolean(event.is_completed || event.percent >= 100);
+            setSyncProgress({
+                active: !isDone,
+                percent: Math.min(100, Math.max(0, event.percent)),
+                status: event.status,
+                savedCount: event.saved_count,
+                completed: isDone,
+            });
+
+            if (isDone) {
+                router.reload({
+                    only: [
+                        'initialFoods',
+                        'totalCachedFoods',
+                        'totalCustomFoods',
+                    ],
+                });
+                setTimeout(() => {
+                    setSyncProgress((prev) => (prev?.completed ? null : prev));
+                }, 6000);
+            }
+        };
+
+        const handleSynced = (event: {
+            saved_count: number;
+            total_foods: number;
+        }) => {
+            setSyncProgress({
+                active: false,
+                percent: 100,
+                status: `Sync complete! ${event.saved_count} items added to catalog.`,
+                savedCount: event.saved_count,
+                completed: true,
+            });
+            router.reload({
+                only: ['initialFoods', 'totalCachedFoods', 'totalCustomFoods'],
+            });
+            setTimeout(() => {
+                setSyncProgress((prev) => (prev?.completed ? null : prev));
+            }, 6000);
+        };
+
+        channel.listen('.FoodCatalogSyncProgress', handleProgress);
+        channel.listen('.FoodCatalogSynced', handleSynced);
+
+        if (userChannel) {
+            userChannel.listen('.FoodCatalogSyncProgress', handleProgress);
+            userChannel.listen('.FoodCatalogSynced', handleSynced);
+        }
+
+        return () => {
+            channel.stopListening('.FoodCatalogSyncProgress');
+            channel.stopListening('.FoodCatalogSynced');
+            if (userChannel) {
+                userChannel.stopListening('.FoodCatalogSyncProgress');
+                userChannel.stopListening('.FoodCatalogSynced');
+            }
+        };
+    }, [auth?.user?.id]);
 
     const handleTriggerSync = (e: React.FormEvent) => {
         e.preventDefault();
@@ -217,20 +286,14 @@ export default function FoodsIndex({
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (searchMode === 'barcode' && barcodeInput.trim()) {
-            router.get(
-                '/foods',
-                { barcode: barcodeInput.trim() },
-                { preserveState: true },
-            );
-        } else if (searchMode === 'text' && query.trim()) {
-            router.get('/foods', { q: query.trim() }, { preserveState: true });
+        const trimmed = searchTerm.trim();
+        if (trimmed) {
+            router.get('/foods', { q: trimmed }, { preserveState: true });
         }
     };
 
     const handleClearSearch = () => {
-        setQuery('');
-        setBarcodeInput('');
+        setSearchTerm('');
         router.get('/foods', {}, { preserveState: true });
     };
 
@@ -415,85 +478,99 @@ export default function FoodsIndex({
                 </div>
             )}
 
-            {/* Search Bar & Mode Toggle */}
-            <Card className="border-border/60 shadow-xs">
-                <CardContent className="space-y-3 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                            <Button
-                                type="button"
-                                variant={
-                                    searchMode === 'text'
-                                        ? 'default'
-                                        : 'outline'
-                                }
-                                size="sm"
-                                onClick={() => setSearchMode('text')}
-                                className="gap-2"
-                            >
-                                <Search className="h-4 w-4" />
-                                {t('foods.text_search')}
-                            </Button>
-                            <Button
-                                type="button"
-                                variant={
-                                    searchMode === 'barcode'
-                                        ? 'default'
-                                        : 'outline'
-                                }
-                                size="sm"
-                                onClick={() => setSearchMode('barcode')}
-                                className="gap-2"
-                            >
-                                <Barcode className="h-4 w-4" />
-                                {t('foods.barcode_lookup')}
-                            </Button>
+            {/* Live Reverb WebSockets Sync Progress Bar */}
+            {syncProgress && (
+                <div
+                    data-testid="sync-progress-banner"
+                    className="relative overflow-hidden rounded-xl border border-primary/30 bg-card p-4 shadow-xs transition-all duration-300"
+                >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                {syncProgress.completed ? (
+                                    <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                                ) : (
+                                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                                )}
+                            </div>
+                            <div className="space-y-0.5">
+                                <div className="flex items-center gap-2">
+                                    <h4 className="text-sm font-semibold text-foreground">
+                                        {syncProgress.completed
+                                            ? t('foods.sync_completed')
+                                            : t('foods.sync_progress_title')}
+                                    </h4>
+                                    <Badge
+                                        variant="outline"
+                                        className={
+                                            syncProgress.completed
+                                                ? 'border-emerald-500/30 bg-emerald-500/10 text-[10px] text-emerald-600 dark:text-emerald-400'
+                                                : 'border-blue-500/30 bg-blue-500/10 text-[10px] text-blue-600 dark:text-blue-400'
+                                        }
+                                    >
+                                        {syncProgress.completed
+                                            ? 'Done'
+                                            : `${syncProgress.percent}%`}
+                                    </Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    {syncProgress.status}
+                                </p>
+                            </div>
                         </div>
 
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setScannerOpen(true)}
-                            className="gap-2 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
-                        >
-                            <Camera className="h-4 w-4 text-emerald-600" />
-                            {t('foods.scan_camera')}
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                            {syncProgress.savedCount > 0 && (
+                                <Badge variant="secondary" className="text-xs">
+                                    +
+                                    {t('foods.sync_progress_items', {
+                                        count: syncProgress.savedCount,
+                                    })}
+                                </Badge>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => setSyncProgress(null)}
+                                className="rounded p-1 text-muted-foreground hover:text-foreground"
+                                aria-label="Dismiss progress"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
                     </div>
 
-                    <form onSubmit={handleSearch} className="flex gap-2">
+                    {/* Animated Progress Bar */}
+                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                            className={`h-full transition-all duration-500 ease-out ${
+                                syncProgress.completed
+                                    ? 'bg-emerald-500'
+                                    : 'bg-primary'
+                            }`}
+                            style={{
+                                width: `${Math.max(5, syncProgress.percent)}%`,
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Unified Search Bar */}
+            <Card className="border-border/60 shadow-xs">
+                <CardContent className="p-4">
+                    <form
+                        onSubmit={handleSearch}
+                        className="flex flex-col gap-3 sm:flex-row sm:items-center"
+                    >
                         <div className="relative flex-1">
-                            {searchMode === 'text' ? (
-                                <>
-                                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input
-                                        placeholder={t(
-                                            'foods.search_placeholder',
-                                        )}
-                                        value={query}
-                                        onChange={(e) =>
-                                            setQuery(e.target.value)
-                                        }
-                                        className="pr-9 pl-9"
-                                    />
-                                </>
-                            ) : (
-                                <>
-                                    <Barcode className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input
-                                        placeholder={t(
-                                            'foods.barcode_placeholder',
-                                        )}
-                                        value={barcodeInput}
-                                        onChange={(e) =>
-                                            setBarcodeInput(e.target.value)
-                                        }
-                                        className="pr-9 pl-9 font-mono"
-                                    />
-                                </>
-                            )}
-                            {(query || barcodeInput) && (
+                            <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder={t('foods.search_placeholder')}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="h-10 pr-9 pl-9 text-sm"
+                            />
+                            {searchTerm && (
                                 <button
                                     type="button"
                                     onClick={handleClearSearch}
@@ -503,10 +580,24 @@ export default function FoodsIndex({
                                 </button>
                             )}
                         </div>
-                        <Button type="submit" className="gap-2">
-                            <Search className="h-4 w-4" />
-                            {t('action.lookup')}
-                        </Button>
+
+                        <div className="flex items-center gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setScannerOpen(true)}
+                                className="h-10 gap-2 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
+                            >
+                                <Camera className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                <span className="hidden sm:inline">
+                                    {t('foods.scan_camera')}
+                                </span>
+                            </Button>
+                            <Button type="submit" className="h-10 gap-2">
+                                <Search className="h-4 w-4" />
+                                <span>{t('action.lookup')}</span>
+                            </Button>
+                        </div>
                     </form>
                 </CardContent>
             </Card>
@@ -658,44 +749,76 @@ export default function FoodsIndex({
                                                 {food.name}
                                             </CardTitle>
 
-                                            {food.is_custom ? (
-                                                <Badge
-                                                    variant="secondary"
-                                                    className="shrink-0 border-purple-500/30 bg-purple-500/10 text-[10px] text-purple-600 dark:text-purple-400"
-                                                >
-                                                    Custom
-                                                </Badge>
-                                            ) : food.nutri_score ? (
-                                                <Badge
-                                                    className={`shrink-0 text-[10px] font-bold uppercase ${
-                                                        food.nutri_score.toLowerCase() ===
-                                                        'a'
-                                                            ? 'bg-emerald-600 text-white'
-                                                            : food.nutri_score.toLowerCase() ===
-                                                                'b'
-                                                              ? 'bg-green-500 text-white'
-                                                              : food.nutri_score.toLowerCase() ===
-                                                                  'c'
-                                                                ? 'bg-yellow-500 text-black'
+                                            <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+                                                {food.is_custom ||
+                                                food.search_origin ===
+                                                    'custom' ? (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="shrink-0 gap-1 border-purple-500/30 bg-purple-500/10 text-[10px] font-medium text-purple-600 dark:text-purple-400"
+                                                    >
+                                                        <Apple className="h-3 w-3" />
+                                                        {t(
+                                                            'foods.badge_custom',
+                                                        )}
+                                                    </Badge>
+                                                ) : food.search_origin ===
+                                                  'openfoodfacts' ? (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="shrink-0 gap-1 border-emerald-500/30 bg-emerald-500/10 text-[10px] font-medium text-emerald-600 dark:text-emerald-400"
+                                                    >
+                                                        <Globe className="h-3 w-3" />
+                                                        {t(
+                                                            'foods.badge_openfoodfacts',
+                                                        )}
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="shrink-0 gap-1 border-blue-500/30 bg-blue-500/10 text-[10px] font-medium text-blue-600 dark:text-blue-400"
+                                                    >
+                                                        <Database className="h-3 w-3" />
+                                                        {t(
+                                                            'foods.badge_in_database',
+                                                        )}
+                                                    </Badge>
+                                                )}
+
+                                                {food.nutri_score && (
+                                                    <Badge
+                                                        className={`shrink-0 text-[10px] font-bold uppercase ${
+                                                            food.nutri_score.toLowerCase() ===
+                                                            'a'
+                                                                ? 'bg-emerald-600 text-white'
                                                                 : food.nutri_score.toLowerCase() ===
-                                                                    'd'
-                                                                  ? 'bg-orange-500 text-white'
-                                                                  : 'bg-red-600 text-white'
-                                                    }`}
-                                                >
-                                                    Nutri {food.nutri_score}
-                                                </Badge>
-                                            ) : (
-                                                <Badge
-                                                    variant="outline"
-                                                    className="shrink-0 text-[10px]"
-                                                >
-                                                    OFF
-                                                </Badge>
-                                            )}
+                                                                    'b'
+                                                                  ? 'bg-green-500 text-white'
+                                                                  : food.nutri_score.toLowerCase() ===
+                                                                      'c'
+                                                                    ? 'bg-yellow-500 text-black'
+                                                                    : food.nutri_score.toLowerCase() ===
+                                                                        'd'
+                                                                      ? 'bg-orange-500 text-white'
+                                                                      : 'bg-red-600 text-white'
+                                                        }`}
+                                                    >
+                                                        Nutri {food.nutri_score}
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </div>
-                                        <CardDescription className="line-clamp-1 text-xs">
-                                            {food.brand || 'Generic / Homemade'}
+                                        <CardDescription className="flex items-center justify-between text-xs">
+                                            <span className="line-clamp-1">
+                                                {food.brand ||
+                                                    'Generic / Homemade'}
+                                            </span>
+                                            {food.barcode && (
+                                                <span className="ml-2 flex shrink-0 items-center gap-1 font-mono text-[10px] text-muted-foreground">
+                                                    <Barcode className="h-3 w-3" />
+                                                    {food.barcode}
+                                                </span>
+                                            )}
                                         </CardDescription>
                                     </div>
                                 </div>

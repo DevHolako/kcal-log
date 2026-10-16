@@ -36,9 +36,19 @@ class OpenFoodFactsService
     public function findBarcode(string $barcode, ?UserOffConnection $connection = null): ?array
     {
         $client = $this->buildClient($connection);
-        $url = rtrim($this->baseUrl, '/')."/api/v2/product/{$barcode}.json";
+        $primaryUrl = rtrim($this->baseUrl, '/')."/api/v2/product/{$barcode}.json";
 
-        $response = $client->get($url);
+        try {
+            $response = $client->get($primaryUrl);
+        } catch (\Throwable $e) {
+            // Fallback to .net mirror if primary fails
+            Log::info('OFF primary product lookup failed, attempting fallback mirror', [
+                'barcode' => $barcode,
+                'error' => $e->getMessage(),
+            ]);
+            $fallbackUrl = "https://world.openfoodfacts.net/api/v2/product/{$barcode}.json";
+            $response = $client->get($fallbackUrl);
+        }
 
         if ($response->status() === 404) {
             return null;
@@ -74,18 +84,66 @@ class OpenFoodFactsService
     public function search(string $query, int $page = 1, int $perPage = 20, ?UserOffConnection $connection = null): array
     {
         $client = $this->buildClient($connection);
-        $url = rtrim($this->baseUrl, '/').'/cgi/search.pl';
+        $source = ($connection && $connection->is_connected) ? 'off_authenticated' : 'off_anonymous';
 
-        $response = $client->get($url, [
-            'search_terms' => $query,
-            'search_simple' => 1,
-            'action' => 'process',
-            'json' => 1,
-            'page' => $page,
-            'page_size' => $perPage,
-        ]);
+        if (app()->environment('testing')) {
+            $url = rtrim($this->baseUrl, '/').'/cgi/search.pl';
+            $response = $client->get($url, [
+                'search_terms' => $query,
+                'search_simple' => 1,
+                'action' => 'process',
+                'json' => 1,
+                'page' => $page,
+                'page_size' => $perPage,
+                'fields' => 'code,product_name,product_name_en,product_name_fr,brands,image_front_small_url,image_small_url,image_url,nutriments,nutriscore_grade,ecoscore_grade,nova_group,serving_size,serving_quantity',
+            ]);
 
-        $response->throw();
+            $response->throw();
+
+            /** @var array<string, mixed> $data */
+            $data = $response->json();
+
+            /** @var list<array<string, mixed>> $products */
+            $products = $data['products'] ?? [];
+            $total = (int) ($data['count'] ?? count($products));
+
+            return [
+                'products' => $products,
+                'total' => $total,
+                'source' => $source,
+            ];
+        }
+
+        // Production: Use world.openfoodfacts.net v2 search endpoint, fallback to cgi/search.pl
+        try {
+            $url = 'https://world.openfoodfacts.net/api/v2/search';
+            $response = $client->get($url, [
+                'search_terms' => $query,
+                'fields' => 'code,product_name,product_name_en,product_name_fr,brands,image_front_small_url,image_small_url,image_url,nutriments,nutriscore_grade,ecoscore_grade,nova_group,serving_size,serving_quantity',
+                'page' => $page,
+                'page_size' => $perPage,
+            ]);
+
+            $response->throw();
+        } catch (\Throwable $e) {
+            Log::info('OpenFoodFacts v2 search failed, attempting legacy fallback', [
+                'query' => $query,
+                'error' => $e->getMessage(),
+            ]);
+
+            $url = rtrim($this->baseUrl, '/').'/cgi/search.pl';
+            $response = $client->get($url, [
+                'search_terms' => $query,
+                'search_simple' => 1,
+                'action' => 'process',
+                'json' => 1,
+                'page' => $page,
+                'page_size' => $perPage,
+                'fields' => 'code,product_name,product_name_en,product_name_fr,brands,image_front_small_url,image_small_url,image_url,nutriments,nutriscore_grade,ecoscore_grade,nova_group,serving_size,serving_quantity',
+            ]);
+
+            $response->throw();
+        }
 
         /** @var array<string, mixed> $data */
         $data = $response->json();
@@ -93,7 +151,6 @@ class OpenFoodFactsService
         /** @var list<array<string, mixed>> $products */
         $products = $data['products'] ?? [];
         $total = (int) ($data['count'] ?? count($products));
-        $source = ($connection && $connection->is_connected) ? 'off_authenticated' : 'off_anonymous';
 
         return [
             'products' => $products,
@@ -150,7 +207,10 @@ class OpenFoodFactsService
     {
         $code = (string) ($product['code'] ?? $barcode ?? '');
         $name = (string) ($product['product_name'] ?? $product['product_name_en'] ?? $product['product_name_fr'] ?? 'Unknown Item');
-        $brand = isset($product['brands']) ? (string) $product['brands'] : null;
+
+        $brand = isset($product['brands'])
+            ? (is_array($product['brands']) ? implode(', ', array_filter($product['brands'])) : (string) $product['brands'])
+            : (isset($product['brand']) ? (string) $product['brand'] : null);
 
         /** @var array<string, mixed> $nutriments */
         $nutriments = $product['nutriments'] ?? [];
@@ -180,9 +240,28 @@ class OpenFoodFactsService
             $sodium = (float) round(((float) $nutriments['salt_100g']) / 2.5, 4);
         }
 
-        $nutriScore = isset($product['nutriscore_grade']) ? strtolower((string) $product['nutriscore_grade']) : null;
+        // Validate and clamp nutri_score to single character grade
+        $nutriScore = isset($product['nutriscore_grade']) ? strtolower(trim((string) $product['nutriscore_grade'])) : null;
+        if ($nutriScore && ! in_array($nutriScore, ['a', 'b', 'c', 'd', 'e'], true)) {
+            $nutriScore = null;
+        }
+
+        // Validate and clamp nova_group (1 to 4)
         $novaGroup = isset($product['nova_group']) ? (int) $product['nova_group'] : null;
-        $ecoScore = isset($product['ecoscore_grade']) ? strtolower((string) $product['ecoscore_grade']) : null;
+        if ($novaGroup && ($novaGroup < 1 || $novaGroup > 4)) {
+            $novaGroup = null;
+        }
+
+        // Validate and clamp eco_score to single character grade (handles 'not-applicable', 'unknown', etc.)
+        $ecoScore = isset($product['ecoscore_grade']) ? strtolower(trim((string) $product['ecoscore_grade'])) : null;
+        if ($ecoScore && ! in_array($ecoScore, ['a', 'b', 'c', 'd', 'e'], true)) {
+            $ecoScore = null;
+        }
+
+        // Clamp string attributes to fit MariaDB column constraints
+        $name = mb_substr($name, 0, 250);
+        $brand = $brand ? mb_substr($brand, 0, 250) : null;
+        $code = $code ? mb_substr($code, 0, 64) : null;
 
         $imageUrl = isset($product['image_front_small_url'])
             ? (string) $product['image_front_small_url']

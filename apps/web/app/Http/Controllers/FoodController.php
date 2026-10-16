@@ -102,28 +102,43 @@ class FoodController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $query = $request->query('q');
+        $rawQuery = $request->query('q') ?? $request->query('barcode');
+        $query = ! empty($rawQuery) ? trim((string) $rawQuery) : null;
         $barcode = $request->query('barcode');
 
         $searchResult = null;
-        if (! empty($barcode)) {
-            $lookup = $this->foodService->findByBarcode((string) $barcode, $user);
-            if ($lookup) {
+        if (! empty($query)) {
+            // If the query is a barcode (6 to 14 digits)
+            $isBarcode = (bool) preg_match('/^\d{6,14}$/', $query);
+
+            if ($isBarcode) {
+                $lookup = $this->foodService->findByBarcode($query, $user);
+                if ($lookup) {
+                    $searchResult = [
+                        'items' => [$lookup->food],
+                        'source' => $lookup->source,
+                        'is_degraded' => $lookup->isDegraded,
+                        'total' => 1,
+                    ];
+                } else {
+                    // Fallback to text query across DB and catalog
+                    $result = $this->foodService->search($query, $user, 1, 25);
+                    $searchResult = [
+                        'items' => $result->items,
+                        'source' => $result->source,
+                        'is_degraded' => $result->isDegraded,
+                        'total' => $result->total,
+                    ];
+                }
+            } else {
+                $result = $this->foodService->search($query, $user, 1, 25);
                 $searchResult = [
-                    'items' => [$lookup->food],
-                    'source' => $lookup->source,
-                    'is_degraded' => $lookup->isDegraded,
-                    'total' => 1,
+                    'items' => $result->items,
+                    'source' => $result->source,
+                    'is_degraded' => $result->isDegraded,
+                    'total' => $result->total,
                 ];
             }
-        } elseif (! empty($query)) {
-            $result = $this->foodService->search((string) $query, $user, 1, 25);
-            $searchResult = [
-                'items' => $result->items,
-                'source' => $result->source,
-                'is_degraded' => $result->isDegraded,
-                'total' => $result->total,
-            ];
         }
 
         // Fetch recent/popular database items for initial view (up to 60 for rich initial view)

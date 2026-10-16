@@ -262,7 +262,7 @@ index.form = indexForm
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:164
+* @see app/Http/Controllers/FoodController.php:179
 * @route '/foods/sync'
 */
 export const sync = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -277,7 +277,7 @@ sync.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:164
+* @see app/Http/Controllers/FoodController.php:179
 * @route '/foods/sync'
 */
 sync.url = (options?: RouteQueryOptions) => {
@@ -286,7 +286,7 @@ sync.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:164
+* @see app/Http/Controllers/FoodController.php:179
 * @route '/foods/sync'
 */
 sync.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -296,7 +296,7 @@ sync.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:164
+* @see app/Http/Controllers/FoodController.php:179
 * @route '/foods/sync'
 */
 const syncForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -306,7 +306,7 @@ const syncForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => (
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:164
+* @see app/Http/Controllers/FoodController.php:179
 * @route '/foods/sync'
 */
 syncForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -318,7 +318,7 @@ sync.form = syncForm
 
 /**
 * @see \App\Http\Controllers\FoodController::storeCustom
-* @see app/Http/Controllers/FoodController.php:211
+* @see app/Http/Controllers/FoodController.php:226
 * @route '/foods/custom'
 */
 export const storeCustom = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -333,7 +333,7 @@ storeCustom.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::storeCustom
-* @see app/Http/Controllers/FoodController.php:211
+* @see app/Http/Controllers/FoodController.php:226
 * @route '/foods/custom'
 */
 storeCustom.url = (options?: RouteQueryOptions) => {
@@ -342,7 +342,7 @@ storeCustom.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\FoodController::storeCustom
-* @see app/Http/Controllers/FoodController.php:211
+* @see app/Http/Controllers/FoodController.php:226
 * @route '/foods/custom'
 */
 storeCustom.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -352,7 +352,7 @@ storeCustom.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::storeCustom
-* @see app/Http/Controllers/FoodController.php:211
+* @see app/Http/Controllers/FoodController.php:226
 * @route '/foods/custom'
 */
 const storeCustomForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -362,7 +362,7 @@ const storeCustomForm = (options?: RouteQueryOptions): RouteFormDefinition<'post
 
 /**
 * @see \App\Http\Controllers\FoodController::storeCustom
-* @see app/Http/Controllers/FoodController.php:211
+* @see app/Http/Controllers/FoodController.php:226
 * @route '/foods/custom'
 */
 storeCustomForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -374,7 +374,7 @@ storeCustom.form = storeCustomForm
 
 /**
 * @see \App\Http\Controllers\FoodController::destroyCustom
-* @see app/Http/Controllers/FoodController.php:225
+* @see app/Http/Controllers/FoodController.php:240
 * @route '/foods/custom/{food}'
 */
 export const destroyCustom = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -389,7 +389,7 @@ destroyCustom.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::destroyCustom
-* @see app/Http/Controllers/FoodController.php:225
+* @see app/Http/Controllers/FoodController.php:240
 * @route '/foods/custom/{food}'
 */
 destroyCustom.url = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -422,7 +422,7 @@ destroyCustom.url = (args: { food: number | { id: number } } | [food: number | {
 
 /**
 * @see \App\Http\Controllers\FoodController::destroyCustom
-* @see app/Http/Controllers/FoodController.php:225
+* @see app/Http/Controllers/FoodController.php:240
 * @route '/foods/custom/{food}'
 */
 destroyCustom.delete = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -432,7 +432,7 @@ destroyCustom.delete = (args: { food: number | { id: number } } | [food: number 
 
 /**
 * @see \App\Http\Controllers\FoodController::destroyCustom
-* @see app/Http/Controllers/FoodController.php:225
+* @see app/Http/Controllers/FoodController.php:240
 * @route '/foods/custom/{food}'
 */
 const destroyCustomForm = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -447,7 +447,7 @@ const destroyCustomForm = (args: { food: number | { id: number } } | [food: numb
 
 /**
 * @see \App\Http\Controllers\FoodController::destroyCustom
-* @see app/Http/Controllers/FoodController.php:225
+* @see app/Http/Controllers/FoodController.php:240
 * @route '/foods/custom/{food}'
 */
 destroyCustomForm.delete = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
