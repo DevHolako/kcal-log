@@ -2,6 +2,9 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Tools\GetDailySummaryTool;
+use App\Ai\Tools\GetDiaryEntriesTool;
+use App\Ai\Tools\GetTargetProfileTool;
 use App\Models\AiConversation;
 use App\Models\TargetProfile;
 use App\Models\User;
@@ -34,10 +37,10 @@ class NutritionAssistant implements Agent, Conversational, HasTools
         if ($target) {
             $targetContext = sprintf(
                 'Active Daily Target: %s kcal (Protein: %sg, Carbs: %sg, Fat: %sg, BMR: %s kcal).',
-                $target->calorie_target,
-                $target->protein_target,
-                $target->carb_target,
-                $target->fat_target,
+                $target->calories,
+                $target->protein_g,
+                $target->carbs_g,
+                $target->fat_g,
                 $target->bmr ?? 'N/A'
             );
         }
@@ -87,6 +90,10 @@ INSTRUCTIONS;
      */
     public function tools(): iterable
     {
-        return [];
+        return [
+            new GetDailySummaryTool($this->user),
+            new GetDiaryEntriesTool($this->user),
+            new GetTargetProfileTool($this->user),
+        ];
     }
 }

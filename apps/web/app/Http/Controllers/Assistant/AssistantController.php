@@ -15,6 +15,8 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Ai\Streaming\Events\TextDelta;
+use Laravel\Ai\Streaming\Events\ToolCall;
+use Laravel\Ai\Streaming\Events\ToolResult;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
@@ -142,6 +144,18 @@ class AssistantController extends Controller
                         if ($event instanceof TextDelta) {
                             $fullText .= $event->delta;
                             echo 'data: '.json_encode(['type' => 'text', 'delta' => $event->delta])."\n\n";
+                            if (ob_get_level() > 0) {
+                                ob_flush();
+                            }
+                            flush();
+                        } elseif ($event instanceof ToolCall) {
+                            echo 'data: '.json_encode(['type' => 'tool_call', 'tool' => $event->toolCall->name])."\n\n";
+                            if (ob_get_level() > 0) {
+                                ob_flush();
+                            }
+                            flush();
+                        } elseif ($event instanceof ToolResult) {
+                            echo 'data: '.json_encode(['type' => 'tool_result', 'tool' => $event->toolCall->name])."\n\n";
                             if (ob_get_level() > 0) {
                                 ob_flush();
                             }

@@ -63,6 +63,7 @@ export default function AssistantPage({
         activeConversation?.messages || [],
     );
     const [streamingContent, setStreamingContent] = useState('');
+    const [activeTool, setActiveTool] = useState<string | null>(null);
     const [streamError, setStreamError] = useState<string | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -165,10 +166,14 @@ export default function AssistantPage({
                             if (data.type === 'text') {
                                 accumulated += data.delta;
                                 setStreamingContent(accumulated);
+                            } else if (data.type === 'tool_call') {
+                                setActiveTool(data.tool);
+                            } else if (data.type === 'tool_result') {
+                                setActiveTool(null);
                             } else if (data.type === 'error') {
                                 setStreamError(data.message);
                             } else if (data.type === 'done') {
-                                // Finished streaming
+                                setActiveTool(null);
                             }
                         } catch {
                             // Non-json or keep-alive heartbeat
@@ -194,6 +199,7 @@ export default function AssistantPage({
         } finally {
             setIsStreaming(false);
             setStreamingContent('');
+            setActiveTool(null);
         }
     };
 
@@ -410,7 +416,14 @@ export default function AssistantPage({
                                     </div>
                                 )}
 
-                                {isStreaming && !streamingContent && (
+                                {activeTool && (
+                                    <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs font-medium text-primary">
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        Checking your nutrition data ({activeTool})...
+                                    </div>
+                                )}
+
+                                {isStreaming && !streamingContent && !activeTool && (
                                     <div className="flex items-center gap-2 p-2 text-xs text-muted-foreground">
                                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                         Thinking and analyzing nutrition logs...
