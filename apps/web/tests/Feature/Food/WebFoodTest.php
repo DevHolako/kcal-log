@@ -228,3 +228,47 @@ test('user can fetch sync status via polling endpoint', function () {
         ->assertJsonPath('progress.percent', 45)
         ->assertJsonPath('progress.saved_count', 12);
 });
+
+test('user can fetch recent foods via search endpoint with recent=1', function () {
+    Food::factory()->count(3)->create(['is_custom' => false]);
+
+    $response = $this->actingAs($this->user)
+        ->getJson(route('foods.search', ['recent' => '1']));
+
+    $response->assertOk()
+        ->assertJsonStructure(['items', 'source', 'is_degraded', 'total'])
+        ->assertJsonCount(3, 'items');
+});
+
+test('user can search barcode directly via q parameter in search endpoint', function () {
+    $food = Food::factory()->create([
+        'name' => 'Direct Barcode Granola',
+        'barcode' => '9998887776665',
+        'is_custom' => false,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->getJson(route('foods.search', ['q' => '9998887776665']));
+
+    $response->assertOk()
+        ->assertJsonPath('total', 1)
+        ->assertJsonPath('items.0.name', 'Direct Barcode Granola');
+});
+
+test('user can get json details from foods.show when json requested', function () {
+    $food = Food::factory()->create([
+        'name' => 'Instant Check Chia Seeds',
+        'calories' => 454,
+        'protein' => 21.2,
+        'carbs' => 4.9,
+        'fat' => 31.4,
+        'is_custom' => false,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->getJson(route('foods.show', $food));
+
+    $response->assertOk()
+        ->assertJsonPath('food.name', 'Instant Check Chia Seeds')
+        ->assertJsonPath('food.calories', '454.00');
+});

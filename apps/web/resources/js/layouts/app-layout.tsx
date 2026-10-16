@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import FoodCheckerModal from '@/components/food-checker-modal';
+import { useFoodChecker } from '@/hooks/use-food-checker';
 import { useNavigationLayout } from '@/hooks/use-navigation-layout';
 import AppBottomNavLayout from '@/layouts/app/app-bottom-nav-layout';
 import AppHeaderLayout from '@/layouts/app/app-header-layout';
@@ -13,25 +15,28 @@ export default function AppLayout({
     children: ReactNode;
 }) {
     const { layout } = useNavigationLayout();
+    const { isOpen, setIsOpen, initialFood } = useFoodChecker();
+
+    let content = (
+        <AppSidebarLayout breadcrumbs={breadcrumbs} side="left">
+            {children}
+        </AppSidebarLayout>
+    );
 
     if (layout === 'top-nav') {
-        return (
+        content = (
             <AppHeaderLayout breadcrumbs={breadcrumbs}>
                 {children}
             </AppHeaderLayout>
         );
-    }
-
-    if (layout === 'bottom-nav') {
-        return (
+    } else if (layout === 'bottom-nav') {
+        content = (
             <AppBottomNavLayout breadcrumbs={breadcrumbs}>
                 {children}
             </AppBottomNavLayout>
         );
-    }
-
-    if (layout === 'sidebar-right') {
-        return (
+    } else if (layout === 'sidebar-right') {
+        content = (
             <AppSidebarLayout breadcrumbs={breadcrumbs} side="right">
                 {children}
             </AppSidebarLayout>
@@ -39,8 +44,13 @@ export default function AppLayout({
     }
 
     return (
-        <AppSidebarLayout breadcrumbs={breadcrumbs} side="left">
-            {children}
-        </AppSidebarLayout>
+        <>
+            {content}
+            <FoodCheckerModal
+                open={isOpen}
+                onOpenChange={setIsOpen}
+                initialFood={initialFood}
+            />
+        </>
     );
 }

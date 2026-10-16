@@ -32,6 +32,7 @@ class FoodController extends Controller
     {
         $query = (string) $request->query('q', '');
         $barcode = (string) $request->query('barcode', '');
+        $recent = $request->boolean('recent');
 
         /** @var User $user */
         $user = $request->user();
@@ -55,7 +56,27 @@ class FoodController extends Controller
             ]);
         }
 
-        if (strlen(trim($query)) < 2) {
+        $trimmedQuery = trim($query);
+
+        if ($recent && strlen($trimmedQuery) < 2) {
+            $recentFoods = Food::availableTo($user->id)
+                ->with('servings')
+                ->latest()
+                ->take(12)
+                ->get()
+                ->each(function (Food $f) {
+                    $f->setAttribute('search_origin', $f->is_custom ? 'custom' : 'database');
+                });
+
+            return response()->json([
+                'items' => $recentFoods,
+                'source' => 'cache',
+                'is_degraded' => false,
+                'total' => $recentFoods->count(),
+            ]);
+        }
+
+        if (strlen($trimmedQuery) < 2) {
             return response()->json([
                 'items' => [],
                 'source' => 'cache',
@@ -64,7 +85,20 @@ class FoodController extends Controller
             ]);
         }
 
-        $result = $this->foodService->search(trim($query), $user, 1, 25);
+        // If the query is a barcode (6 to 14 digits)
+        if (preg_match('/^\d{6,14}$/', $trimmedQuery)) {
+            $lookup = $this->foodService->findByBarcode($trimmedQuery, $user);
+            if ($lookup) {
+                return response()->json([
+                    'items' => [$lookup->food],
+                    'source' => $lookup->source,
+                    'is_degraded' => $lookup->isDegraded,
+                    'total' => 1,
+                ]);
+            }
+        }
+
+        $result = $this->foodService->search($trimmedQuery, $user, 1, 25);
 
         return response()->json([
             'items' => $result->items,
@@ -177,7 +211,7 @@ class FoodController extends Controller
     /**
      * Display a specific food item's detail page with nutritional facts and calculator.
      */
-    public function show(Food $food, Request $request): Response
+    public function show(Food $food, Request $request): Response|JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
@@ -189,6 +223,12 @@ class FoodController extends Controller
 
         $food->load('servings');
         $food->setAttribute('search_origin', $food->is_custom ? 'custom' : 'database');
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'food' => $food,
+            ]);
+        }
 
         return Inertia::render('foods/show', [
             'food' => $food,

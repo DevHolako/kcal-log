@@ -6,6 +6,7 @@ import {
     FileText,
     FolderGit2,
     Menu,
+    Search,
     TrendingUp,
     UtensilsCrossed,
 } from 'lucide-react';
@@ -17,6 +18,7 @@ import { PaletteSelector } from '@/components/palette-selector';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { openFoodChecker } from '@/hooks/use-food-checker';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -131,6 +133,22 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 </SheetHeader>
                                 <div className="flex h-full flex-1 flex-col justify-between py-6">
                                     <div className="flex flex-col space-y-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => openFoodChecker()}
+                                            className="flex items-center space-x-3 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
+                                        >
+                                            <Search className="h-5 w-5 shrink-0" />
+                                            <span>
+                                                {t(
+                                                    'food_checker.trigger_button',
+                                                )}
+                                            </span>
+                                            <kbd className="ml-auto rounded border border-border/80 bg-background px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                                                ⌘K
+                                            </kbd>
+                                        </button>
+
                                         {mainNavItems.map((item) => {
                                             const active = isCurrentUrl(
                                                 item.href,
@@ -231,6 +249,21 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     </div>
 
                     <div className="ml-auto flex items-center space-x-2">
+                        <button
+                            type="button"
+                            onClick={() => openFoodChecker()}
+                            className="inline-flex h-8 items-center gap-2 rounded-lg border border-border/70 bg-muted/40 px-2.5 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:bg-muted hover:text-foreground"
+                            title={t('food_checker.trigger_button')}
+                        >
+                            <Search className="h-3.5 w-3.5 text-primary" />
+                            <span className="hidden md:inline">
+                                {t('food_checker.trigger_button')}
+                            </span>
+                            <kbd className="py-0.2 hidden rounded border border-border/80 bg-background px-1 text-[10px] font-semibold text-muted-foreground shadow-2xs sm:inline-block">
+                                ⌘K
+                            </kbd>
+                        </button>
+
                         <div className="hidden items-center gap-1.5 md:flex">
                             <PaletteSelector />
                             <ThemeToggle />

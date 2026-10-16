@@ -30,6 +30,7 @@ import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getEcho } from '@/echo';
+import { openFoodChecker } from '@/hooks/use-food-checker';
 import { useTranslation } from '@/lib/i18n';
 import {
     Card,
@@ -511,7 +512,19 @@ export default function FoodsIndex({
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => openFoodChecker()}
+                        className="gap-2 border-primary/30 bg-primary/5 text-primary hover:bg-primary/10"
+                    >
+                        <Search className="h-4 w-4" />
+                        <span>{t('food_checker.trigger_button')}</span>
+                        <kbd className="py-0.2 hidden rounded border border-border/80 bg-background px-1 text-[10px] font-semibold text-muted-foreground shadow-2xs sm:inline-block">
+                            ⌘K
+                        </kbd>
+                    </Button>
                     <Button
                         type="button"
                         variant="outline"
@@ -830,7 +843,11 @@ export default function FoodsIndex({
                         >
                             <CardHeader className="pb-2">
                                 <div className="flex items-start gap-3">
-                                    <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-muted/30">
+                                    <div
+                                        onClick={() => openFoodChecker(food)}
+                                        className="relative flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-muted/30 transition hover:border-primary/50"
+                                        title={t('food_checker.quick_check')}
+                                    >
                                         {food.image_url ? (
                                             <img
                                                 src={food.image_url}
@@ -851,8 +868,11 @@ export default function FoodsIndex({
                                     <div className="min-w-0 flex-1 space-y-1">
                                         <div className="flex items-start justify-between gap-1">
                                             <CardTitle
-                                                className="line-clamp-1 text-base leading-tight font-semibold"
-                                                title={food.name}
+                                                onClick={() =>
+                                                    openFoodChecker(food)
+                                                }
+                                                className="line-clamp-1 cursor-pointer text-base leading-tight font-semibold transition hover:text-primary"
+                                                title={`${food.name} - ${t('food_checker.quick_check')}`}
                                             >
                                                 {food.name}
                                             </CardTitle>
@@ -987,23 +1007,37 @@ export default function FoodsIndex({
                                 </div>
                             </CardContent>
 
-                            <CardFooter className="flex items-center justify-between gap-2 border-t border-border/40 pt-2">
-                                <Link
-                                    href={`/foods/${food.id}`}
-                                    className="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-2.5 text-xs font-medium text-muted-foreground shadow-xs hover:bg-accent hover:text-foreground"
+                            <CardFooter className="flex items-center justify-between gap-1.5 border-t border-border/40 pt-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openFoodChecker(food)}
+                                    className="gap-1 px-2.5 text-xs font-medium hover:border-primary/40 hover:text-primary"
+                                    title={t('food_checker.quick_check')}
                                 >
-                                    {t('foods.view_details')}
-                                </Link>
+                                    <Search className="h-3.5 w-3.5 text-primary" />
+                                    <span>{t('food_checker.quick_check')}</span>
+                                </Button>
 
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => openCalculator(food)}
-                                    className="flex-1 gap-1.5 text-xs font-medium hover:border-primary/40 hover:text-primary"
+                                    className="flex-1 gap-1 text-xs font-medium hover:border-primary/40 hover:text-primary"
                                 >
                                     <Calculator className="h-3.5 w-3.5 text-primary" />
-                                    {t('foods.portion_and_log')}
+                                    <span className="truncate">
+                                        {t('foods.portion_and_log')}
+                                    </span>
                                 </Button>
+
+                                <Link
+                                    href={`/foods/${food.id}`}
+                                    className="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-2 text-xs font-medium text-muted-foreground shadow-xs hover:bg-accent hover:text-foreground"
+                                    title={t('foods.view_details')}
+                                >
+                                    <ArrowRight className="h-3.5 w-3.5" />
+                                </Link>
 
                                 {food.is_custom && (
                                     <Button

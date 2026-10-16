@@ -3,6 +3,7 @@ import {
     CalendarDays,
     ChefHat,
     FileText,
+    Search,
     TrendingUp,
     UtensilsCrossed,
 } from 'lucide-react';
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { openFoodChecker } from '@/hooks/use-food-checker';
 import { useInitials } from '@/hooks/use-initials';
 import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
@@ -91,6 +93,18 @@ export default function AppBottomNavLayout({
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => openFoodChecker()}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border/70 bg-muted/40 px-2.5 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:bg-muted hover:text-foreground"
+                            title={t('food_checker.trigger_button')}
+                        >
+                            <Search className="h-3.5 w-3.5 text-primary" />
+                            <span className="hidden sm:inline">
+                                {t('food_checker.trigger_button')}
+                            </span>
+                        </button>
+
                         <PaletteSelector />
                         <ThemeToggle />
                         <LanguageSwitcher />

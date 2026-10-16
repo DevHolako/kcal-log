@@ -216,6 +216,33 @@ export const translations: Record<Locale, Record<string, string>> = {
         'foods.off_banner_action': 'Connect OFF Account',
         'foods.off_banner_dismiss': 'Dismiss',
 
+        // Food Nutrition Checker
+        'food_checker.title': 'Food Nutrition Checker',
+        'food_checker.subtitle':
+            'Search and inspect calories, macros, and nutrients without logging.',
+        'food_checker.search_placeholder':
+            'Search any food (e.g. chia seeds, oats, skyr, barcode)...',
+        'food_checker.trigger_button': 'Check Food',
+        'food_checker.quick_check': 'Check Food',
+        'food_checker.popular_searches': 'Popular & Quick Lookups',
+        'food_checker.recent_foods': 'Recently Cached Foods',
+        'food_checker.searching': 'Searching Open Food Facts & database...',
+        'food_checker.no_results': 'No foods found matching "{query}"',
+        'food_checker.back_to_search': 'Back to Search',
+        'food_checker.portion_calculator':
+            'Interactive Portion & Macro Checker',
+        'food_checker.macro_distribution': 'Caloric Macro Distribution',
+        'food_checker.log_optional': 'Log to Diary (Optional)',
+        'food_checker.log_success': 'Food logged to your diary successfully!',
+        'food_checker.log_to_diary': 'Log This Portion',
+        'food_checker.logging': 'Logging...',
+        'food_checker.check_another': 'Check Another Food',
+        'food_checker.open_full_page': 'View Full Page',
+        'food_checker.shortcut_hint': 'Press ⌘K or Ctrl+K to search anytime',
+        'food_checker.protein_cals': '{percent}% of calories ({grams}g)',
+        'food_checker.carbs_cals': '{percent}% of calories ({grams}g)',
+        'food_checker.fat_cals': '{percent}% of calories ({grams}g)',
+
         // Recipes & Meals
         'recipes.title': 'Recipes & Meals',
         'recipes.subtitle':
@@ -547,6 +574,36 @@ export const translations: Record<Locale, Record<string, string>> = {
             'La recherche et le scan de code-barres mondial fonctionnent automatiquement sans compte. Pour contribuer aux fiches produits ou synchroniser vos ajouts, vous pouvez associer votre compte Open Food Facts.',
         'foods.off_banner_action': 'Associer mon compte',
         'foods.off_banner_dismiss': 'Ignorer',
+
+        // Food Nutrition Checker
+        'food_checker.title': 'Vérificateur nutritionnel d’aliments',
+        'food_checker.subtitle':
+            'Recherchez et inspectez les calories, macros et nutriments sans enregistrer.',
+        'food_checker.search_placeholder':
+            'Rechercher un aliment (ex. graines de chia, avoine, skyr, code-barres)...',
+        'food_checker.trigger_button': 'Vérifier un aliment',
+        'food_checker.quick_check': 'Vérifier un aliment',
+        'food_checker.popular_searches': 'Recherches populaires & rapides',
+        'food_checker.recent_foods': 'Aliments récemment en cache',
+        'food_checker.searching':
+            'Recherche dans Open Food Facts et la base...',
+        'food_checker.no_results': 'Aucun aliment trouvé pour « {query} »',
+        'food_checker.back_to_search': 'Retour à la recherche',
+        'food_checker.portion_calculator':
+            'Calculateur interactif de portion & macros',
+        'food_checker.macro_distribution': 'Répartition calorique des macros',
+        'food_checker.log_optional': 'Enregistrer dans le journal (optionnel)',
+        'food_checker.log_success':
+            'Aliment enregistré avec succès dans votre journal !',
+        'food_checker.log_to_diary': 'Enregistrer cette portion',
+        'food_checker.logging': 'Enregistrement...',
+        'food_checker.check_another': 'Vérifier un autre aliment',
+        'food_checker.open_full_page': 'Voir la fiche complète',
+        'food_checker.shortcut_hint':
+            'Appuyez sur ⌘K ou Ctrl+K pour rechercher à tout moment',
+        'food_checker.protein_cals': '{percent}% des calories ({grams}g)',
+        'food_checker.carbs_cals': '{percent}% des calories ({grams}g)',
+        'food_checker.fat_cals': '{percent}% des calories ({grams}g)',
 
         // Recipes & Meals
         'recipes.title': 'Recettes & Repas préparés',
