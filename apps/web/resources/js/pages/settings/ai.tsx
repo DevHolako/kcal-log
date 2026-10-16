@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import SettingsLayout from '@/layouts/settings/layout';
 
 interface Props {
     connection: {
@@ -90,7 +89,7 @@ export default function AiSettings({ connection, status }: Props) {
     };
 
     return (
-        <SettingsLayout>
+        <>
             <Head title="AI Assistant Settings" />
 
             <div className="space-y-6">
@@ -356,6 +355,6 @@ export default function AiSettings({ connection, status }: Props) {
                     </CardContent>
                 </Card>
             </div>
-        </SettingsLayout>
+        </>
     );
 }
