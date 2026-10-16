@@ -202,7 +202,7 @@ export default function Welcome() {
                                         size="sm"
                                         className="bg-primary font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
                                     >
-                                        Get Started
+                                        Register
                                         <ArrowRight className="ml-1 h-3.5 w-3.5" />
                                     </Button>
                                 </Link>
@@ -1557,13 +1557,13 @@ export default function Welcome() {
 
                     <div className="flex items-center gap-6 text-xs">
                         <Link href={login()} className="hover:text-foreground">
-                            Log in
+                            Sign In
                         </Link>
                         <Link
                             href={register()}
                             className="hover:text-foreground"
                         >
-                            Register
+                            Sign Up
                         </Link>
                         <a
                             href="/docs/api"
