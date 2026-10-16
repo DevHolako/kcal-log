@@ -47,3 +47,19 @@ _Avoid_: PortionOption, ServingMeasure
 **WeightLog**:
 A timestamped record of a user's measured body weight stored in metric kilograms with high precision.
 _Avoid_: WeighInRecord, ScaleEntry
+
+**UserAiConnection**:
+A user-specific AI provider connection maintaining credentials and model preferences encrypted at rest, isolated from general user profile data.
+_Avoid_: ApiKey, AiToken, UserSecret, AiSetting
+
+**NutritionAssistant**:
+An AI-powered conversational assistant capable of querying a user's nutritional diary, body measurements, targets, and food databases via read-only tools.
+_Avoid_: Chatbot, AiBot, ChatAgent
+
+**AiConversation**:
+A persisted multi-turn chat session between a user and the NutritionAssistant.
+_Avoid_: ChatSession, Thread, Dialogue
+
+**AiMessage**:
+A distinct message record within an AiConversation representing user prompts, assistant answers, or tool interaction results.
+_Avoid_: ChatMessage, PromptResponse, TurnRecord
