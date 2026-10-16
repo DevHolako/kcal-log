@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    Bot,
     CalendarDays,
     ChefHat,
     FileText,
@@ -69,6 +70,12 @@ export default function AppBottomNavLayout({
             shortTitle: t('nav.reports'),
             href: '/reports',
             icon: FileText,
+        },
+        {
+            title: 'AI Assistant',
+            shortTitle: 'Assistant',
+            href: '/assistant',
+            icon: Bot,
         },
     ];
 

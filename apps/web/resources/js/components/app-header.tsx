@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
+    Bot,
     CalendarDays,
     ChefHat,
     FileText,
@@ -90,6 +91,11 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
             href: '/reports',
             icon: FileText,
         },
+        {
+            title: 'AI Assistant',
+            href: '/assistant',
+            icon: Bot,
+        },
     ];
 
     const rightNavItems: NavItem[] = [
@@ -108,7 +114,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     return (
         <>
             <header className="sticky top-0 z-30 border-b border-sidebar-border/80 bg-background/95 backdrop-blur-md">
-                <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
+                <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
                         <Sheet>
@@ -209,15 +215,15 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     <Link
                         href={dashboard()}
                         prefetch
-                        className="flex items-center space-x-2"
+                        className="flex shrink-0 items-center space-x-2"
                     >
                         <AppLogo />
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className="ml-6 hidden h-full items-center space-x-2 lg:flex">
+                    <div className="ml-4 hidden h-full items-center lg:flex xl:ml-6">
                         <NavigationMenu className="flex h-full items-stretch">
-                            <NavigationMenuList className="flex h-full items-stretch space-x-1">
+                            <NavigationMenuList className="flex h-full items-stretch space-x-0.5 xl:space-x-1">
                                 {mainNavItems.map((item, index) => (
                                     <NavigationMenuItem
                                         key={index}
@@ -231,11 +237,11 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                                     item.href,
                                                     activeItemStyles,
                                                 ),
-                                                'h-9 cursor-pointer px-3 text-sm transition-colors hover:text-primary',
+                                                'h-9 cursor-pointer px-2.5 text-sm whitespace-nowrap transition-colors hover:text-primary xl:px-3',
                                             )}
                                         >
                                             {item.icon && (
-                                                <item.icon className="mr-2 h-4 w-4" />
+                                                <item.icon className="mr-1.5 h-4 w-4 shrink-0" />
                                             )}
                                             {item.title}
                                         </Link>
@@ -248,15 +254,15 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                         </NavigationMenu>
                     </div>
 
-                    <div className="ml-auto flex items-center space-x-2">
+                    <div className="ml-auto flex items-center space-x-1.5 sm:space-x-2">
                         <button
                             type="button"
                             onClick={() => openFoodChecker()}
-                            className="inline-flex h-8 items-center gap-2 rounded-lg border border-border/70 bg-muted/40 px-2.5 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:bg-muted hover:text-foreground"
+                            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border/70 bg-muted/40 px-2 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:bg-muted hover:text-foreground sm:px-2.5"
                             title={t('food_checker.trigger_button')}
                         >
                             <Search className="h-3.5 w-3.5 text-primary" />
-                            <span className="hidden md:inline">
+                            <span className="hidden xl:inline">
                                 {t('food_checker.trigger_button')}
                             </span>
                             <kbd className="py-0.2 hidden rounded border border-border/80 bg-background px-1 text-[10px] font-semibold text-muted-foreground shadow-2xs sm:inline-block">
@@ -264,13 +270,13 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                             </kbd>
                         </button>
 
-                        <div className="hidden items-center gap-1.5 md:flex">
+                        <div className="hidden items-center gap-1 sm:flex sm:gap-1.5">
                             <PaletteSelector />
                             <ThemeToggle />
                             <LanguageSwitcher />
                         </div>
 
-                        <div className="ml-1 hidden gap-1 lg:flex">
+                        <div className="ml-1 hidden gap-1 xl:flex">
                             {rightNavItems.map((item) => (
                                 <Tooltip key={item.title}>
                                     <TooltipTrigger asChild>
@@ -299,7 +305,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className="size-10 rounded-full p-1"
+                                    className="size-10 shrink-0 rounded-full p-1"
                                 >
                                     <Avatar className="size-8 overflow-hidden rounded-full ring-1 ring-border">
                                         <AvatarImage
@@ -325,7 +331,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
             </header>
             {breadcrumbs.length > 0 && (
                 <div className="flex w-full border-b border-sidebar-border/70 bg-card/40">
-                    <div className="mx-auto flex h-10 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
+                    <div className="flex h-10 w-full items-center justify-start px-4 text-neutral-500 sm:px-6 lg:px-8">
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>
                 </div>
