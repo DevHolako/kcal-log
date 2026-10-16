@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Actions\Profile\ResetTrackingDataAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +21,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         return Inertia::render('settings/profile', [
@@ -33,9 +35,9 @@ class ProfileController extends Controller
     /**
      * Reset all tracking data and profile for the authenticated user to start fresh.
      */
-    public function resetData(Request $request, \App\Actions\Profile\ResetTrackingDataAction $action): RedirectResponse
+    public function resetData(Request $request, ResetTrackingDataAction $action): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         $action->execute($user);

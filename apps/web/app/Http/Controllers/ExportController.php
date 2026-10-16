@@ -7,6 +7,7 @@ use App\DTOs\Export\CreateExportDTO;
 use App\Http\Requests\Reports\StoreExportRequest;
 use App\Models\ReportExport;
 use App\Models\User;
+use App\Services\ExportService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +19,7 @@ class ExportController extends Controller
 {
     public function __construct(
         protected CreateExportAction $createExportAction,
-        protected \App\Services\ExportService $exportService,
+        protected ExportService $exportService,
     ) {}
 
     /**

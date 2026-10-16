@@ -42,6 +42,7 @@ return [
     */
 
     'path' => env('HORIZON_PATH', 'horizon'),
+    'admin_emails' => env('HORIZON_ADMIN_EMAILS', ''),
 
     /*
     |--------------------------------------------------------------------------

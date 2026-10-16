@@ -1,10 +1,12 @@
 <?php
 
+use App\Jobs\SyncOpenFoodFactsJob;
 use App\Models\Food;
 use App\Models\Profile;
 use App\Models\TargetProfile;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -30,7 +32,7 @@ test('user can visit foods catalog web page with accurate total counts', functio
 });
 
 test('user can trigger on-demand open food facts sync with custom count and category', function () {
-    \Illuminate\Support\Facades\Queue::fake();
+    Queue::fake();
 
     $response = $this->actingAs($this->user)
         ->post(route('foods.sync'), [
@@ -39,7 +41,7 @@ test('user can trigger on-demand open food facts sync with custom count and cate
         ]);
 
     $response->assertRedirect();
-    \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\SyncOpenFoodFactsJob::class, function ($job) {
+    Queue::assertPushed(SyncOpenFoodFactsJob::class, function ($job) {
         return $job->pageSize > 0 && $job->userId === $this->user->id;
     });
 });
@@ -137,4 +139,3 @@ test('user can lookup barcode via web barcode endpoint', function () {
     $response->assertOk()
         ->assertJsonPath('food.barcode', '7622210449283');
 });
-

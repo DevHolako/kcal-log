@@ -6,6 +6,7 @@ use App\Actions\Food\CreateCustomFoodAction;
 use App\Actions\Food\DeleteCustomFoodAction;
 use App\DTOs\Food\CreateCustomFoodDTO;
 use App\Http\Requests\Food\StoreCustomFoodRequest;
+use App\Jobs\SyncOpenFoodFactsJob;
 use App\Models\Food;
 use App\Models\User;
 use App\Services\FoodService;
@@ -176,7 +177,7 @@ class FoodController extends Controller
             'produce' => ['banana', 'apple', 'spinach', 'broccoli', 'avocado', 'sweet potato', 'blueberries'],
             'dairy' => ['greek yogurt', 'whole milk', 'cottage cheese', 'cheddar cheese', 'skyr', 'mozzarella'],
             'grains' => ['rolled oats', 'brown rice', 'quinoa', 'whole wheat bread', 'lentils', 'pasta'],
-            default => \App\Jobs\SyncOpenFoodFactsJob::DEFAULT_TERMS,
+            default => SyncOpenFoodFactsJob::DEFAULT_TERMS,
         };
 
         $terms = $customTerms ?: $categoryTerms;
@@ -189,7 +190,7 @@ class FoodController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        \App\Jobs\SyncOpenFoodFactsJob::dispatch(
+        SyncOpenFoodFactsJob::dispatch(
             terms: $terms,
             pagesPerTerm: $pagesPerTerm,
             pageSize: $pageSize,

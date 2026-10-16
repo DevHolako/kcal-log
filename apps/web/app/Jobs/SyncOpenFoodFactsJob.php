@@ -2,11 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Events\FoodCatalogSynced;
 use App\Models\Food;
 use App\Services\FoodService;
 use App\Services\OpenFoodFactsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
@@ -96,12 +98,9 @@ class SyncOpenFoodFactsJob implements ShouldQueue
             for ($page = 1; $page <= $this->pagesPerTerm; $page++) {
                 try {
                     $result = $offService->search($term, page: $page, perPage: $this->pageSize);
-                    $products = $result['products'] ?? [];
+                    $products = $result['products'];
 
                     foreach ($products as $product) {
-                        if (! is_array($product)) {
-                            continue;
-                        }
 
                         // Ensure product has a name and valid barcode/code
                         $name = $product['product_name'] ?? $product['product_name_en'] ?? $product['product_name_fr'] ?? null;
@@ -132,7 +131,7 @@ class SyncOpenFoodFactsJob implements ShouldQueue
         // 2. Refresh stale cached foods
         if ($this->refreshStale) {
             try {
-                /** @var \Illuminate\Database\Eloquent\Collection<int, Food> $staleFoods */
+                /** @var Collection<int, Food> $staleFoods */
                 $staleFoods = Food::whereNotNull('barcode')
                     ->where('is_custom', false)
                     ->where(function ($q) {
@@ -176,7 +175,7 @@ class SyncOpenFoodFactsJob implements ShouldQueue
         $totalCount = Food::where('is_custom', false)->count();
 
         try {
-            \App\Events\FoodCatalogSynced::dispatch(
+            FoodCatalogSynced::dispatch(
                 $savedCount,
                 $totalCount,
                 $this->userId,

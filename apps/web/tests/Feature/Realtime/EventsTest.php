@@ -3,11 +3,9 @@
 use App\Events\AdaptiveAdjustmentProposed;
 use App\Events\DiaryUpdated;
 use App\Events\ExportReady;
-use App\Models\DiaryEntry;
 use App\Models\Food;
 use App\Models\User;
 use App\Services\DiaryService;
-use App\Services\ExportService;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -86,7 +84,7 @@ test('DiaryService mutations dispatch DiaryUpdated event', function () {
         'quantity' => 1,
     ]);
 
-    Event::assertDispatched(DiaryUpdated::class, function (DiaryUpdated $e) use ($user, $entry) {
+    Event::assertDispatched(DiaryUpdated::class, function (DiaryUpdated $e) use ($user) {
         return $e->userId === $user->id && $e->action === 'added' && $e->date === '2026-10-14';
     });
 

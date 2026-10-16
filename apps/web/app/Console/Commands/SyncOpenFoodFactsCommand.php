@@ -34,8 +34,8 @@ class SyncOpenFoodFactsCommand extends Command
     public function handle(OpenFoodFactsService $offService, FoodService $foodService): int
     {
         $rawTerms = $this->option('terms');
-        $terms = $rawTerms
-            ? array_values(array_filter(array_map('trim', explode(',', (string) $rawTerms))))
+        $terms = is_string($rawTerms)
+            ? array_values(array_filter(array_map('trim', explode(',', $rawTerms))))
             : null;
 
         $pages = max(1, (int) $this->option('pages'));

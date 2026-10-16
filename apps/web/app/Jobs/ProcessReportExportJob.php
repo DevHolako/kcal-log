@@ -11,7 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class ProcessReportExportJob implements ShouldQueue, ShouldBeUnique
+class ProcessReportExportJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -44,7 +44,7 @@ class ProcessReportExportJob implements ShouldQueue, ShouldBeUnique
      */
     public function uniqueId(): string
     {
-        return 'report_export_' . $this->export->id;
+        return 'report_export_'.$this->export->id;
     }
 
     /**
@@ -55,9 +55,9 @@ class ProcessReportExportJob implements ShouldQueue, ShouldBeUnique
     public function tags(): array
     {
         return [
-            'user:' . $this->export->user_id,
-            'export:' . $this->export->id,
-            'format:' . $this->export->type,
+            'user:'.$this->export->user_id,
+            'export:'.$this->export->id,
+            'format:'.$this->export->type,
         ];
     }
 

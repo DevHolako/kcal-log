@@ -32,7 +32,7 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
                 return false;
             }
 
-            $adminEmails = array_filter(explode(',', (string) env('HORIZON_ADMIN_EMAILS', '')));
+            $adminEmails = array_filter(explode(',', (string) config('horizon.admin_emails', '')));
 
             return in_array($user->email, $adminEmails, true)
                 || ($user->is_admin ?? false) === true;

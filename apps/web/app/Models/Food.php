@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property array<string, mixed>|null $raw_off_data
+ */
 class Food extends Model
 {
     /** @use HasFactory<FoodFactory> */
@@ -39,13 +42,6 @@ class Food extends Model
         'eco_score',
         'raw_off_data',
         'last_synced_at',
-    ];
-
-    /**
-     * @var list<string>
-     */
-    protected $appends = [
-        'image_url',
     ];
 
     /**

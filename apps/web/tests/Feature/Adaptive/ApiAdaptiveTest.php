@@ -1,10 +1,8 @@
 <?php
 
 use App\Models\AdaptiveAdjustment;
-use App\Models\Profile;
 use App\Models\TargetProfile;
 use App\Models\User;
-use App\Models\WeightLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 

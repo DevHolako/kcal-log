@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Actions\CompleteOnboardingAction;
+use App\DTOs\Onboarding\OnboardingDTO;
 use App\Http\Requests\CompleteOnboardingRequest;
+use App\Models\TargetProfile;
 use App\Models\User;
 use App\Services\NutritionCalculator;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +31,7 @@ class OnboardingController extends Controller
         }
 
         $profile = $user->profile;
-        /** @var \App\Models\TargetProfile|null $activeTarget */
+        /** @var TargetProfile|null $activeTarget */
         $activeTarget = $user->activeTargetProfile;
         $latestWeight = $user->weightLogs()->latest('date')->first();
 
@@ -73,7 +75,7 @@ class OnboardingController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $dto = \App\DTOs\Onboarding\OnboardingDTO::fromRequest($request);
+        $dto = OnboardingDTO::fromRequest($request);
         $action->execute($user, $dto);
 
         return redirect()->route('dashboard')->with('success', 'Your personalized nutrition targets have been calibrated and applied to your diary!');

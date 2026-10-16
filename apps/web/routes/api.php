@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AdaptiveController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CustomFoodController;
 use App\Http\Controllers\Api\V1\DiaryController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\Api\V1\ExportController;
 use App\Http\Controllers\Api\V1\FoodController;
 use App\Http\Controllers\Api\V1\OffConnectionController;
 use App\Http\Controllers\Api\V1\OnboardingController;
+use App\Http\Controllers\Api\V1\RecipeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -66,12 +68,12 @@ Route::prefix('v1')->group(function () {
         Route::delete('diary/{entry}', [DiaryController::class, 'destroy'])->name('api.v1.diary.destroy');
 
         // Recipes & Multi-Ingredient Meals
-        Route::get('recipes', [\App\Http\Controllers\Api\V1\RecipeController::class, 'index'])->name('api.v1.recipes.index');
-        Route::post('recipes', [\App\Http\Controllers\Api\V1\RecipeController::class, 'store'])->name('api.v1.recipes.store');
-        Route::get('recipes/{recipe}', [\App\Http\Controllers\Api\V1\RecipeController::class, 'show'])->name('api.v1.recipes.show');
-        Route::put('recipes/{recipe}', [\App\Http\Controllers\Api\V1\RecipeController::class, 'update'])->name('api.v1.recipes.update');
-        Route::delete('recipes/{recipe}', [\App\Http\Controllers\Api\V1\RecipeController::class, 'destroy'])->name('api.v1.recipes.destroy');
-        Route::post('recipes/{recipe}/log', [\App\Http\Controllers\Api\V1\RecipeController::class, 'log'])->name('api.v1.recipes.log');
+        Route::get('recipes', [RecipeController::class, 'index'])->name('api.v1.recipes.index');
+        Route::post('recipes', [RecipeController::class, 'store'])->name('api.v1.recipes.store');
+        Route::get('recipes/{recipe}', [RecipeController::class, 'show'])->name('api.v1.recipes.show');
+        Route::put('recipes/{recipe}', [RecipeController::class, 'update'])->name('api.v1.recipes.update');
+        Route::delete('recipes/{recipe}', [RecipeController::class, 'destroy'])->name('api.v1.recipes.destroy');
+        Route::post('recipes/{recipe}/log', [RecipeController::class, 'log'])->name('api.v1.recipes.log');
 
         // Reports & Data Exports
         Route::get('reports/exports', [ExportController::class, 'index'])->name('api.v1.reports.exports.index');
@@ -80,10 +82,10 @@ Route::prefix('v1')->group(function () {
         Route::get('reports/exports/{export}/download', [ExportController::class, 'download'])->name('api.v1.reports.exports.download');
 
         // Adaptive Nutrition Adjustment System
-        Route::get('adaptive/current', [\App\Http\Controllers\Api\V1\AdaptiveController::class, 'current'])->name('api.v1.adaptive.current');
-        Route::get('adaptive/history', [\App\Http\Controllers\Api\V1\AdaptiveController::class, 'history'])->name('api.v1.adaptive.history');
-        Route::post('adaptive/{adjustment}/accept', [\App\Http\Controllers\Api\V1\AdaptiveController::class, 'accept'])->name('api.v1.adaptive.accept');
-        Route::post('adaptive/{adjustment}/reject', [\App\Http\Controllers\Api\V1\AdaptiveController::class, 'reject'])->name('api.v1.adaptive.reject');
-        Route::post('adaptive/trigger', [\App\Http\Controllers\Api\V1\AdaptiveController::class, 'trigger'])->name('api.v1.adaptive.trigger');
+        Route::get('adaptive/current', [AdaptiveController::class, 'current'])->name('api.v1.adaptive.current');
+        Route::get('adaptive/history', [AdaptiveController::class, 'history'])->name('api.v1.adaptive.history');
+        Route::post('adaptive/{adjustment}/accept', [AdaptiveController::class, 'accept'])->name('api.v1.adaptive.accept');
+        Route::post('adaptive/{adjustment}/reject', [AdaptiveController::class, 'reject'])->name('api.v1.adaptive.reject');
+        Route::post('adaptive/trigger', [AdaptiveController::class, 'trigger'])->name('api.v1.adaptive.trigger');
     });
 });

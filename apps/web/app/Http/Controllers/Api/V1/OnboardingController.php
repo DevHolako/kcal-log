@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\CompleteOnboardingAction;
+use App\DTOs\Onboarding\OnboardingDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CompleteOnboardingRequest;
 use App\Models\User;
@@ -18,7 +19,7 @@ class OnboardingController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $dto = \App\DTOs\Onboarding\OnboardingDTO::fromRequest($request);
+        $dto = OnboardingDTO::fromRequest($request);
         $result = $action->execute($user, $dto);
 
         return response()->json([

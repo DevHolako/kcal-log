@@ -304,15 +304,15 @@ class ExportService
         }
 
         // Section 1: Summary Info
-        fputcsv($handle, ['# KCAL-LOG DATA EXPORT'], ',', '"', "\\");
-        fputcsv($handle, ['User', $data['user']->name, 'Email', $data['user']->email], ',', '"', "\\");
-        fputcsv($handle, ['Period', $data['dateFrom'], 'to', $data['dateTo']], ',', '"', "\\");
-        fputcsv($handle, ['Avg Daily Calories', round((float) $data['avgCalories'])], ',', '"', "\\");
-        fputcsv($handle, [], ',', '"', "\\");
+        fputcsv($handle, ['# KCAL-LOG DATA EXPORT'], ',', '"', '\\');
+        fputcsv($handle, ['User', $data['user']->name, 'Email', $data['user']->email], ',', '"', '\\');
+        fputcsv($handle, ['Period', $data['dateFrom'], 'to', $data['dateTo']], ',', '"', '\\');
+        fputcsv($handle, ['Avg Daily Calories', round((float) $data['avgCalories'])], ',', '"', '\\');
+        fputcsv($handle, [], ',', '"', '\\');
 
         // Section 2: Daily Totals
-        fputcsv($handle, ['# DAILY TOTALS'], ',', '"', "\\");
-        fputcsv($handle, ['Date', 'Calories', 'Target Calories', 'Deficit/Surplus', 'Protein (g)', 'Carbs (g)', 'Fat (g)', 'Fiber (g)', 'Water (ml)', 'Weight (kg)'], ',', '"', "\\");
+        fputcsv($handle, ['# DAILY TOTALS'], ',', '"', '\\');
+        fputcsv($handle, ['Date', 'Calories', 'Target Calories', 'Deficit/Surplus', 'Protein (g)', 'Carbs (g)', 'Fat (g)', 'Fiber (g)', 'Water (ml)', 'Weight (kg)'], ',', '"', '\\');
         foreach ($data['dailyRows'] as $row) {
             fputcsv($handle, [
                 $row['date'],
@@ -325,13 +325,13 @@ class ExportService
                 $row['fiber'] !== null ? round($row['fiber'], 2) : '',
                 $row['water_ml'],
                 $row['weight_kg'] ?? '',
-            ], ',', '"', "\\");
+            ], ',', '"', '\\');
         }
-        fputcsv($handle, [], ',', '"', "\\");
+        fputcsv($handle, [], ',', '"', '\\');
 
         // Section 3: Diary Entries
-        fputcsv($handle, ['# DIARY ENTRIES'], ',', '"', "\\");
-        fputcsv($handle, ['Date', 'Meal Slot', 'Food Item', 'Brand', 'Quantity', 'Unit', 'Grams', 'Calories', 'Protein (g)', 'Carbs (g)', 'Fat (g)', 'Fiber (g)'], ',', '"', "\\");
+        fputcsv($handle, ['# DIARY ENTRIES'], ',', '"', '\\');
+        fputcsv($handle, ['Date', 'Meal Slot', 'Food Item', 'Brand', 'Quantity', 'Unit', 'Grams', 'Calories', 'Protein (g)', 'Carbs (g)', 'Fat (g)', 'Fiber (g)'], ',', '"', '\\');
         foreach ($data['entries'] as $entry) {
             fputcsv($handle, [
                 $entry->date->format('Y-m-d'),
@@ -346,7 +346,7 @@ class ExportService
                 (float) $entry->carbs,
                 (float) $entry->fat,
                 $entry->fiber !== null ? (float) $entry->fiber : '',
-            ], ',', '"', "\\");
+            ], ',', '"', '\\');
         }
 
         rewind($handle);

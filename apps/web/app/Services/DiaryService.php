@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\WaterLog;
 use App\Models\WeightLog;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class DiaryService
@@ -123,7 +124,7 @@ class DiaryService
      */
     public function getWeeklyCalorieHistory(User $user, string $endDate): array
     {
-        $end = \Illuminate\Support\Carbon::parse($endDate);
+        $end = Carbon::parse($endDate);
         $start = (clone $end)->subDays(6);
 
         /** @var TargetProfile|null $target */
@@ -146,11 +147,7 @@ class DiaryService
             $dayLabel = $curr->format('D');
 
             $dayEntries = $entries->filter(function (DiaryEntry $entry) use ($currDate) {
-                $entryDate = $entry->date instanceof \Illuminate\Support\Carbon
-                    ? $entry->date->format('Y-m-d')
-                    : substr((string) $entry->date, 0, 10);
-
-                return $entryDate === $currDate;
+                return $entry->date->format('Y-m-d') === $currDate;
             });
 
             $history[] = [
@@ -491,7 +488,7 @@ class DiaryService
             $recipeFood = Food::firstOrCreate(
                 [
                     'user_id' => $user->id,
-                    'name' => $recipe->name . ' (Recipe)',
+                    'name' => $recipe->name.' (Recipe)',
                     'is_custom' => true,
                 ],
                 [
@@ -597,4 +594,3 @@ class DiaryService
         return $deleted;
     }
 }
-

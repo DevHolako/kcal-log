@@ -67,7 +67,7 @@ class LogRecipeAction
             $recipeFood = Food::firstOrCreate(
                 [
                     'user_id' => $user->id,
-                    'name' => $recipe->name . ' (Recipe)',
+                    'name' => $recipe->name.' (Recipe)',
                     'is_custom' => true,
                 ],
                 [

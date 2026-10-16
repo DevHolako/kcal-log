@@ -108,4 +108,3 @@ test('user can reset all tracking data and profile to start fresh', function () 
     expect($user->weightLogs()->count())->toBe(0);
     expect($user->diaryEntries()->count())->toBe(0);
 });
-

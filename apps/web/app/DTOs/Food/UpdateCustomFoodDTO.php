@@ -114,19 +114,45 @@ readonly class UpdateCustomFoodDTO
     public function toModelAttributes(): array
     {
         $attributes = [];
-        if ($this->name !== null) $attributes['name'] = $this->name;
-        if ($this->brand !== null) $attributes['brand'] = $this->brand;
-        if ($this->barcode !== null) $attributes['barcode'] = $this->barcode;
-        if ($this->servingSize !== null) $attributes['serving_size'] = $this->servingSize;
-        if ($this->servingUnit !== null) $attributes['serving_unit'] = $this->servingUnit;
-        if ($this->calories !== null) $attributes['calories'] = $this->calories;
-        if ($this->protein !== null) $attributes['protein'] = $this->protein;
-        if ($this->carbs !== null) $attributes['carbs'] = $this->carbs;
-        if ($this->fat !== null) $attributes['fat'] = $this->fat;
-        if ($this->fiber !== null) $attributes['fiber'] = $this->fiber;
-        if ($this->sugar !== null) $attributes['sugar'] = $this->sugar;
-        if ($this->saturatedFat !== null) $attributes['saturated_fat'] = $this->saturatedFat;
-        if ($this->sodium !== null) $attributes['sodium'] = $this->sodium;
+        if ($this->name !== null) {
+            $attributes['name'] = $this->name;
+        }
+        if ($this->brand !== null) {
+            $attributes['brand'] = $this->brand;
+        }
+        if ($this->barcode !== null) {
+            $attributes['barcode'] = $this->barcode;
+        }
+        if ($this->servingSize !== null) {
+            $attributes['serving_size'] = $this->servingSize;
+        }
+        if ($this->servingUnit !== null) {
+            $attributes['serving_unit'] = $this->servingUnit;
+        }
+        if ($this->calories !== null) {
+            $attributes['calories'] = $this->calories;
+        }
+        if ($this->protein !== null) {
+            $attributes['protein'] = $this->protein;
+        }
+        if ($this->carbs !== null) {
+            $attributes['carbs'] = $this->carbs;
+        }
+        if ($this->fat !== null) {
+            $attributes['fat'] = $this->fat;
+        }
+        if ($this->fiber !== null) {
+            $attributes['fiber'] = $this->fiber;
+        }
+        if ($this->sugar !== null) {
+            $attributes['sugar'] = $this->sugar;
+        }
+        if ($this->saturatedFat !== null) {
+            $attributes['saturated_fat'] = $this->saturatedFat;
+        }
+        if ($this->sodium !== null) {
+            $attributes['sodium'] = $this->sodium;
+        }
 
         return $attributes;
     }

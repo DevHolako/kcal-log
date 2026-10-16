@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\MealRecipeFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,7 +28,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
- * @property-read \Illuminate\Database\Eloquent\Collection<int, RecipeItem> $items
+ * @property-read Collection<int, RecipeItem> $items
  */
 class MealRecipe extends Model
 {
@@ -112,6 +113,7 @@ class MealRecipe extends Model
     public function getCaloriesPerServingAttribute(): float
     {
         $servings = (float) $this->servings;
+
         return $servings > 0 ? round((float) $this->total_calories / $servings, 2) : 0.0;
     }
 
@@ -121,6 +123,7 @@ class MealRecipe extends Model
     public function getProteinPerServingAttribute(): float
     {
         $servings = (float) $this->servings;
+
         return $servings > 0 ? round((float) $this->total_protein / $servings, 2) : 0.0;
     }
 
@@ -130,6 +133,7 @@ class MealRecipe extends Model
     public function getCarbsPerServingAttribute(): float
     {
         $servings = (float) $this->servings;
+
         return $servings > 0 ? round((float) $this->total_carbs / $servings, 2) : 0.0;
     }
 
@@ -139,6 +143,7 @@ class MealRecipe extends Model
     public function getFatPerServingAttribute(): float
     {
         $servings = (float) $this->servings;
+
         return $servings > 0 ? round((float) $this->total_fat / $servings, 2) : 0.0;
     }
 
@@ -148,6 +153,7 @@ class MealRecipe extends Model
     public function getFiberPerServingAttribute(): float
     {
         $servings = (float) $this->servings;
+
         return $servings > 0 ? round((float) ($this->total_fiber ?? 0) / $servings, 2) : 0.0;
     }
 
@@ -157,6 +163,7 @@ class MealRecipe extends Model
     public function getSugarPerServingAttribute(): float
     {
         $servings = (float) $this->servings;
+
         return $servings > 0 ? round((float) ($this->total_sugar ?? 0) / $servings, 2) : 0.0;
     }
 
@@ -166,6 +173,7 @@ class MealRecipe extends Model
     public function getSaturatedFatPerServingAttribute(): float
     {
         $servings = (float) $this->servings;
+
         return $servings > 0 ? round((float) ($this->total_saturated_fat ?? 0) / $servings, 2) : 0.0;
     }
 
@@ -175,7 +183,7 @@ class MealRecipe extends Model
     public function getSodiumPerServingAttribute(): float
     {
         $servings = (float) $this->servings;
+
         return $servings > 0 ? round((float) ($this->total_sodium ?? 0) / $servings, 4) : 0.0;
     }
 }
-

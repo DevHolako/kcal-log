@@ -177,4 +177,3 @@ it('allows an onboarded user to access onboarding when recalibrate flag is prese
         ->where('initialData.activity_level', 'moderately_active')
     );
 });
-

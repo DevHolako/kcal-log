@@ -3,10 +3,12 @@
 use App\Events\ExportReady;
 use App\Jobs\CalculateAdaptiveAdjustmentsJob;
 use App\Jobs\ProcessReportExportJob;
+use App\Models\AdaptiveAdjustment;
 use App\Models\ReportExport;
 use App\Models\TargetProfile;
 use App\Models\User;
 use App\Models\WeightLog;
+use App\Services\AdaptiveAdjustmentService;
 use App\Services\ExportService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -78,9 +80,9 @@ test('CalculateAdaptiveAdjustmentsJob executes calculation for target users', fu
     WeightLog::create(['user_id' => $user->id, 'date' => now()->subDays(1)->format('Y-m-d'), 'weight_kg' => 79.5]);
 
     $job = new CalculateAdaptiveAdjustmentsJob($user->id);
-    $job->handle(app(\App\Services\AdaptiveAdjustmentService::class));
+    $job->handle(app(AdaptiveAdjustmentService::class));
 
-    $adjustment = \App\Models\AdaptiveAdjustment::where('user_id', $user->id)->first();
+    $adjustment = AdaptiveAdjustment::where('user_id', $user->id)->first();
     expect($adjustment)->not->toBeNull()
         ->and($adjustment->status)->toBe('pending');
 });

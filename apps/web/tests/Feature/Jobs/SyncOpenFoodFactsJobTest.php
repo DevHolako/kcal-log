@@ -1,9 +1,7 @@
 <?php
 
-use App\Console\Commands\SyncOpenFoodFactsCommand;
 use App\Jobs\SyncOpenFoodFactsJob;
 use App\Models\Food;
-use App\Models\FoodServing;
 use App\Services\FoodService;
 use App\Services\OpenFoodFactsService;
 use Illuminate\Console\Scheduling\Schedule;

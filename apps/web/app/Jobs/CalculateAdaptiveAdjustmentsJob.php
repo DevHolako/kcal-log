@@ -11,7 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class CalculateAdaptiveAdjustmentsJob implements ShouldQueue, ShouldBeUnique
+class CalculateAdaptiveAdjustmentsJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -35,8 +35,8 @@ class CalculateAdaptiveAdjustmentsJob implements ShouldQueue, ShouldBeUnique
     public function uniqueId(): string
     {
         return $this->userId
-            ? 'adaptive_user_' . $this->userId . '_' . now()->format('Y-W')
-            : 'adaptive_batch_all_' . now()->format('Y-m-d');
+            ? 'adaptive_user_'.$this->userId.'_'.now()->format('Y-W')
+            : 'adaptive_batch_all_'.now()->format('Y-m-d');
     }
 
     /**
@@ -46,11 +46,11 @@ class CalculateAdaptiveAdjustmentsJob implements ShouldQueue, ShouldBeUnique
      */
     public function tags(): array
     {
-        return array_values(array_filter([
+        return [
             'adaptive:checkpoint',
-            $this->userId ? 'user:' . $this->userId : 'batch:all',
-            'week:' . now()->format('Y-W'),
-        ]));
+            $this->userId ? 'user:'.$this->userId : 'batch:all',
+            'week:'.now()->format('Y-W'),
+        ];
     }
 
     /**

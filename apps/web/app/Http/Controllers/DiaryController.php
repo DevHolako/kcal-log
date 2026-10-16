@@ -180,4 +180,3 @@ class DiaryController extends Controller
         return back()->with('status', 'Weight log removed.');
     }
 }
-
