@@ -35,6 +35,7 @@ Route::middleware(['auth', 'verified', EnsureOnboardingIsComplete::class])->grou
     Route::get('foods/search', [WebFoodController::class, 'search'])->name('foods.search');
     Route::get('foods/barcode/{barcode}', [WebFoodController::class, 'barcode'])->name('foods.barcode');
     Route::get('foods', [WebFoodController::class, 'index'])->name('foods.index');
+    Route::get('foods/{food}', [WebFoodController::class, 'show'])->name('foods.show');
     Route::post('foods/sync', [WebFoodController::class, 'sync'])->name('foods.sync');
     Route::post('foods/custom', [WebFoodController::class, 'storeCustom'])->name('foods.custom.store');
     Route::delete('foods/custom/{food}', [WebFoodController::class, 'destroyCustom'])->name('foods.custom.destroy');

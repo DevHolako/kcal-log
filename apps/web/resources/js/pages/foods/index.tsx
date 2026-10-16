@@ -10,10 +10,14 @@ import {
     Check,
     CheckCircle2,
     Database,
+    Droplets,
+    ExternalLink,
     Globe,
     Loader2,
+    Minus,
     Plus,
     RefreshCw,
+    Scale,
     Search,
     Sparkles,
     Trash2,
@@ -248,6 +252,10 @@ export default function FoodsIndex({
     );
     const [selectedServing, setSelectedServing] =
         useState<FoodServingData | null>(null);
+    const [portionMode, setPortionMode] = useState<'weight' | 'serving'>(
+        'weight',
+    );
+    const [customGrams, setCustomGrams] = useState<number>(100);
     const [quantity, setQuantity] = useState<number>(1);
     const [logMealSlot, setLogMealSlot] = useState<
         'breakfast' | 'lunch' | 'dinner' | 'snack'
@@ -301,12 +309,20 @@ export default function FoodsIndex({
         setCalculatingFood(food);
         const defaultServing = food.servings.find((s) => s.is_default) ||
             food.servings[0] || {
-                serving_name: `${food.serving_size}${food.serving_unit}`,
-                gram_equivalent: Number(food.serving_size),
+                serving_name: `${food.serving_size}${food.serving_unit || 'g'}`,
+                gram_equivalent: Number(food.serving_size) || 100,
                 is_default: true,
             };
         setSelectedServing(defaultServing);
+        const initialWeight =
+            Number(defaultServing.gram_equivalent) > 0
+                ? Number(defaultServing.gram_equivalent)
+                : Number(food.serving_size) > 0
+                  ? Number(food.serving_size)
+                  : 100;
+        setCustomGrams(initialWeight);
         setQuantity(1);
+        setPortionMode('weight');
     };
 
     const handleCreateCustomFood = (e: React.FormEvent) => {
@@ -331,14 +347,26 @@ export default function FoodsIndex({
         if (!calculatingFood) return;
 
         setIsLoggingToDiary(true);
+        const baseSize =
+            Number(calculatingFood.serving_size) > 0
+                ? Number(calculatingFood.serving_size)
+                : 100;
+
         router.post(
             '/diary',
             {
                 food_id: calculatingFood.id,
-                food_serving_id: selectedServing?.id ?? null,
+                food_serving_id:
+                    portionMode === 'serving'
+                        ? (selectedServing?.id ?? null)
+                        : null,
+                custom_grams: portionMode === 'weight' ? customGrams : null,
+                quantity:
+                    portionMode === 'weight'
+                        ? Math.round((customGrams / baseSize) * 100) / 100
+                        : quantity,
                 date: logDate,
                 meal_slot: logMealSlot,
-                quantity: quantity,
             },
             {
                 preserveScroll: true,
@@ -352,12 +380,16 @@ export default function FoodsIndex({
 
     // Scaled portion calculations
     const calculateNutrition = () => {
-        if (!calculatingFood || !selectedServing) return null;
+        if (!calculatingFood) return null;
         const baseSize =
             Number(calculatingFood.serving_size) > 0
                 ? Number(calculatingFood.serving_size)
                 : 100;
-        const totalGrams = Number(selectedServing.gram_equivalent) * quantity;
+        const totalGrams =
+            portionMode === 'weight'
+                ? customGrams
+                : Number(selectedServing?.gram_equivalent || baseSize) *
+                  quantity;
         const factor = totalGrams / baseSize;
 
         return {
@@ -880,11 +912,18 @@ export default function FoodsIndex({
                             </CardContent>
 
                             <CardFooter className="flex items-center justify-between gap-2 border-t border-border/40 pt-2">
+                                <Link
+                                    href={`/foods/${food.id}`}
+                                    className="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-2.5 text-xs font-medium text-muted-foreground shadow-xs hover:bg-accent hover:text-foreground"
+                                >
+                                    {t('foods.view_details')}
+                                </Link>
+
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => openCalculator(food)}
-                                    className="flex-1 gap-1.5 text-xs"
+                                    className="flex-1 gap-1.5 text-xs font-medium hover:border-primary/40 hover:text-primary"
                                 >
                                     <Calculator className="h-3.5 w-3.5 text-primary" />
                                     {t('foods.portion_and_log')}
@@ -921,94 +960,338 @@ export default function FoodsIndex({
                                     <Calculator className="h-5 w-5 text-primary" />
                                     {t('foods.portion_calculator')}
                                 </DialogTitle>
-                                <DialogDescription>
-                                    {calculatingFood.name}{' '}
-                                    {calculatingFood.brand
-                                        ? `(${calculatingFood.brand})`
-                                        : ''}
-                                </DialogDescription>
                             </DialogHeader>
 
-                            <div className="space-y-4 py-2">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1.5">
-                                        <Label
-                                            htmlFor="serving-select"
-                                            className="text-xs"
-                                        >
-                                            Serving Unit
-                                        </Label>
-                                        <select
-                                            id="serving-select"
-                                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden"
-                                            value={selectedServing.serving_name}
-                                            onChange={(e) => {
-                                                const match =
-                                                    calculatingFood.servings.find(
-                                                        (s) =>
-                                                            s.serving_name ===
-                                                            e.target.value,
-                                                    );
-                                                if (match)
-                                                    setSelectedServing(match);
-                                            }}
-                                        >
-                                            {calculatingFood.servings.map(
-                                                (serving, idx) => (
-                                                    <option
-                                                        key={idx}
-                                                        value={
-                                                            serving.serving_name
-                                                        }
-                                                    >
-                                                        {serving.serving_name} (
-                                                        {Number(
-                                                            serving.gram_equivalent,
-                                                        )}
-                                                        g)
-                                                    </option>
-                                                ),
-                                            )}
-                                        </select>
+                            {/* Food Product Header with Image and Details */}
+                            <div className="flex items-center gap-3 rounded-lg border border-border/70 bg-muted/30 p-3">
+                                {calculatingFood.image_url ? (
+                                    <img
+                                        src={calculatingFood.image_url}
+                                        alt={calculatingFood.name}
+                                        className="h-16 w-16 shrink-0 rounded-lg border border-border/80 object-cover shadow-xs"
+                                    />
+                                ) : (
+                                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-dashed border-border bg-muted text-muted-foreground">
+                                        <Utensils className="h-7 w-7 opacity-40" />
                                     </div>
-
-                                    <div className="space-y-1.5">
-                                        <Label
-                                            htmlFor="serving-quantity"
-                                            className="text-xs"
+                                )}
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                        <h3 className="line-clamp-1 text-sm font-semibold text-foreground">
+                                            {calculatingFood.name}
+                                        </h3>
+                                        {calculatingFood.is_custom ||
+                                        calculatingFood.search_origin ===
+                                            'custom' ? (
+                                            <Badge
+                                                variant="outline"
+                                                className="shrink-0 border-purple-500/30 bg-purple-500/10 text-[9px] text-purple-600 dark:text-purple-400"
+                                            >
+                                                {t('foods.badge_custom')}
+                                            </Badge>
+                                        ) : calculatingFood.search_origin ===
+                                          'openfoodfacts' ? (
+                                            <Badge
+                                                variant="outline"
+                                                className="shrink-0 border-emerald-500/30 bg-emerald-500/10 text-[9px] text-emerald-600 dark:text-emerald-400"
+                                            >
+                                                {t('foods.badge_openfoodfacts')}
+                                            </Badge>
+                                        ) : (
+                                            <Badge
+                                                variant="outline"
+                                                className="shrink-0 border-blue-500/30 bg-blue-500/10 text-[9px] text-blue-600 dark:text-blue-400"
+                                            >
+                                                {t('foods.badge_in_database')}
+                                            </Badge>
+                                        )}
+                                        {calculatingFood.nutri_score && (
+                                            <Badge className="shrink-0 bg-emerald-600 text-[9px] font-bold text-white uppercase">
+                                                Nutri{' '}
+                                                {calculatingFood.nutri_score}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    <p className="line-clamp-1 text-xs text-muted-foreground">
+                                        {calculatingFood.brand ||
+                                            'Generic / Homemade'}
+                                    </p>
+                                    <div className="mt-1 flex items-center justify-between">
+                                        {calculatingFood.barcode ? (
+                                            <span className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
+                                                <Barcode className="h-3 w-3" />
+                                                {calculatingFood.barcode}
+                                            </span>
+                                        ) : (
+                                            <span />
+                                        )}
+                                        <Link
+                                            href={`/foods/${calculatingFood.id}`}
+                                            className="ml-auto flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
                                         >
-                                            Quantity
-                                        </Label>
-                                        <Input
-                                            id="serving-quantity"
-                                            type="number"
-                                            step="0.1"
-                                            min="0.1"
-                                            max="50"
-                                            value={quantity}
-                                            onChange={(e) =>
-                                                setQuantity(
-                                                    Math.max(
-                                                        0.1,
-                                                        Number(
-                                                            e.target.value,
-                                                        ) || 1,
-                                                    ),
-                                                )
-                                            }
-                                        />
+                                            {t('foods.view_details')}
+                                            <ExternalLink className="h-3 w-3" />
+                                        </Link>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div className="space-y-4 py-1">
+                                {/* Flexible Serving Mode Selector */}
+                                <div className="grid grid-cols-2 gap-1 rounded-lg border border-input bg-muted/40 p-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPortionMode('weight')}
+                                        className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium transition-all ${
+                                            portionMode === 'weight'
+                                                ? 'bg-background text-foreground shadow-xs'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        <Scale className="h-3.5 w-3.5" />
+                                        {t('foods.unit_mode_weight')} (g/ml)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setPortionMode('serving')
+                                        }
+                                        className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium transition-all ${
+                                            portionMode === 'serving'
+                                                ? 'bg-background text-foreground shadow-xs'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        <Utensils className="h-3.5 w-3.5" />
+                                        {t('foods.unit_mode_serving')}
+                                    </button>
+                                </div>
+
+                                {portionMode === 'weight' ? (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label
+                                                htmlFor="custom-grams-input"
+                                                className="text-xs font-medium text-foreground"
+                                            >
+                                                {t('foods.enter_grams_ml')}
+                                            </Label>
+                                            <span className="text-[11px] text-muted-foreground">
+                                                Base reference:{' '}
+                                                {Number(
+                                                    calculatingFood.serving_size,
+                                                )}
+                                                {calculatingFood.serving_unit ||
+                                                    'g'}
+                                            </span>
+                                        </div>
+                                        <div className="relative">
+                                            <Input
+                                                id="custom-grams-input"
+                                                type="number"
+                                                min="1"
+                                                max="5000"
+                                                step="1"
+                                                value={customGrams}
+                                                onChange={(e) =>
+                                                    setCustomGrams(
+                                                        Math.max(
+                                                            1,
+                                                            Number(
+                                                                e.target.value,
+                                                            ) || 0,
+                                                        ),
+                                                    )
+                                                }
+                                                className="pr-12 text-base font-semibold"
+                                            />
+                                            <span className="absolute inset-y-0 right-3 flex items-center text-xs font-semibold text-muted-foreground">
+                                                {calculatingFood.serving_unit ||
+                                                    'g'}
+                                            </span>
+                                        </div>
+
+                                        {/* Quick Amount Pills */}
+                                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                            {[50, 100, 150, 200, 250].map(
+                                                (amt) => (
+                                                    <button
+                                                        key={amt}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setCustomGrams(amt)
+                                                        }
+                                                        className={`rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${
+                                                            customGrams === amt
+                                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                                : 'border-border/80 bg-muted/30 text-muted-foreground hover:bg-accent hover:text-foreground'
+                                                        }`}
+                                                    >
+                                                        {amt}
+                                                        {calculatingFood.serving_unit ||
+                                                            'g'}
+                                                    </button>
+                                                ),
+                                            )}
+                                            <div className="ml-auto flex items-center gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setCustomGrams((prev) =>
+                                                            Math.max(
+                                                                1,
+                                                                prev - 25,
+                                                            ),
+                                                        )
+                                                    }
+                                                    className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
+                                                >
+                                                    -25g
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setCustomGrams(
+                                                            (prev) => prev + 25,
+                                                        )
+                                                    }
+                                                    className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
+                                                >
+                                                    +25g
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1.5">
+                                            <Label
+                                                htmlFor="serving-select"
+                                                className="text-xs"
+                                            >
+                                                Serving Unit
+                                            </Label>
+                                            <select
+                                                id="serving-select"
+                                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:outline-hidden"
+                                                value={
+                                                    selectedServing.serving_name
+                                                }
+                                                onChange={(e) => {
+                                                    const match =
+                                                        calculatingFood.servings.find(
+                                                            (s) =>
+                                                                s.serving_name ===
+                                                                e.target.value,
+                                                        );
+                                                    if (match)
+                                                        setSelectedServing(
+                                                            match,
+                                                        );
+                                                }}
+                                            >
+                                                {calculatingFood.servings.map(
+                                                    (serving, idx) => (
+                                                        <option
+                                                            key={idx}
+                                                            value={
+                                                                serving.serving_name
+                                                            }
+                                                        >
+                                                            {
+                                                                serving.serving_name
+                                                            }{' '}
+                                                            (
+                                                            {Number(
+                                                                serving.gram_equivalent,
+                                                            )}
+                                                            g)
+                                                        </option>
+                                                    ),
+                                                )}
+                                            </select>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <Label
+                                                htmlFor="serving-quantity"
+                                                className="text-xs"
+                                            >
+                                                {t('foods.portion_multiplier')}
+                                            </Label>
+                                            <div className="flex items-center gap-1">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="h-9 w-9 shrink-0"
+                                                    onClick={() =>
+                                                        setQuantity((q) =>
+                                                            Math.max(
+                                                                0.1,
+                                                                Math.round(
+                                                                    (q - 0.5) *
+                                                                        10,
+                                                                ) / 10,
+                                                            ),
+                                                        )
+                                                    }
+                                                >
+                                                    <Minus className="h-3 w-3" />
+                                                </Button>
+                                                <Input
+                                                    id="serving-quantity"
+                                                    type="number"
+                                                    step="0.1"
+                                                    min="0.1"
+                                                    max="50"
+                                                    value={quantity}
+                                                    onChange={(e) =>
+                                                        setQuantity(
+                                                            Math.max(
+                                                                0.1,
+                                                                Number(
+                                                                    e.target
+                                                                        .value,
+                                                                ) || 1,
+                                                            ),
+                                                        )
+                                                    }
+                                                    className="text-center font-semibold"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="h-9 w-9 shrink-0"
+                                                    onClick={() =>
+                                                        setQuantity(
+                                                            (q) =>
+                                                                Math.round(
+                                                                    (q + 0.5) *
+                                                                        10,
+                                                                ) / 10,
+                                                        )
+                                                    }
+                                                >
+                                                    <Plus className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Dynamic Scaled Nutritional Summary */}
                                 <Card className="border-primary/20 bg-primary/5">
                                     <CardContent className="space-y-3 p-4">
                                         <div className="flex items-center justify-between border-b border-primary/10 pb-2">
-                                            <span className="text-sm font-medium">
+                                            <span className="text-xs font-medium text-muted-foreground">
                                                 Total Consumed:
                                             </span>
-                                            <span className="text-base font-bold text-foreground">
-                                                {scaledNutrition.totalGrams}g
+                                            <span className="text-sm font-bold text-foreground">
+                                                {scaledNutrition.totalGrams}
+                                                {calculatingFood.serving_unit ||
+                                                    'g'}
                                             </span>
                                         </div>
 
@@ -1020,6 +1303,32 @@ export default function FoodsIndex({
                                                 Calories (kcal)
                                             </div>
                                         </div>
+
+                                        {/* Informative Zero Calorie Explanation if water or 0-cal item */}
+                                        {Number(calculatingFood.calories) ===
+                                            0 &&
+                                            Number(calculatingFood.protein) ===
+                                                0 &&
+                                            Number(calculatingFood.carbs) ===
+                                                0 &&
+                                            Number(calculatingFood.fat) ===
+                                                0 && (
+                                                <div className="flex items-start gap-2 rounded-md border border-blue-500/20 bg-blue-500/10 p-2.5 text-left text-xs text-blue-700 dark:text-blue-300">
+                                                    <Droplets className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
+                                                    <div>
+                                                        <div className="font-semibold">
+                                                            {t(
+                                                                'foods.zero_calorie_badge',
+                                                            )}
+                                                        </div>
+                                                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                                            {t(
+                                                                'foods.zero_calorie_explanation',
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
 
                                         <div className="grid grid-cols-3 gap-2 border-t border-primary/10 pt-2 text-center">
                                             <div>

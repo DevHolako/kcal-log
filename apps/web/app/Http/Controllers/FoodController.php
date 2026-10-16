@@ -174,6 +174,27 @@ class FoodController extends Controller
     }
 
     /**
+     * Display a specific food item's detail page with nutritional facts and calculator.
+     */
+    public function show(Food $food, Request $request): Response
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        // Ensure user can access custom food if applicable
+        if ($food->is_custom && $food->user_id !== $user->id) {
+            abort(403, 'Unauthorized access to custom food.');
+        }
+
+        $food->load('servings');
+        $food->setAttribute('search_origin', $food->is_custom ? 'custom' : 'database');
+
+        return Inertia::render('foods/show', [
+            'food' => $food,
+        ]);
+    }
+
+    /**
      * Trigger an on-demand sync from Open Food Facts with selectable item count and categories.
      */
     public function sync(Request $request): RedirectResponse

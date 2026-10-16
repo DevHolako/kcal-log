@@ -5,7 +5,6 @@ use App\Models\Profile;
 use App\Models\TargetProfile;
 use App\Models\User;
 use App\Models\WeightLog;
-
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('profile page is displayed', function () {

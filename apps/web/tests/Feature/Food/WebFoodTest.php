@@ -5,6 +5,7 @@ use App\Models\Food;
 use App\Models\Profile;
 use App\Models\TargetProfile;
 use App\Models\User;
+use App\Models\UserOffConnection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
@@ -33,7 +34,7 @@ test('user can visit foods catalog web page with accurate total counts', functio
 });
 
 test('user can visit foods catalog web page with isOffConnected true when connected', function () {
-    \App\Models\UserOffConnection::create([
+    UserOffConnection::create([
         'user_id' => $this->user->id,
         'username' => 'testoffuser',
         'password' => 'secret123',
@@ -157,4 +158,54 @@ test('user can lookup barcode via web barcode endpoint', function () {
 
     $response->assertOk()
         ->assertJsonPath('food.barcode', '7622210449283');
+});
+
+test('user can view food detail page for public or cached food', function () {
+    $food = Food::factory()->create([
+        'name' => 'Organic Rolled Oats',
+        'is_custom' => false,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->get(route('foods.show', $food));
+
+    $response->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('foods/show')
+            ->has('food')
+            ->where('food.id', $food->id)
+            ->where('food.name', 'Organic Rolled Oats')
+        );
+});
+
+test('user can view their own custom food detail page', function () {
+    $customFood = Food::factory()->create([
+        'name' => 'My Secret Protein Bowl',
+        'is_custom' => true,
+        'user_id' => $this->user->id,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->get(route('foods.show', $customFood));
+
+    $response->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('foods/show')
+            ->where('food.id', $customFood->id)
+            ->where('food.is_custom', true)
+        );
+});
+
+test('user cannot view another users custom food detail page', function () {
+    $otherUser = User::factory()->create();
+    $otherCustomFood = Food::factory()->create([
+        'name' => 'Other Secret Meal',
+        'is_custom' => true,
+        'user_id' => $otherUser->id,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->get(route('foods.show', $otherCustomFood));
+
+    $response->assertForbidden();
 });
