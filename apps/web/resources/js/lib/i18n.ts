@@ -239,6 +239,8 @@ export const translations: Record<Locale, Record<string, string>> = {
         'recipes.save_recipe': 'Save Recipe',
         'recipes.add_ingredient': 'Add Ingredient',
         'recipes.search_ingredient': 'Type food name to search...',
+        'recipes.searching_foods': 'Searching database & Open Food Facts...',
+        'recipes.no_foods_found': 'No food items found matching "{query}".',
         'recipes.add_this_ingredient': 'Add This Ingredient',
         'recipes.grocery_list': 'Grocery List',
         'recipes.grocery_list_desc':
@@ -570,6 +572,9 @@ export const translations: Record<Locale, Record<string, string>> = {
         'recipes.save_recipe': 'Enregistrer la recette',
         'recipes.add_ingredient': 'Ajouter l’ingrédient',
         'recipes.search_ingredient': 'Rechercher un ingrédient...',
+        'recipes.searching_foods':
+            'Recherche dans la base & Open Food Facts...',
+        'recipes.no_foods_found': 'Aucun aliment trouvé pour « {query} ».',
         'recipes.add_this_ingredient': 'Ajouter cet ingrédient',
         'recipes.grocery_list': 'Liste de courses',
         'recipes.grocery_list_desc':

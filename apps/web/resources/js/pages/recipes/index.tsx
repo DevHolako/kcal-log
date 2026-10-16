@@ -5,16 +5,19 @@ import {
     ChefHat,
     Clock,
     Copy,
+    Database,
     Flame,
+    Globe,
     Loader2,
     Plus,
+    Search,
     ShoppingBag,
     Sparkles,
     Trash2,
     Utensils,
     X,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -272,6 +275,8 @@ export default function RecipesIndex({
 
     // Ingredient picker state inside create modal
     const [foodSearchQuery, setFoodSearchQuery] = useState('');
+    const [remoteFoods, setRemoteFoods] = useState<FoodItem[]>([]);
+    const [isSearchingFood, setIsSearchingFood] = useState(false);
     const [activeFoodToAdd, setActiveFoodToAdd] = useState<FoodItem | null>(
         null,
     );
@@ -446,16 +451,70 @@ export default function RecipesIndex({
         });
     };
 
-    // Filter available foods for ingredient picker
-    const filteredFoods = useMemo(() => {
-        if (!foodSearchQuery.trim()) return availableFoods.slice(0, 8);
-        const q = foodSearchQuery.toLowerCase();
-        return availableFoods.filter(
+    // Remote search across Open Food Facts & database when searching for recipe ingredients
+    useEffect(() => {
+        const query = foodSearchQuery.trim();
+        if (query.length < 2) {
+            setRemoteFoods([]);
+            setIsSearchingFood(false);
+            return;
+        }
+
+        setIsSearchingFood(true);
+        const timer = setTimeout(() => {
+            fetch(`/foods/search?q=${encodeURIComponent(query)}`, {
+                headers: { Accept: 'application/json' },
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (Array.isArray(data.items)) {
+                        setRemoteFoods(data.items);
+                    } else {
+                        setRemoteFoods([]);
+                    }
+                })
+                .catch(() => {
+                    setRemoteFoods([]);
+                })
+                .finally(() => {
+                    setIsSearchingFood(false);
+                });
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [foodSearchQuery]);
+
+    // Combine available foods (initial DB cache) and remote search results (Open Food Facts + DB)
+    const displayFoods = useMemo(() => {
+        const trimmed = foodSearchQuery.trim().toLowerCase();
+        if (!trimmed) {
+            return availableFoods.slice(0, 8);
+        }
+
+        // 1. In-memory matches from availableFoods
+        const localMatches = availableFoods.filter(
             (f) =>
-                f.name.toLowerCase().includes(q) ||
-                (f.brand && f.brand.toLowerCase().includes(q)),
+                f.name.toLowerCase().includes(trimmed) ||
+                (f.brand && f.brand.toLowerCase().includes(trimmed)),
         );
-    }, [availableFoods, foodSearchQuery]);
+
+        // 2. Merge with remoteFoods returned from /foods/search (which queries OFF and DB)
+        const combined = [...localMatches];
+        const existingIds = new Set(localMatches.map((f) => f.id));
+        const existingBarcodes = new Set(
+            localMatches.map((f) => f.barcode).filter(Boolean),
+        );
+
+        for (const rf of remoteFoods) {
+            if (existingIds.has(rf.id)) continue;
+            if (rf.barcode && existingBarcodes.has(rf.barcode)) continue;
+            combined.push(rf);
+            existingIds.add(rf.id);
+            if (rf.barcode) existingBarcodes.add(rf.barcode);
+        }
+
+        return combined;
+    }, [availableFoods, remoteFoods, foodSearchQuery]);
 
     // Handle adding selected food to ingredients list
     const handleAddIngredient = () => {
@@ -1304,20 +1363,38 @@ export default function RecipesIndex({
 
                                 {!activeFoodToAdd ? (
                                     <div className="space-y-2">
-                                        <Input
-                                            placeholder={t(
-                                                'recipes.search_ingredient',
+                                        <div className="relative">
+                                            <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                                            <Input
+                                                placeholder={t(
+                                                    'recipes.search_ingredient',
+                                                )}
+                                                value={foodSearchQuery}
+                                                onChange={(e) =>
+                                                    setFoodSearchQuery(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="pl-8 text-xs"
+                                            />
+                                            {isSearchingFood && (
+                                                <Loader2 className="absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2 animate-spin text-primary" />
                                             )}
-                                            value={foodSearchQuery}
-                                            onChange={(e) =>
-                                                setFoodSearchQuery(
-                                                    e.target.value,
-                                                )
-                                            }
-                                            className="text-xs"
-                                        />
-                                        <div className="grid max-h-40 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
-                                            {filteredFoods.map((f) => (
+                                        </div>
+
+                                        {isSearchingFood && (
+                                            <div className="flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground">
+                                                <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                                                <span>
+                                                    {t(
+                                                        'recipes.searching_foods',
+                                                    )}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <div className="grid max-h-48 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+                                            {displayFoods.map((f) => (
                                                 <button
                                                     key={f.id}
                                                     type="button"
@@ -1330,27 +1407,125 @@ export default function RecipesIndex({
                                                         setItemQuantity(1);
                                                         setItemCustomGrams('');
                                                     }}
-                                                    className="flex items-center justify-between rounded-lg border border-border/70 p-2 text-left text-xs transition-all hover:border-emerald-500 hover:bg-emerald-500/5"
+                                                    className="group flex items-center justify-between gap-2 rounded-lg border border-border/70 p-2 text-left text-xs transition-all hover:border-emerald-500 hover:bg-emerald-500/5"
                                                 >
-                                                    <span className="truncate font-medium">
-                                                        {f.name}
-                                                    </span>
-                                                    <span className="shrink-0 text-[11px] text-muted-foreground">
-                                                        {Math.round(
-                                                            Number(f.calories),
-                                                        )}{' '}
-                                                        kcal
-                                                    </span>
+                                                    <div className="flex min-w-0 items-center gap-2">
+                                                        {f.image_url ? (
+                                                            <img
+                                                                src={
+                                                                    f.image_url
+                                                                }
+                                                                alt={f.name}
+                                                                className="h-8 w-8 shrink-0 rounded border border-border/50 object-cover"
+                                                                loading="lazy"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground">
+                                                                <Utensils className="h-3.5 w-3.5" />
+                                                            </div>
+                                                        )}
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="truncate font-medium text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                                                                {f.name}
+                                                            </p>
+                                                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                                                {f.brand && (
+                                                                    <span className="max-w-[70px] truncate">
+                                                                        {
+                                                                            f.brand
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                                {f.search_origin ===
+                                                                    'openfoodfacts' ||
+                                                                (!f.is_custom &&
+                                                                    f.off_id) ? (
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="h-4 border-blue-500/30 bg-blue-500/10 px-1 text-[9px] text-blue-600 dark:text-blue-400"
+                                                                    >
+                                                                        <Globe className="mr-0.5 h-2 w-2" />
+                                                                        OFF
+                                                                    </Badge>
+                                                                ) : f.is_custom ? (
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="h-4 border-purple-500/30 bg-purple-500/10 px-1 text-[9px] text-purple-600 dark:text-purple-400"
+                                                                    >
+                                                                        Custom
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="h-4 border-emerald-500/30 bg-emerald-500/10 px-1 text-[9px] text-emerald-600 dark:text-emerald-400"
+                                                                    >
+                                                                        <Database className="mr-0.5 h-2 w-2" />
+                                                                        DB
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="shrink-0 text-right">
+                                                        <span className="font-semibold text-foreground">
+                                                            {Math.round(
+                                                                Number(
+                                                                    f.calories,
+                                                                ),
+                                                            )}
+                                                        </span>
+                                                        <span className="block text-[10px] text-muted-foreground">
+                                                            kcal
+                                                        </span>
+                                                    </div>
                                                 </button>
                                             ))}
+
+                                            {displayFoods.length === 0 &&
+                                                !isSearchingFood && (
+                                                    <div className="col-span-1 py-4 text-center text-xs text-muted-foreground sm:col-span-2">
+                                                        {t(
+                                                            'recipes.no_foods_found',
+                                                            {
+                                                                query: foodSearchQuery,
+                                                            },
+                                                        )}
+                                                    </div>
+                                                )}
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="space-y-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs font-bold text-foreground">
-                                                {activeFoodToAdd.name}
-                                            </span>
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                {activeFoodToAdd.image_url ? (
+                                                    <img
+                                                        src={
+                                                            activeFoodToAdd.image_url
+                                                        }
+                                                        alt={
+                                                            activeFoodToAdd.name
+                                                        }
+                                                        className="h-8 w-8 shrink-0 rounded border border-emerald-500/30 object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                                        <Utensils className="h-4 w-4" />
+                                                    </div>
+                                                )}
+                                                <div className="min-w-0">
+                                                    <span className="block truncate text-xs font-bold text-foreground">
+                                                        {activeFoodToAdd.name}
+                                                    </span>
+                                                    {activeFoodToAdd.brand && (
+                                                        <span className="block truncate text-[10px] text-muted-foreground">
+                                                            {
+                                                                activeFoodToAdd.brand
+                                                            }
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
                                             <Button
                                                 type="button"
                                                 variant="ghost"
