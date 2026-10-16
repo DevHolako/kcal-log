@@ -178,7 +178,29 @@ class AssistantController extends Controller
                     flush();
                 });
             } catch (Throwable $e) {
-                echo 'data: '.json_encode(['type' => 'error', 'message' => $e->getMessage()])."\n\n";
+                $msgLower = strtolower($e->getMessage());
+                $isQuotaOrAuth = $e->getCode() === 429
+                    || $e->getCode() === 401
+                    || str_contains($msgLower, 'quota')
+                    || str_contains($msgLower, 'rate limit')
+                    || str_contains($msgLower, '429')
+                    || str_contains($msgLower, 'unauthorized')
+                    || str_contains($msgLower, 'api key');
+
+                if ($isQuotaOrAuth) {
+                    UserAiConnection::where('user_id', $user->id)->update([
+                        'is_connected' => false,
+                    ]);
+
+                    echo 'data: '.json_encode([
+                        'type' => 'provider_error',
+                        'message' => 'Your AI provider reported an issue: '.$e->getMessage().'. Please check your API key and billing quota in Settings.',
+                        'action_url' => '/settings/ai',
+                    ], JSON_UNESCAPED_SLASHES)."\n\n";
+                } else {
+                    echo 'data: '.json_encode(['type' => 'error', 'message' => $e->getMessage()])."\n\n";
+                }
+
                 if (ob_get_level() > 0) {
                     ob_flush();
                 }

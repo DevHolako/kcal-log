@@ -5,6 +5,8 @@ namespace App\Ai\Agents;
 use App\Ai\Tools\GetDailySummaryTool;
 use App\Ai\Tools\GetDiaryEntriesTool;
 use App\Ai\Tools\GetTargetProfileTool;
+use App\Ai\Tools\GetWeightHistoryTool;
+use App\Ai\Tools\SearchFoodDatabaseTool;
 use App\Models\AiConversation;
 use App\Models\TargetProfile;
 use App\Models\User;
@@ -94,6 +96,8 @@ INSTRUCTIONS;
             new GetDailySummaryTool($this->user),
             new GetDiaryEntriesTool($this->user),
             new GetTargetProfileTool($this->user),
+            new SearchFoodDatabaseTool($this->user),
+            new GetWeightHistoryTool($this->user),
         ];
     }
 }

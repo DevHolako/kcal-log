@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import {
+    AlertCircle,
     Bot,
     KeyRound,
     Loader2,
@@ -65,6 +66,10 @@ export default function AssistantPage({
     const [streamingContent, setStreamingContent] = useState('');
     const [activeTool, setActiveTool] = useState<string | null>(null);
     const [streamError, setStreamError] = useState<string | null>(null);
+    const [providerError, setProviderError] = useState<{
+        message: string;
+        action_url: string;
+    } | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -72,6 +77,7 @@ export default function AssistantPage({
         setMessages(activeConversation?.messages || []);
         setStreamingContent('');
         setStreamError(null);
+        setProviderError(null);
     }, [activeConversation?.id]);
 
     useEffect(() => {
@@ -122,6 +128,7 @@ export default function AssistantPage({
         setIsStreaming(true);
         setStreamingContent('');
         setStreamError(null);
+        setProviderError(null);
 
         try {
             const csrfToken =
@@ -172,6 +179,11 @@ export default function AssistantPage({
                                 setActiveTool(null);
                             } else if (data.type === 'error') {
                                 setStreamError(data.message);
+                            } else if (data.type === 'provider_error') {
+                                setProviderError({
+                                    message: data.message,
+                                    action_url: data.action_url,
+                                });
                             } else if (data.type === 'done') {
                                 setActiveTool(null);
                             }
@@ -433,6 +445,31 @@ export default function AssistantPage({
                                 {streamError && (
                                     <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
                                         {streamError}
+                                    </div>
+                                )}
+
+                                {providerError && (
+                                    <div className="flex flex-col gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-xs text-destructive">
+                                        <div className="flex items-center gap-2 text-sm font-semibold">
+                                            <AlertCircle className="h-4 w-4" />
+                                            AI Provider Attention Needed
+                                        </div>
+                                        <p className="text-muted-foreground dark:text-neutral-300">
+                                            {providerError.message}
+                                        </p>
+                                        <div className="pt-1">
+                                            <Button
+                                                asChild
+                                                size="sm"
+                                                variant="destructive"
+                                                className="gap-2"
+                                            >
+                                                <Link href={providerError.action_url}>
+                                                    <KeyRound className="h-3.5 w-3.5" />
+                                                    Open AI Settings
+                                                </Link>
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
 

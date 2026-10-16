@@ -3,11 +3,14 @@
 use App\Ai\Tools\GetDailySummaryTool;
 use App\Ai\Tools\GetDiaryEntriesTool;
 use App\Ai\Tools\GetTargetProfileTool;
+use App\Ai\Tools\GetWeightHistoryTool;
+use App\Ai\Tools\SearchFoodDatabaseTool;
 use App\Models\DiaryEntry;
 use App\Models\Food;
 use App\Models\Profile;
 use App\Models\TargetProfile;
 use App\Models\User;
+use App\Models\WeightLog;
 use Laravel\Ai\Tools\Request as ToolRequest;
 
 function createToolTestUser(): User
@@ -142,4 +145,63 @@ test('get target profile tool returns active formula and macros', function () {
     expect($result['protein_target'])->toEqual(150);
     expect($result['carb_target'])->toEqual(200);
     expect($result['fat_target'])->toEqual(65);
+});
+
+test('search food database tool finds foods by query and respects custom food ownership', function () {
+    $user1 = createToolTestUser();
+    $user2 = createToolTestUser();
+
+    Food::factory()->create([
+        'name' => 'Organic Rolled Oats',
+        'is_custom' => false,
+        'calories' => 389,
+    ]);
+
+    Food::factory()->create([
+        'user_id' => $user1->id,
+        'name' => 'Homemade Protein Granola',
+        'is_custom' => true,
+        'calories' => 450,
+    ]);
+
+    Food::factory()->create([
+        'user_id' => $user2->id,
+        'name' => 'User2 Private Granola',
+        'is_custom' => true,
+        'calories' => 500,
+    ]);
+
+    $tool = new SearchFoodDatabaseTool($user1);
+    $result = json_decode((string) $tool->handle(new ToolRequest(['query' => 'Granola'])), true);
+
+    expect($result['count'])->toBe(1);
+    expect($result['foods'][0]['name'])->toBe('Homemade Protein Granola');
+
+    $oatsResult = json_decode((string) $tool->handle(new ToolRequest(['query' => 'Oats'])), true);
+    expect($oatsResult['count'])->toBe(1);
+    expect($oatsResult['foods'][0]['name'])->toBe('Organic Rolled Oats');
+});
+
+test('get weight history tool returns timestamped weights and trajectory', function () {
+    $user = createToolTestUser();
+
+    WeightLog::factory()->create([
+        'user_id' => $user->id,
+        'date' => '2026-10-01',
+        'weight_kg' => 80.5,
+    ]);
+
+    WeightLog::factory()->create([
+        'user_id' => $user->id,
+        'date' => '2026-10-15',
+        'weight_kg' => 79.2,
+    ]);
+
+    $tool = new GetWeightHistoryTool($user);
+    $result = json_decode((string) $tool->handle(new ToolRequest(['days' => 30])), true);
+
+    expect($result['total_logs'])->toBe(2);
+    expect($result['start_weight_kg'])->toEqual(80.5);
+    expect($result['latest_weight_kg'])->toEqual(79.2);
+    expect($result['weight_change_kg'])->toEqual(-1.3);
 });

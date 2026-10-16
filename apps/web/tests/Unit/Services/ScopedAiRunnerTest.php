@@ -4,8 +4,9 @@ use App\Models\User;
 use App\Models\UserAiConnection;
 use App\Services\ScopedAiRunner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-uses(Tests\TestCase::class, RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 test('scoped ai runner temporarily sets provider api key and model during execution', function () {
     $user = User::factory()->create();
@@ -21,7 +22,7 @@ test('scoped ai runner temporarily sets provider api key and model during execut
     // Initial config state
     config(['ai.providers.openai.key' => 'initial-default-key']);
 
-    $runner = new ScopedAiRunner();
+    $runner = new ScopedAiRunner;
 
     $executedKey = null;
 
@@ -51,7 +52,7 @@ test('scoped ai runner restores configuration even when callback throws exceptio
 
     config(['ai.providers.anthropic.key' => 'initial-anthropic-key']);
 
-    $runner = new ScopedAiRunner();
+    $runner = new ScopedAiRunner;
 
     try {
         $runner->run($user, function () {

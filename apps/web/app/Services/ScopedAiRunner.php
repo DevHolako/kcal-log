@@ -13,7 +13,8 @@ class ScopedAiRunner
      * Restores configuration in a guaranteed finally block to prevent FrankenPHP worker bleed.
      *
      * @template T
-     * @param callable(UserAiConnection): T $callback
+     *
+     * @param  callable(UserAiConnection): T  $callback
      * @return T
      */
     public function run(User $user, callable $callback): mixed

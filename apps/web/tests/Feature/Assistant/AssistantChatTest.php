@@ -1,5 +1,6 @@
 <?php
 
+use App\Ai\Agents\NutritionAssistant;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
 use App\Models\Profile;
@@ -145,7 +146,7 @@ test('user can stream assistant message and thread is auto-titled', function () 
         'title' => 'New Conversation',
     ]);
 
-    \App\Ai\Agents\NutritionAssistant::fake([
+    NutritionAssistant::fake([
         'You have 500 kcal remaining today.',
     ]);
 
@@ -176,5 +177,48 @@ test('user can stream assistant message and thread is auto-titled', function () 
         'ai_conversation_id' => $conv->id,
         'role' => 'assistant',
         'content' => 'You have 500 kcal remaining today.',
+    ]);
+});
+
+test('upstream provider quota failure streams error card and marks connection disconnected', function () {
+    $user = createTestUser();
+
+    UserAiConnection::create([
+        'user_id' => $user->id,
+        'provider' => 'openai',
+        'model' => 'gpt-4o-mini',
+        'api_key' => 'sk-expired-key',
+        'is_connected' => true,
+    ]);
+
+    $conv = AiConversation::create([
+        'user_id' => $user->id,
+        'title' => 'Test Thread',
+    ]);
+
+    NutritionAssistant::fake(function () {
+        throw new RuntimeException('You exceeded your current quota, please check your plan and billing details (429)');
+    });
+
+    $response = $this->actingAs($user)
+        ->post(route('assistant.conversations.stream', $conv), [
+            'prompt' => 'Hello',
+        ]);
+
+    $response->assertOk();
+
+    ob_start();
+    ob_start();
+    $response->sendContent();
+    ob_get_clean();
+    $output = ob_get_clean();
+
+    expect($output)->toContain('provider_error');
+    expect($output)->toContain('/settings/ai');
+
+    // Connection must be marked disconnected
+    $this->assertDatabaseHas('user_ai_connections', [
+        'user_id' => $user->id,
+        'is_connected' => false,
     ]);
 });
