@@ -86,62 +86,37 @@ class OpenFoodFactsService
         $client = $this->buildClient($connection);
         $source = ($connection && $connection->is_connected) ? 'off_authenticated' : 'off_anonymous';
 
-        if (app()->environment('testing')) {
-            $url = rtrim($this->baseUrl, '/').'/cgi/search.pl';
-            $response = $client->get($url, [
-                'search_terms' => $query,
-                'search_simple' => 1,
-                'action' => 'process',
-                'json' => 1,
-                'page' => $page,
-                'page_size' => $perPage,
-                'fields' => 'code,product_name,product_name_en,product_name_fr,brands,image_front_small_url,image_small_url,image_url,nutriments,nutriscore_grade,ecoscore_grade,nova_group,serving_size,serving_quantity',
-            ]);
+        $baseUrl = rtrim($this->baseUrl, '/');
 
-            $response->throw();
+        // Full-text search on Open Food Facts must use cgi/search.pl (api/v2/search ignores search_terms)
+        $primaryUrl = str_contains($baseUrl, 'openfoodfacts')
+            ? 'https://world.openfoodfacts.net/cgi/search.pl'
+            : $baseUrl.'/cgi/search.pl';
 
-            /** @var array<string, mixed> $data */
-            $data = $response->json();
+        $params = [
+            'search_terms' => $query,
+            'search_simple' => 1,
+            'action' => 'process',
+            'json' => 1,
+            'page' => $page,
+            'page_size' => $perPage,
+            'fields' => 'code,product_name,product_name_en,product_name_fr,brands,image_front_small_url,image_small_url,image_url,nutriments,nutriscore_grade,ecoscore_grade,nova_group,serving_size,serving_quantity',
+        ];
 
-            /** @var list<array<string, mixed>> $products */
-            $products = $data['products'] ?? [];
-            $total = (int) ($data['count'] ?? count($products));
-
-            return [
-                'products' => $products,
-                'total' => $total,
-                'source' => $source,
-            ];
-        }
-
-        // Production: Use world.openfoodfacts.net v2 search endpoint, fallback to cgi/search.pl
         try {
-            $url = 'https://world.openfoodfacts.net/api/v2/search';
-            $response = $client->get($url, [
-                'search_terms' => $query,
-                'fields' => 'code,product_name,product_name_en,product_name_fr,brands,image_front_small_url,image_small_url,image_url,nutriments,nutriscore_grade,ecoscore_grade,nova_group,serving_size,serving_quantity',
-                'page' => $page,
-                'page_size' => $perPage,
-            ]);
-
+            $response = $client->get($primaryUrl, $params);
             $response->throw();
         } catch (\Throwable $e) {
-            Log::info('OpenFoodFacts v2 search failed, attempting legacy fallback', [
+            Log::info('OpenFoodFacts search on primary endpoint failed, attempting fallback', [
                 'query' => $query,
                 'error' => $e->getMessage(),
             ]);
 
-            $url = rtrim($this->baseUrl, '/').'/cgi/search.pl';
-            $response = $client->get($url, [
-                'search_terms' => $query,
-                'search_simple' => 1,
-                'action' => 'process',
-                'json' => 1,
-                'page' => $page,
-                'page_size' => $perPage,
-                'fields' => 'code,product_name,product_name_en,product_name_fr,brands,image_front_small_url,image_small_url,image_url,nutriments,nutriscore_grade,ecoscore_grade,nova_group,serving_size,serving_quantity',
-            ]);
-
+            $fallbackUrl = $baseUrl.'/cgi/search.pl';
+            if ($fallbackUrl === $primaryUrl) {
+                $fallbackUrl = 'https://world.openfoodfacts.org/cgi/search.pl';
+            }
+            $response = $client->get($fallbackUrl, $params);
             $response->throw();
         }
 
