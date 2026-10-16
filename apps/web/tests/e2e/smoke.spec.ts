@@ -19,6 +19,12 @@ test.describe('Smoke & System Health', () => {
 
         await expect(loginLink).toBeVisible();
         await expect(registerLink).toBeVisible();
+
+        // Verify macro calculator computes real grams and has zero NaN instances
+        await expect(page.getByText('NaN', { exact: true })).toHaveCount(0);
+        await expect(
+            page.getByText(/Calculated Daily Fuel Target/i),
+        ).toBeVisible();
     });
 
     test('registration page renders form fields', async ({ page }) => {

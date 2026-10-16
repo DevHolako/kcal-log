@@ -6,9 +6,13 @@ import {
     calculateMacroGrams,
     calculateWeightEWMA,
     DIET_PRESETS,
-    type DietPreference,
 } from '@kcal-log/nutrition';
-import type { ActivityLevel, GoalType, Sex } from '@kcal-log/types';
+import type {
+    ActivityLevel,
+    DietPreference,
+    GoalType,
+    Sex,
+} from '@kcal-log/types';
 import {
     Activity,
     ArrowRight,
@@ -55,8 +59,8 @@ function NavLink({ href, children, onClick }: NavLinkProps) {
 }
 
 export default function Welcome() {
-    const { auth, name } = usePage().props as {
-        auth: { user: unknown };
+    const { auth, name } = usePage().props as unknown as {
+        auth?: { user?: unknown };
         name?: string;
     };
     const appName = name || 'kcal-log';
@@ -77,7 +81,7 @@ export default function Welcome() {
     const [calcAge, setCalcAge] = useState(28);
     const [calcActivity, setCalcActivity] =
         useState<ActivityLevel>('moderately_active');
-    const [calcGoal, setCalcGoal] = useState<GoalType>('cut');
+    const [calcGoal, setCalcGoal] = useState<GoalType>('lose');
     const [calcDiet, setCalcDiet] = useState<DietPreference>('balanced');
     const [copiedTarget, setCopiedTarget] = useState(false);
 
@@ -94,14 +98,16 @@ export default function Welcome() {
         });
         const tdee = calculateTDEE(bmr, calcActivity);
         const weeklyRateKg =
-            calcGoal === 'cut' ? -0.5 : calcGoal === 'bulk' ? 0.25 : 0;
+            calcGoal === 'lose' ? -0.5 : calcGoal === 'gain' ? 0.25 : 0;
         const targetCalories = calculateTargetCalories({
             tdee,
             goalType: calcGoal,
             weeklyRateKg,
             floorCalories: calcSex === 'male' ? 1500 : 1200,
         });
-        const split = DIET_PRESETS[calcDiet] ?? DIET_PRESETS.balanced;
+        const split =
+            DIET_PRESETS[calcDiet as keyof typeof DIET_PRESETS] ??
+            DIET_PRESETS.balanced;
         const macros = calculateMacroGrams(targetCalories, split);
 
         return { bmr, tdee, targetCalories, macros, split };
@@ -117,7 +123,7 @@ export default function Welcome() {
 
     // Copy to clipboard helper
     const handleCopyProtocol = () => {
-        const text = `kcal-log Nutrition Protocol\nDaily Target: ${calculatorResults.targetCalories} kcal\nProtein: ${calculatorResults.macros.protein}g (${calculatorResults.split.proteinPercent}%)\nCarbs: ${calculatorResults.macros.carbs}g (${calculatorResults.split.carbsPercent}%)\nFats: ${calculatorResults.macros.fat}g (${calculatorResults.split.fatPercent}%)\nBMR: ${calculatorResults.bmr} kcal | TDEE: ${calculatorResults.tdee} kcal`;
+        const text = `kcal-log Nutrition Protocol\nDaily Target: ${calculatorResults.targetCalories} kcal\nProtein: ${calculatorResults.macros.proteinG}g (${calculatorResults.split.proteinPercent}%)\nCarbs: ${calculatorResults.macros.carbsG}g (${calculatorResults.split.carbsPercent}%)\nFats: ${calculatorResults.macros.fatG}g (${calculatorResults.split.fatPercent}%)\nBMR: ${calculatorResults.bmr} kcal | TDEE: ${calculatorResults.tdee} kcal`;
         void navigator.clipboard.writeText(text);
         setCopiedTarget(true);
         setTimeout(() => setCopiedTarget(false), 2000);
@@ -274,7 +280,7 @@ export default function Welcome() {
                     <div className="hidden items-center gap-3 md:flex">
                         <ThemeToggle />
 
-                        {auth.user ? (
+                        {auth?.user ? (
                             <Button
                                 asChild
                                 size="sm"
@@ -362,7 +368,7 @@ export default function Welcome() {
                                 FAQ
                             </NavLink>
                             <div className="flex flex-col gap-2.5 border-t border-border pt-4">
-                                {auth.user ? (
+                                {auth?.user ? (
                                     <Button
                                         asChild
                                         className="w-full rounded-lg bg-emerald-600 text-white hover:bg-emerald-500"
@@ -709,7 +715,7 @@ export default function Welcome() {
                                     <div className="flex flex-col gap-2">
                                         {[
                                             {
-                                                key: 'cut',
+                                                key: 'lose',
                                                 label: 'Fat Loss Cut',
                                                 delta: '-500 kcal/day',
                                             },
@@ -719,7 +725,7 @@ export default function Welcome() {
                                                 delta: '0 kcal',
                                             },
                                             {
-                                                key: 'bulk',
+                                                key: 'gain',
                                                 label: 'Lean Bulk',
                                                 delta: '+250 kcal/day',
                                             },
@@ -809,9 +815,9 @@ export default function Welcome() {
                                         Calculated Daily Fuel Target
                                     </span>
                                     <Badge className="bg-emerald-600 font-mono text-xs text-white">
-                                        {calcGoal === 'cut'
+                                        {calcGoal === 'lose'
                                             ? 'Deficit'
-                                            : calcGoal === 'bulk'
+                                            : calcGoal === 'gain'
                                               ? 'Surplus'
                                               : 'Equilibrium'}
                                     </Badge>
@@ -830,9 +836,9 @@ export default function Welcome() {
                                     Calibrated for a baseline maintenance of{' '}
                                     {calculatorResults.tdee.toLocaleString()}{' '}
                                     kcal with a weekly target rate of{' '}
-                                    {calcGoal === 'cut'
+                                    {calcGoal === 'lose'
                                         ? '-0.50 kg'
-                                        : calcGoal === 'bulk'
+                                        : calcGoal === 'gain'
                                           ? '+0.25 kg'
                                           : '0.00 kg'}
                                     .
@@ -902,10 +908,10 @@ export default function Welcome() {
                                             Protein
                                         </span>
                                         <span className="block font-mono text-xl font-black text-foreground sm:text-2xl">
-                                            {calculatorResults.macros.protein}g
+                                            {calculatorResults.macros.proteinG}g
                                         </span>
                                         <span className="font-mono text-[10px] text-muted-foreground">
-                                            {calculatorResults.macros.protein *
+                                            {calculatorResults.macros.proteinG *
                                                 4}{' '}
                                             kcal
                                         </span>
@@ -915,10 +921,11 @@ export default function Welcome() {
                                             Carbs
                                         </span>
                                         <span className="block font-mono text-xl font-black text-foreground sm:text-2xl">
-                                            {calculatorResults.macros.carbs}g
+                                            {calculatorResults.macros.carbsG}g
                                         </span>
                                         <span className="font-mono text-[10px] text-muted-foreground">
-                                            {calculatorResults.macros.carbs * 4}{' '}
+                                            {calculatorResults.macros.carbsG *
+                                                4}{' '}
                                             kcal
                                         </span>
                                     </div>
@@ -927,10 +934,10 @@ export default function Welcome() {
                                             Fats
                                         </span>
                                         <span className="block font-mono text-xl font-black text-foreground sm:text-2xl">
-                                            {calculatorResults.macros.fat}g
+                                            {calculatorResults.macros.fatG}g
                                         </span>
                                         <span className="font-mono text-[10px] text-muted-foreground">
-                                            {calculatorResults.macros.fat * 9}{' '}
+                                            {calculatorResults.macros.fatG * 9}{' '}
                                             kcal
                                         </span>
                                     </div>
