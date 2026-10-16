@@ -283,8 +283,8 @@ jobs:
           COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
         run: |
           if [ -z "$COOLIFY_TOKEN" ]; then
-            echo "COOLIFY_TOKEN secret is not set, skipping deployment."
-            exit 1
+            echo "::notice ::COOLIFY_TOKEN secret is not set in GitHub repository settings. Skipping deployment."
+            exit 0
           fi
           echo "Triggering deployment for resource wkmahwtelnowod7prfdxd9dq..."
           response=$(curl -fsSL -X POST \
