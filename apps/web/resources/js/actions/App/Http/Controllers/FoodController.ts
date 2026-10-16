@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\FoodController::search
-* @see app/Http/Controllers/FoodController.php:30
+* @see app/Http/Controllers/FoodController.php:31
 * @route '/foods/search'
 */
 export const search = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ search.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::search
-* @see app/Http/Controllers/FoodController.php:30
+* @see app/Http/Controllers/FoodController.php:31
 * @route '/foods/search'
 */
 search.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ search.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\FoodController::search
-* @see app/Http/Controllers/FoodController.php:30
+* @see app/Http/Controllers/FoodController.php:31
 * @route '/foods/search'
 */
 search.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ search.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::search
-* @see app/Http/Controllers/FoodController.php:30
+* @see app/Http/Controllers/FoodController.php:31
 * @route '/foods/search'
 */
 search.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ search.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::search
-* @see app/Http/Controllers/FoodController.php:30
+* @see app/Http/Controllers/FoodController.php:31
 * @route '/foods/search'
 */
 const searchForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -55,7 +55,7 @@ const searchForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => 
 
 /**
 * @see \App\Http\Controllers\FoodController::search
-* @see app/Http/Controllers/FoodController.php:30
+* @see app/Http/Controllers/FoodController.php:31
 * @route '/foods/search'
 */
 searchForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -65,7 +65,7 @@ searchForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::search
-* @see app/Http/Controllers/FoodController.php:30
+* @see app/Http/Controllers/FoodController.php:31
 * @route '/foods/search'
 */
 searchForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ search.form = searchForm
 
 /**
 * @see \App\Http\Controllers\FoodController::barcode
-* @see app/Http/Controllers/FoodController.php:79
+* @see app/Http/Controllers/FoodController.php:114
 * @route '/foods/barcode/{barcode}'
 */
 export const barcode = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -97,7 +97,7 @@ barcode.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::barcode
-* @see app/Http/Controllers/FoodController.php:79
+* @see app/Http/Controllers/FoodController.php:114
 * @route '/foods/barcode/{barcode}'
 */
 barcode.url = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -124,7 +124,7 @@ barcode.url = (args: { barcode: string | number } | [barcode: string | number ] 
 
 /**
 * @see \App\Http\Controllers\FoodController::barcode
-* @see app/Http/Controllers/FoodController.php:79
+* @see app/Http/Controllers/FoodController.php:114
 * @route '/foods/barcode/{barcode}'
 */
 barcode.get = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -134,7 +134,7 @@ barcode.get = (args: { barcode: string | number } | [barcode: string | number ] 
 
 /**
 * @see \App\Http\Controllers\FoodController::barcode
-* @see app/Http/Controllers/FoodController.php:79
+* @see app/Http/Controllers/FoodController.php:114
 * @route '/foods/barcode/{barcode}'
 */
 barcode.head = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -144,7 +144,7 @@ barcode.head = (args: { barcode: string | number } | [barcode: string | number ]
 
 /**
 * @see \App\Http\Controllers\FoodController::barcode
-* @see app/Http/Controllers/FoodController.php:79
+* @see app/Http/Controllers/FoodController.php:114
 * @route '/foods/barcode/{barcode}'
 */
 const barcodeForm = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -154,7 +154,7 @@ const barcodeForm = (args: { barcode: string | number } | [barcode: string | num
 
 /**
 * @see \App\Http\Controllers\FoodController::barcode
-* @see app/Http/Controllers/FoodController.php:79
+* @see app/Http/Controllers/FoodController.php:114
 * @route '/foods/barcode/{barcode}'
 */
 barcodeForm.get = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -164,7 +164,7 @@ barcodeForm.get = (args: { barcode: string | number } | [barcode: string | numbe
 
 /**
 * @see \App\Http\Controllers\FoodController::barcode
-* @see app/Http/Controllers/FoodController.php:79
+* @see app/Http/Controllers/FoodController.php:114
 * @route '/foods/barcode/{barcode}'
 */
 barcodeForm.head = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -180,8 +180,89 @@ barcodeForm.head = (args: { barcode: string | number } | [barcode: string | numb
 barcode.form = barcodeForm
 
 /**
+* @see \App\Http\Controllers\FoodController::syncStatus
+* @see app/Http/Controllers/FoodController.php:300
+* @route '/foods/sync/status'
+*/
+export const syncStatus = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: syncStatus.url(options),
+    method: 'get',
+})
+
+syncStatus.definition = {
+    methods: ["get","head"],
+    url: '/foods/sync/status',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\FoodController::syncStatus
+* @see app/Http/Controllers/FoodController.php:300
+* @route '/foods/sync/status'
+*/
+syncStatus.url = (options?: RouteQueryOptions) => {
+    return syncStatus.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\FoodController::syncStatus
+* @see app/Http/Controllers/FoodController.php:300
+* @route '/foods/sync/status'
+*/
+syncStatus.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: syncStatus.url(options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\FoodController::syncStatus
+* @see app/Http/Controllers/FoodController.php:300
+* @route '/foods/sync/status'
+*/
+syncStatus.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: syncStatus.url(options),
+    method: 'head',
+})
+
+/**
+* @see \App\Http\Controllers\FoodController::syncStatus
+* @see app/Http/Controllers/FoodController.php:300
+* @route '/foods/sync/status'
+*/
+const syncStatusForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    action: syncStatus.url(options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\FoodController::syncStatus
+* @see app/Http/Controllers/FoodController.php:300
+* @route '/foods/sync/status'
+*/
+syncStatusForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    action: syncStatus.url(options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\FoodController::syncStatus
+* @see app/Http/Controllers/FoodController.php:300
+* @route '/foods/sync/status'
+*/
+syncStatusForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+    action: syncStatus.url({
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'HEAD',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        }
+    }),
+    method: 'get',
+})
+
+syncStatus.form = syncStatusForm
+
+/**
 * @see \App\Http\Controllers\FoodController::index
-* @see app/Http/Controllers/FoodController.php:100
+* @see app/Http/Controllers/FoodController.php:135
 * @route '/foods'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -196,7 +277,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::index
-* @see app/Http/Controllers/FoodController.php:100
+* @see app/Http/Controllers/FoodController.php:135
 * @route '/foods'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -205,7 +286,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\FoodController::index
-* @see app/Http/Controllers/FoodController.php:100
+* @see app/Http/Controllers/FoodController.php:135
 * @route '/foods'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -215,7 +296,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::index
-* @see app/Http/Controllers/FoodController.php:100
+* @see app/Http/Controllers/FoodController.php:135
 * @route '/foods'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -225,7 +306,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::index
-* @see app/Http/Controllers/FoodController.php:100
+* @see app/Http/Controllers/FoodController.php:135
 * @route '/foods'
 */
 const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -235,7 +316,7 @@ const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => (
 
 /**
 * @see \App\Http\Controllers\FoodController::index
-* @see app/Http/Controllers/FoodController.php:100
+* @see app/Http/Controllers/FoodController.php:135
 * @route '/foods'
 */
 indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -245,7 +326,7 @@ indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::index
-* @see app/Http/Controllers/FoodController.php:100
+* @see app/Http/Controllers/FoodController.php:135
 * @route '/foods'
 */
 indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -262,7 +343,7 @@ index.form = indexForm
 
 /**
 * @see \App\Http\Controllers\FoodController::show
-* @see app/Http/Controllers/FoodController.php:179
+* @see app/Http/Controllers/FoodController.php:214
 * @route '/foods/{food}'
 */
 export const show = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -277,7 +358,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::show
-* @see app/Http/Controllers/FoodController.php:179
+* @see app/Http/Controllers/FoodController.php:214
 * @route '/foods/{food}'
 */
 show.url = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -310,7 +391,7 @@ show.url = (args: { food: number | { id: number } } | [food: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\FoodController::show
-* @see app/Http/Controllers/FoodController.php:179
+* @see app/Http/Controllers/FoodController.php:214
 * @route '/foods/{food}'
 */
 show.get = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -320,7 +401,7 @@ show.get = (args: { food: number | { id: number } } | [food: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\FoodController::show
-* @see app/Http/Controllers/FoodController.php:179
+* @see app/Http/Controllers/FoodController.php:214
 * @route '/foods/{food}'
 */
 show.head = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -330,7 +411,7 @@ show.head = (args: { food: number | { id: number } } | [food: number | { id: num
 
 /**
 * @see \App\Http\Controllers\FoodController::show
-* @see app/Http/Controllers/FoodController.php:179
+* @see app/Http/Controllers/FoodController.php:214
 * @route '/foods/{food}'
 */
 const showForm = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -340,7 +421,7 @@ const showForm = (args: { food: number | { id: number } } | [food: number | { id
 
 /**
 * @see \App\Http\Controllers\FoodController::show
-* @see app/Http/Controllers/FoodController.php:179
+* @see app/Http/Controllers/FoodController.php:214
 * @route '/foods/{food}'
 */
 showForm.get = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -350,7 +431,7 @@ showForm.get = (args: { food: number | { id: number } } | [food: number | { id: 
 
 /**
 * @see \App\Http\Controllers\FoodController::show
-* @see app/Http/Controllers/FoodController.php:179
+* @see app/Http/Controllers/FoodController.php:214
 * @route '/foods/{food}'
 */
 showForm.head = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -367,7 +448,7 @@ show.form = showForm
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:200
+* @see app/Http/Controllers/FoodController.php:241
 * @route '/foods/sync'
 */
 export const sync = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -382,7 +463,7 @@ sync.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:200
+* @see app/Http/Controllers/FoodController.php:241
 * @route '/foods/sync'
 */
 sync.url = (options?: RouteQueryOptions) => {
@@ -391,7 +472,7 @@ sync.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:200
+* @see app/Http/Controllers/FoodController.php:241
 * @route '/foods/sync'
 */
 sync.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -401,7 +482,7 @@ sync.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:200
+* @see app/Http/Controllers/FoodController.php:241
 * @route '/foods/sync'
 */
 const syncForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -411,7 +492,7 @@ const syncForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => (
 
 /**
 * @see \App\Http\Controllers\FoodController::sync
-* @see app/Http/Controllers/FoodController.php:200
+* @see app/Http/Controllers/FoodController.php:241
 * @route '/foods/sync'
 */
 syncForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -423,7 +504,7 @@ sync.form = syncForm
 
 /**
 * @see \App\Http\Controllers\FoodController::storeCustom
-* @see app/Http/Controllers/FoodController.php:247
+* @see app/Http/Controllers/FoodController.php:316
 * @route '/foods/custom'
 */
 export const storeCustom = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -438,7 +519,7 @@ storeCustom.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::storeCustom
-* @see app/Http/Controllers/FoodController.php:247
+* @see app/Http/Controllers/FoodController.php:316
 * @route '/foods/custom'
 */
 storeCustom.url = (options?: RouteQueryOptions) => {
@@ -447,7 +528,7 @@ storeCustom.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\FoodController::storeCustom
-* @see app/Http/Controllers/FoodController.php:247
+* @see app/Http/Controllers/FoodController.php:316
 * @route '/foods/custom'
 */
 storeCustom.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -457,7 +538,7 @@ storeCustom.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::storeCustom
-* @see app/Http/Controllers/FoodController.php:247
+* @see app/Http/Controllers/FoodController.php:316
 * @route '/foods/custom'
 */
 const storeCustomForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -467,7 +548,7 @@ const storeCustomForm = (options?: RouteQueryOptions): RouteFormDefinition<'post
 
 /**
 * @see \App\Http\Controllers\FoodController::storeCustom
-* @see app/Http/Controllers/FoodController.php:247
+* @see app/Http/Controllers/FoodController.php:316
 * @route '/foods/custom'
 */
 storeCustomForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -479,7 +560,7 @@ storeCustom.form = storeCustomForm
 
 /**
 * @see \App\Http\Controllers\FoodController::destroyCustom
-* @see app/Http/Controllers/FoodController.php:261
+* @see app/Http/Controllers/FoodController.php:330
 * @route '/foods/custom/{food}'
 */
 export const destroyCustom = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -494,7 +575,7 @@ destroyCustom.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::destroyCustom
-* @see app/Http/Controllers/FoodController.php:261
+* @see app/Http/Controllers/FoodController.php:330
 * @route '/foods/custom/{food}'
 */
 destroyCustom.url = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -527,7 +608,7 @@ destroyCustom.url = (args: { food: number | { id: number } } | [food: number | {
 
 /**
 * @see \App\Http\Controllers\FoodController::destroyCustom
-* @see app/Http/Controllers/FoodController.php:261
+* @see app/Http/Controllers/FoodController.php:330
 * @route '/foods/custom/{food}'
 */
 destroyCustom.delete = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -537,7 +618,7 @@ destroyCustom.delete = (args: { food: number | { id: number } } | [food: number 
 
 /**
 * @see \App\Http\Controllers\FoodController::destroyCustom
-* @see app/Http/Controllers/FoodController.php:261
+* @see app/Http/Controllers/FoodController.php:330
 * @route '/foods/custom/{food}'
 */
 const destroyCustomForm = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -552,7 +633,7 @@ const destroyCustomForm = (args: { food: number | { id: number } } | [food: numb
 
 /**
 * @see \App\Http\Controllers\FoodController::destroyCustom
-* @see app/Http/Controllers/FoodController.php:261
+* @see app/Http/Controllers/FoodController.php:330
 * @route '/foods/custom/{food}'
 */
 destroyCustomForm.delete = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -567,6 +648,6 @@ destroyCustomForm.delete = (args: { food: number | { id: number } } | [food: num
 
 destroyCustom.form = destroyCustomForm
 
-const FoodController = { search, barcode, index, show, sync, storeCustom, destroyCustom }
+const FoodController = { search, barcode, syncStatus, index, show, sync, storeCustom, destroyCustom }
 
 export default FoodController

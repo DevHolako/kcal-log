@@ -31,6 +31,11 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/open-food-facts',
         icon: null,
     },
+    {
+        title: 'AI Assistant',
+        href: '/settings/ai',
+        icon: null,
+    },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
