@@ -12,6 +12,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 use App\Http\Controllers\AdaptiveController as WebAdaptiveController;
+use App\Http\Controllers\Assistant\AssistantController;
 use App\Http\Controllers\DiaryController as WebDiaryController;
 use App\Http\Controllers\ExportController as WebExportController;
 use App\Http\Controllers\FoodController as WebFoodController;
@@ -58,6 +59,12 @@ Route::middleware(['auth', 'verified', EnsureOnboardingIsComplete::class])->grou
     Route::post('strategy/{adjustment}/accept', [WebAdaptiveController::class, 'accept'])->name('strategy.accept');
     Route::post('strategy/{adjustment}/reject', [WebAdaptiveController::class, 'reject'])->name('strategy.reject');
     Route::post('strategy/trigger', [WebAdaptiveController::class, 'trigger'])->name('strategy.trigger');
+
+    // AI Nutrition Assistant
+    Route::get('assistant', [AssistantController::class, 'index'])->name('assistant.index');
+    Route::post('assistant/conversations', [AssistantController::class, 'store'])->name('assistant.conversations.store');
+    Route::delete('assistant/conversations/{conversation}', [AssistantController::class, 'destroy'])->name('assistant.conversations.destroy');
+    Route::post('assistant/conversations/{conversation}/stream', [AssistantController::class, 'stream'])->name('assistant.conversations.stream');
 });
 
 require __DIR__.'/settings.php';

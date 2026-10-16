@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import {
     BookOpen,
+    Bot,
     CalendarDays,
     ChefHat,
     FileText,
@@ -53,6 +54,11 @@ export function AppSidebar({ side = 'left' }: { side?: 'left' | 'right' }) {
             title: t('nav.reports'),
             href: '/reports',
             icon: FileText,
+        },
+        {
+            title: 'AI Assistant',
+            href: '/assistant',
+            icon: Bot,
         },
     ];
 

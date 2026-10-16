@@ -1,5 +1,13 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Bot, CheckCircle2, Eye, EyeOff, KeyRound, ShieldCheck, Unlink } from 'lucide-react';
+import {
+    Bot,
+    CheckCircle2,
+    Eye,
+    EyeOff,
+    KeyRound,
+    ShieldCheck,
+    Unlink,
+} from 'lucide-react';
 import { useState, type FormEventHandler } from 'react';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -28,12 +36,21 @@ interface Props {
 
 const PROVIDER_MODELS = {
     openai: [
-        { id: 'gpt-4o-mini', label: 'GPT-4o Mini (Fast & Economical - Recommended)' },
+        {
+            id: 'gpt-4o-mini',
+            label: 'GPT-4o Mini (Fast & Economical - Recommended)',
+        },
         { id: 'gpt-4o', label: 'GPT-4o (High Reasoning)' },
     ],
     anthropic: [
-        { id: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku (Fast & Economical - Recommended)' },
-        { id: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (High Reasoning)' },
+        {
+            id: 'claude-3-5-haiku-20241022',
+            label: 'Claude 3.5 Haiku (Fast & Economical - Recommended)',
+        },
+        {
+            id: 'claude-3-5-sonnet-20241022',
+            label: 'Claude 3.5 Sonnet (High Reasoning)',
+        },
     ],
 };
 
@@ -99,26 +116,32 @@ export default function AiSettings({ connection, status }: Props) {
                             </CardTitle>
                         </div>
                         <CardDescription className="text-xs leading-relaxed text-muted-foreground">
-                            Your API credentials remain entirely in your control (ADR 0011):
+                            Your API credentials remain entirely in your control
+                            (ADR 0011):
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-1.5 pt-0 text-xs text-muted-foreground">
                         <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
                             <span>
-                                <strong>Zero Platform Markup:</strong> Pay your provider directly at wholesale API token rates.
+                                <strong>Zero Platform Markup:</strong> Pay your
+                                provider directly at wholesale API token rates.
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
                             <span>
-                                <strong>Encrypted at Rest:</strong> Keys are stored using AES-256 encryption and isolated from user profiles.
+                                <strong>Encrypted at Rest:</strong> Keys are
+                                stored using AES-256 encryption and isolated
+                                from user profiles.
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
                             <span>
-                                <strong>FrankenPHP Scoped Isolation:</strong> API keys are loaded dynamically per-request and safely cleaned up in worker memory.
+                                <strong>FrankenPHP Scoped Isolation:</strong>{' '}
+                                API keys are loaded dynamically per-request and
+                                safely cleaned up in worker memory.
                             </span>
                         </div>
                     </CardContent>
@@ -155,7 +178,9 @@ export default function AiSettings({ connection, status }: Props) {
                             {connection.last_verified_at && (
                                 <p className="text-xs text-muted-foreground">
                                     Last verified:{' '}
-                                    {new Date(connection.last_verified_at).toLocaleString()}
+                                    {new Date(
+                                        connection.last_verified_at,
+                                    ).toLocaleString()}
                                 </p>
                             )}
 
@@ -183,11 +208,14 @@ export default function AiSettings({ connection, status }: Props) {
                         <div className="flex items-center gap-2">
                             <KeyRound className="h-5 w-5 text-primary" />
                             <CardTitle className="text-base font-medium">
-                                {connection.connected ? 'Update AI Credentials' : 'Connect AI Provider'}
+                                {connection.connected
+                                    ? 'Update AI Credentials'
+                                    : 'Connect AI Provider'}
                             </CardTitle>
                         </div>
                         <CardDescription>
-                            Enter your personal API key. We will execute a lightweight test ping to verify it before saving.
+                            Enter your personal API key. We will execute a
+                            lightweight test ping to verify it before saving.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -198,14 +226,19 @@ export default function AiSettings({ connection, status }: Props) {
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         type="button"
-                                        onClick={() => handleProviderChange('openai')}
+                                        onClick={() =>
+                                            handleProviderChange('openai')
+                                        }
                                         className={`flex flex-col items-start rounded-lg border p-3 text-left transition ${
-                                            connectForm.data.provider === 'openai'
+                                            connectForm.data.provider ===
+                                            'openai'
                                                 ? 'border-primary bg-primary/5 text-primary ring-1 ring-primary'
                                                 : 'border-border/60 hover:bg-muted/50'
                                         }`}
                                     >
-                                        <span className="font-semibold text-sm">OpenAI</span>
+                                        <span className="text-sm font-semibold">
+                                            OpenAI
+                                        </span>
                                         <span className="text-xs text-muted-foreground">
                                             GPT-4o Mini, GPT-4o
                                         </span>
@@ -213,20 +246,27 @@ export default function AiSettings({ connection, status }: Props) {
 
                                     <button
                                         type="button"
-                                        onClick={() => handleProviderChange('anthropic')}
+                                        onClick={() =>
+                                            handleProviderChange('anthropic')
+                                        }
                                         className={`flex flex-col items-start rounded-lg border p-3 text-left transition ${
-                                            connectForm.data.provider === 'anthropic'
+                                            connectForm.data.provider ===
+                                            'anthropic'
                                                 ? 'border-primary bg-primary/5 text-primary ring-1 ring-primary'
                                                 : 'border-border/60 hover:bg-muted/50'
                                         }`}
                                     >
-                                        <span className="font-semibold text-sm">Anthropic</span>
+                                        <span className="text-sm font-semibold">
+                                            Anthropic
+                                        </span>
                                         <span className="text-xs text-muted-foreground">
                                             Claude 3.5 Haiku, Claude 3.5 Sonnet
                                         </span>
                                     </button>
                                 </div>
-                                <InputError message={connectForm.errors.provider} />
+                                <InputError
+                                    message={connectForm.errors.provider}
+                                />
                             </div>
 
                             {/* Model Selection */}
@@ -235,31 +275,50 @@ export default function AiSettings({ connection, status }: Props) {
                                 <select
                                     id="model"
                                     value={connectForm.data.model}
-                                    onChange={(e) => connectForm.setData('model', e.target.value)}
-                                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    onChange={(e) =>
+                                        connectForm.setData(
+                                            'model',
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
                                 >
-                                    {PROVIDER_MODELS[connectForm.data.provider as 'openai' | 'anthropic'].map((m) => (
+                                    {PROVIDER_MODELS[
+                                        connectForm.data.provider as
+                                            | 'openai'
+                                            | 'anthropic'
+                                    ].map((m) => (
                                         <option key={m.id} value={m.id}>
                                             {m.label}
                                         </option>
                                     ))}
                                 </select>
-                                <InputError message={connectForm.errors.model} />
+                                <InputError
+                                    message={connectForm.errors.model}
+                                />
                             </div>
 
                             {/* API Key */}
                             <div className="space-y-2">
                                 <Label htmlFor="api_key">
-                                    {connectForm.data.provider === 'openai' ? 'OpenAI API Key' : 'Anthropic API Key'}
+                                    {connectForm.data.provider === 'openai'
+                                        ? 'OpenAI API Key'
+                                        : 'Anthropic API Key'}
                                 </Label>
                                 <div className="relative">
                                     <Input
                                         id="api_key"
                                         type={showKey ? 'text' : 'password'}
                                         value={connectForm.data.api_key}
-                                        onChange={(e) => connectForm.setData('api_key', e.target.value)}
+                                        onChange={(e) =>
+                                            connectForm.setData(
+                                                'api_key',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder={
-                                            connectForm.data.provider === 'openai'
+                                            connectForm.data.provider ===
+                                            'openai'
                                                 ? 'sk-proj-...'
                                                 : 'sk-ant-api03-...'
                                         }
@@ -270,12 +329,18 @@ export default function AiSettings({ connection, status }: Props) {
                                     <button
                                         type="button"
                                         onClick={() => setShowKey(!showKey)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                     >
-                                        {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        {showKey ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
                                     </button>
                                 </div>
-                                <InputError message={connectForm.errors.api_key} />
+                                <InputError
+                                    message={connectForm.errors.api_key}
+                                />
                             </div>
 
                             <Button
@@ -283,7 +348,9 @@ export default function AiSettings({ connection, status }: Props) {
                                 disabled={connectForm.processing}
                                 className="w-full sm:w-auto"
                             >
-                                {connectForm.processing ? 'Verifying Key...' : 'Verify & Save Credentials'}
+                                {connectForm.processing
+                                    ? 'Verifying Key...'
+                                    : 'Verify & Save Credentials'}
                             </Button>
                         </form>
                     </CardContent>
