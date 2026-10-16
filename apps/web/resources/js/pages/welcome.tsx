@@ -4,6 +4,7 @@ import {
     calculateTDEE,
     calculateTargetCalories,
     calculateMacroGrams,
+    calculateWeightEWMA,
     DIET_PRESETS,
     type DietPreference,
 } from '@kcal-log/nutrition';
@@ -15,11 +16,16 @@ import {
     Check,
     CheckCircle2,
     ChevronDown,
+    Copy,
+    Dna,
     Flame,
-    Layers,
     Menu,
+    RefreshCw,
     ShieldCheck,
+    Sliders,
     Sparkles,
+    Target,
+    TrendingUp,
     Utensils,
     X,
     Zap,
@@ -28,7 +34,6 @@ import React, { useMemo, useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { dashboard, login, register } from '@/routes';
 
 interface NavLinkProps {
@@ -57,13 +62,15 @@ export default function Welcome() {
     const appName = name || 'kcal-log';
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    // Interactive Hero Preview state
-    const [activeTab, setActiveTab] = useState<
-        'diary' | 'barcode' | 'adaptive' | 'trend'
+    // Interactive Cockpit State
+    const [cockpitTab, setCockpitTab] = useState<
+        'diary' | 'adaptive' | 'trend' | 'scanner'
     >('diary');
+    const [loggedMealIds, setLoggedMealIds] = useState<number[]>([1, 2]);
     const [adaptiveAccepted, setAdaptiveAccepted] = useState(false);
+    const [waterSpikeActive, setWaterSpikeActive] = useState(false);
 
-    // Interactive Calculator state
+    // Interactive Scientific Calculator State (User's Favorite Hook)
     const [calcSex, setCalcSex] = useState<Sex>('male');
     const [calcWeight, setCalcWeight] = useState(78);
     const [calcHeight, setCalcHeight] = useState(178);
@@ -72,8 +79,12 @@ export default function Welcome() {
         useState<ActivityLevel>('moderately_active');
     const [calcGoal, setCalcGoal] = useState<GoalType>('cut');
     const [calcDiet, setCalcDiet] = useState<DietPreference>('balanced');
+    const [copiedTarget, setCopiedTarget] = useState(false);
 
-    // Real-time calculation using @kcal-log/nutrition engine
+    // FAQ Accordion State
+    const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+    // Real-time calculation using @kcal-log/nutrition deterministic engine
     const calculatorResults = useMemo(() => {
         const bmr = calculateBMR({
             sex: calcSex,
@@ -104,155 +115,245 @@ export default function Welcome() {
         calcDiet,
     ]);
 
-    // FAQ Accordion State
-    const [openFaq, setOpenFaq] = useState<number | null>(0);
+    // Copy to clipboard helper
+    const handleCopyProtocol = () => {
+        const text = `kcal-log Nutrition Protocol\nDaily Target: ${calculatorResults.targetCalories} kcal\nProtein: ${calculatorResults.macros.protein}g (${calculatorResults.split.proteinPercent}%)\nCarbs: ${calculatorResults.macros.carbs}g (${calculatorResults.split.carbsPercent}%)\nFats: ${calculatorResults.macros.fat}g (${calculatorResults.split.fatPercent}%)\nBMR: ${calculatorResults.bmr} kcal | TDEE: ${calculatorResults.tdee} kcal`;
+        void navigator.clipboard.writeText(text);
+        setCopiedTarget(true);
+        setTimeout(() => setCopiedTarget(false), 2000);
+    };
+
+    // Simulated meals for Interactive Cockpit Diary
+    const sampleMeals = [
+        {
+            id: 1,
+            time: '08:30 AM',
+            name: 'High-Protein Oats & Blueberries',
+            desc: '60g Rolled Oats, 30g Whey Isolate, 50g Fresh Blueberries',
+            calories: 460,
+            protein: 38,
+            carbs: 58,
+            fat: 8,
+        },
+        {
+            id: 2,
+            time: '01:15 PM',
+            name: 'Grilled Salmon Bowl & Jasmine Rice',
+            desc: '160g Atlantic Salmon, 180g Steamed Rice, 100g Steamed Broccoli',
+            calories: 620,
+            protein: 48,
+            carbs: 62,
+            fat: 20,
+        },
+        {
+            id: 3,
+            time: '04:45 PM',
+            name: 'Greek Yogurt 0% & Raw Honey',
+            desc: '200g Greek Yogurt, 15g Raw Acacia Honey, 10g Chia Seeds',
+            calories: 230,
+            protein: 24,
+            carbs: 22,
+            fat: 4,
+        },
+        {
+            id: 4,
+            time: '08:00 PM',
+            name: 'Sirloin Steak & Roasted Sweet Potato',
+            desc: '180g Grass-fed Sirloin, 200g Sweet Potato, Grilled Asparagus',
+            calories: 680,
+            protein: 52,
+            carbs: 50,
+            fat: 26,
+        },
+    ];
+
+    const currentDiaryTotals = useMemo(() => {
+        return sampleMeals
+            .filter((m) => loggedMealIds.includes(m.id))
+            .reduce(
+                (acc, m) => ({
+                    calories: acc.calories + m.calories,
+                    protein: acc.protein + m.protein,
+                    carbs: acc.carbs + m.carbs,
+                    fat: acc.fat + m.fat,
+                }),
+                { calories: 0, protein: 0, carbs: 0, fat: 0 },
+            );
+    }, [loggedMealIds]);
+
+    const targetDiaryCalories = 2400;
+    const remainingCalories = targetDiaryCalories - currentDiaryTotals.calories;
+
+    // Simulated EWMA Weight Trend Data
+    const rawWeightsSample = useMemo(() => {
+        const base = [
+            { date: 'Oct 01', weightKg: 80.4 },
+            { date: 'Oct 03', weightKg: 80.1 },
+            { date: 'Oct 05', weightKg: 79.8 },
+            { date: 'Oct 07', weightKg: 80.2 },
+            { date: 'Oct 09', weightKg: 79.5 },
+            { date: 'Oct 11', weightKg: 79.3 },
+            {
+                date: 'Oct 13',
+                weightKg: waterSpikeActive ? 81.6 : 79.1,
+            },
+            {
+                date: 'Oct 15',
+                weightKg: waterSpikeActive ? 80.8 : 78.8,
+            },
+        ];
+        return calculateWeightEWMA(base, 0.12);
+    }, [waterSpikeActive]);
 
     const faqs = [
         {
-            q: 'How does the weekly adaptive adjustment algorithm work?',
-            a: 'kcal-log pairs an exponentially smoothed moving average (EMA) of your scale weight against your logged daily calorie intake. If your real-world progress stalls or drops faster than your chosen rate, the algorithm recalculates your true Total Daily Energy Expenditure (TDEE) and proposes a calibrated ±50–150 kcal adjustment for the following week, which you confirm with one click.',
+            q: 'How does the adaptive metabolic calculation actually work?',
+            a: 'Unlike apps that guess your energy expenditure once and never change it, kcal-log couples your logged calorie intake with your scale weight using an Exponentially Weighted Moving Average (EWMA). By comparing real calorie surplus/deficit against tissue changes over rolling multi-week windows, it computes your true metabolic expenditure (TDEE) and adjusts your caloric targets weekly.',
         },
         {
-            q: 'Is barcode scanning included for free?',
-            a: 'Yes, 100% free with unlimited scans. Unlike legacy calorie counting apps that lock barcode scanning behind expensive annual paywalls, kcal-log connects directly to Open Food Facts (over 3 million verified products worldwide) as a first-class feature.',
+            q: 'Is the barcode scanner really free?',
+            a: 'Yes, 100% free with no limits or premium paywalls. kcal-log integrates directly with OpenFoodFacts and our optimized local cache, giving you access to millions of verified international food barcodes with complete macronutrient profiles.',
         },
         {
-            q: 'Can I create custom foods and multi-ingredient recipes?',
-            a: 'Absolutely. You can create private custom foods with custom portion sizes (grams, scoops, pieces) and build complex multi-ingredient recipes with automatic per-serving macro division. Custom foods remain strictly yours and are never overwritten by catalog updates.',
+            q: 'Can I cycle calories between training days and rest days?',
+            a: 'Absolutely. kcal-log supports dynamic zig-zag calorie banking. You can assign higher carbs and calories to demanding leg or back training sessions and lower calories to rest days while preserving the exact weekly deficit required for your fat-loss or hypertrophy goals.',
         },
         {
-            q: 'How is my data protected and can I export it?',
-            a: 'You own your data completely. You can export your full diary history, meal entries, weigh-ins, and weekly progress as clean CSV or structured PDF reports at any time. There is zero telemetry tracking or advertising.',
+            q: 'Where is my health data stored? Do you sell it to advertisers?',
+            a: 'Your health data belongs strictly to you. kcal-log is built offline-first with local-first storage and encrypted cloud synchronization. We run zero third-party advertising trackers, sell no telemetry, and never broker medical or biometric data to insurance companies.',
         },
         {
-            q: 'Can kcal-log be self-hosted?',
-            a: 'Yes! kcal-log is built with a production-grade containerized architecture (FrankenPHP, MariaDB, Redis, Laravel Horizon, Reverb) and can be easily deployed via Docker or Coolify in minutes.',
+            q: 'Can I export my nutrition logs and weight history?',
+            a: 'Yes. You have complete data sovereignty. Export your entire logging diary, raw scale entries, EWMA weight trends, and custom foods to JSON or CSV at any time with a single click.',
         },
     ];
 
     return (
-        <div className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
-            <Head title="Precision Nutrition & Adaptive Calorie Tracking" />
+        <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground antialiased selection:bg-emerald-500/20 selection:text-emerald-500">
+            <Head title="kcal-log • Precision Adaptive Nutrition & Metabolism Tracker" />
 
-            {/* Navigation Header */}
-            <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md transition-all">
-                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+            {/* Ambient Background Glow Effects */}
+            <div className="pointer-events-none absolute top-0 left-1/2 -z-10 h-[700px] w-full max-w-7xl -translate-x-1/2 overflow-hidden">
+                <div className="absolute -top-32 left-1/4 h-[550px] w-[550px] rounded-full bg-emerald-500/10 blur-[140px]" />
+                <div className="absolute -top-24 right-1/4 h-[480px] w-[480px] rounded-full bg-teal-500/10 blur-[130px]" />
+                <div className="absolute top-72 left-1/3 h-[380px] w-[620px] rounded-full bg-indigo-500/5 blur-[160px]" />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px]" />
+            </div>
+
+            {/* Sticky Modern Glass Header */}
+            <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl transition-all">
+                <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                     {/* Brand */}
-                    <div className="flex items-center gap-3">
-                        <Link
-                            href="/"
-                            className="group flex items-center gap-2.5"
-                        >
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-105">
-                                <Flame className="h-5 w-5" />
-                            </div>
+                    <Link
+                        href="/"
+                        className="group flex items-center gap-2.5 transition-transform active:scale-95"
+                    >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md ring-1 shadow-emerald-500/20 ring-white/20 transition-all group-hover:shadow-emerald-500/30">
+                            <Flame className="h-5 w-5 fill-white text-white" />
+                        </div>
+                        <div className="flex items-center gap-1.5">
                             <span className="text-lg font-bold tracking-tight text-foreground">
                                 {appName}
                             </span>
-                        </Link>
-                        <Badge
-                            variant="secondary"
-                            className="hidden border-primary/20 bg-primary/10 text-[11px] font-semibold text-primary sm:inline-flex"
-                        >
-                            v1.0 Adaptive
-                        </Badge>
-                    </div>
+                            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                v2.0
+                            </span>
+                        </div>
+                    </Link>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden items-center gap-7 md:flex">
-                        <NavLink href="#features">Features</NavLink>
-                        <NavLink href="#preview">Live Demo</NavLink>
-                        <NavLink href="#calculator">Calculator</NavLink>
+                    <nav className="hidden items-center gap-8 md:flex">
+                        <NavLink href="#calculator">Macro Calculator</NavLink>
+                        <NavLink href="#cockpit">Live Cockpit</NavLink>
+                        <NavLink href="#science">Metabolic Science</NavLink>
                         <NavLink href="#comparison">Compare</NavLink>
                         <NavLink href="#faq">FAQ</NavLink>
-                        <a
-                            href="/docs/api"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-sm font-medium text-muted-foreground hover:text-foreground"
-                        >
-                            API Docs
-                        </a>
                     </nav>
 
-                    {/* Action Buttons & Theme */}
-                    <div className="flex items-center gap-3">
+                    {/* Right Actions */}
+                    <div className="hidden items-center gap-3 md:flex">
                         <ThemeToggle />
 
-                        {auth?.user ? (
-                            <Link href={dashboard()}>
-                                <Button className="bg-primary font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
-                                    Dashboard
+                        {auth.user ? (
+                            <Button
+                                asChild
+                                size="sm"
+                                className="rounded-full bg-emerald-600 px-5 font-medium text-white shadow-sm shadow-emerald-600/30 hover:bg-emerald-500"
+                            >
+                                <Link href={dashboard()}>
+                                    Enter Dashboard
                                     <ArrowRight className="ml-1.5 h-4 w-4" />
-                                </Button>
-                            </Link>
+                                </Link>
+                            </Button>
                         ) : (
-                            <div className="flex items-center gap-2">
-                                <Link href={login()}>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="font-medium"
-                                    >
-                                        Log in
-                                    </Button>
-                                </Link>
-                                <Link href={register()}>
-                                    <Button
-                                        size="sm"
-                                        className="bg-primary font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
-                                    >
-                                        Register
-                                        <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                                    </Button>
-                                </Link>
-                            </div>
+                            <>
+                                <Button
+                                    asChild
+                                    variant="ghost"
+                                    size="sm"
+                                    className="rounded-full text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                                >
+                                    <Link href={login()}>Log in</Link>
+                                </Button>
+                                <Button
+                                    asChild
+                                    size="sm"
+                                    className="rounded-full bg-emerald-600 px-5 font-medium text-white shadow-sm shadow-emerald-600/30 transition-all hover:bg-emerald-500"
+                                >
+                                    <Link href={register()}>
+                                        Get Started
+                                        <ArrowRight className="ml-1.5 h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            </>
                         )}
+                    </div>
 
-                        {/* Mobile menu trigger */}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-1 md:hidden"
+                    {/* Mobile Hamburger */}
+                    <div className="flex items-center gap-2 md:hidden">
+                        <ThemeToggle />
+                        <button
+                            type="button"
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            aria-label="Toggle navigation menu"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-foreground"
+                            aria-label="Toggle menu"
                         >
                             {mobileMenuOpen ? (
-                                <X className="h-6 w-6" />
+                                <X className="h-5 w-5" />
                             ) : (
-                                <Menu className="h-6 w-6" />
+                                <Menu className="h-5 w-5" />
                             )}
-                        </Button>
+                        </button>
                     </div>
                 </div>
 
-                {/* Mobile Menu Dropdown */}
+                {/* Mobile Dropdown */}
                 {mobileMenuOpen && (
-                    <div className="border-b border-border bg-background px-4 py-4 md:hidden">
-                        <nav className="flex flex-col space-y-3 pb-2">
-                            <NavLink
-                                href="#features"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                Features
-                            </NavLink>
-                            <NavLink
-                                href="#preview"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                Live Demo
-                            </NavLink>
+                    <div className="border-b border-border bg-background/95 px-6 py-6 backdrop-blur-xl md:hidden">
+                        <div className="flex flex-col space-y-4">
                             <NavLink
                                 href="#calculator"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                Calculator
+                                Macro Calculator
+                            </NavLink>
+                            <NavLink
+                                href="#cockpit"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Live Cockpit
+                            </NavLink>
+                            <NavLink
+                                href="#science"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Metabolic Science
                             </NavLink>
                             <NavLink
                                 href="#comparison"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                Comparison
+                                Compare
                             </NavLink>
                             <NavLink
                                 href="#faq"
@@ -260,853 +361,175 @@ export default function Welcome() {
                             >
                                 FAQ
                             </NavLink>
-                            <a
-                                href="/docs/api"
-                                className="text-sm font-medium text-muted-foreground"
-                            >
-                                API Docs
-                            </a>
-                        </nav>
+                            <div className="flex flex-col gap-2.5 border-t border-border pt-4">
+                                {auth.user ? (
+                                    <Button
+                                        asChild
+                                        className="w-full rounded-lg bg-emerald-600 text-white hover:bg-emerald-500"
+                                    >
+                                        <Link href={dashboard()}>
+                                            Dashboard
+                                        </Link>
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            className="w-full rounded-lg"
+                                        >
+                                            <Link href={login()}>Log in</Link>
+                                        </Button>
+                                        <Button
+                                            asChild
+                                            className="w-full rounded-lg bg-emerald-600 text-white hover:bg-emerald-500"
+                                        >
+                                            <Link href={register()}>
+                                                Get Started Free
+                                            </Link>
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
             </header>
 
-            {/* Hero Section */}
-            <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28">
-                {/* Subtle emerald background glow */}
-                <div className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-[130px] dark:bg-primary/15" />
-
-                <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-                    {/* Announcement Badge */}
-                    <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary/10">
-                        <span className="flex h-2 w-2 animate-pulse rounded-full bg-primary" />
+            {/* HERO SECTION */}
+            <section className="relative pt-20 pb-16 md:pt-28 md:pb-24">
+                <div className="container mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+                    {/* Live Announcement Badge */}
+                    <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-medium text-emerald-600 shadow-sm backdrop-blur-md transition hover:border-emerald-500/50 dark:text-emerald-400">
+                        <span className="relative flex h-2 w-2">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                        </span>
                         <span>
-                            Mifflin-St Jeor + Exponential Moving Average
-                            Calibration
+                            Open-Source Adaptive Nutrition • Zero Subscription
+                            Paywalls
                         </span>
                     </div>
 
-                    {/* Headline */}
-                    <h1 className="mt-6 text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl">
-                        Precision Nutrition That{' '}
-                        <br className="hidden sm:inline" />
-                        <span className="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-400 bg-clip-text text-transparent dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-200">
-                            Adapts to Your Metabolism
+                    {/* Punchy Hero Title */}
+                    <h1 className="mx-auto max-w-4xl text-4xl leading-[1.08] font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+                        Nutrition Without Guesswork.{' '}
+                        <span className="bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 bg-clip-text text-transparent">
+                            Adaptive Metabolic Intelligence.
                         </span>
                     </h1>
 
-                    {/* Subheadline */}
-                    <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg sm:leading-relaxed">
-                        Say goodbye to weight loss plateaus. Log meals in
-                        seconds, scan barcodes with Open Food Facts integration,
-                        and let our intelligent weekly algorithm auto-calibrate
-                        your targets based on real-world weigh-ins.
+                    {/* Subheading */}
+                    <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed font-normal text-muted-foreground sm:text-xl">
+                        No static calorie formulas.{' '}
+                        <span className="font-semibold text-foreground">
+                            kcal-log
+                        </span>{' '}
+                        calculates your true expenditure from your logged weight
+                        and intake, automatically refining your targets as your
+                        body adapts.
                     </p>
 
-                    {/* CTA Group */}
-                    <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
-                        {auth?.user ? (
-                            <Link href={dashboard()}>
-                                <Button
-                                    size="lg"
-                                    className="w-full bg-primary px-8 py-6 text-base font-semibold text-primary-foreground shadow-md transition-all hover:scale-[1.02] hover:bg-primary/90 sm:w-auto"
-                                >
-                                    Return to Diary Dashboard
-                                    <ArrowRight className="ml-2 h-5 w-5" />
-                                </Button>
+                    {/* CTA Buttons */}
+                    <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+                        <Button
+                            asChild
+                            size="lg"
+                            className="h-12 rounded-full bg-emerald-600 px-8 font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 active:scale-95"
+                        >
+                            <Link href={register()}>
+                                Start Tracking Free
+                                <ArrowRight className="ml-2 h-4 w-4" />
                             </Link>
-                        ) : (
-                            <>
-                                <Link href={register()}>
-                                    <Button
-                                        size="lg"
-                                        className="w-full bg-primary px-8 py-6 text-base font-semibold text-primary-foreground shadow-md transition-all hover:scale-[1.02] hover:bg-primary/90 sm:w-auto"
-                                    >
-                                        Start Tracking Free
-                                        <ArrowRight className="ml-2 h-5 w-5" />
-                                    </Button>
-                                </Link>
-                                <a href="#preview">
-                                    <Button
-                                        size="lg"
-                                        variant="outline"
-                                        className="w-full px-6 py-6 text-base font-medium sm:w-auto"
-                                    >
-                                        Explore Interactive Demo
-                                    </Button>
-                                </a>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Micro Value Points */}
-                    <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-muted-foreground sm:text-sm">
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-primary" />
-                            <span>Sub-second meal entry</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-primary" />
-                            <span>Free barcode scanner (3M+ items)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-primary" />
-                            <span>Weekly adaptive recalibration</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-primary" />
-                            <span>100% data exportable (CSV & PDF)</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Interactive Hero App Demo */}
-            <section
-                id="preview"
-                className="border-y border-border/70 bg-muted/30 py-12 lg:py-16"
-            >
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-8 text-center">
-                        <Badge
+                        </Button>
+                        <Button
+                            asChild
                             variant="outline"
-                            className="mb-2 border-primary/30 bg-primary/5 text-primary"
+                            size="lg"
+                            className="h-12 rounded-full border-border/80 px-8 font-medium transition-all hover:bg-muted"
                         >
-                            Product Experience
-                        </Badge>
-                        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                            Experience the kcal-log Workflow
-                        </h2>
-                        <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
-                            Switch between the views below to see how our diary,
-                            barcode lookup, adaptive strategy, and trends work
-                            together.
-                        </p>
+                            <a href="#calculator">
+                                <Sliders className="mr-2 h-4 w-4 text-emerald-500" />
+                                Instant Macro Calculator
+                            </a>
+                        </Button>
                     </div>
 
-                    {/* App Frame */}
-                    <div className="mx-auto max-w-5xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-                        {/* Mock App Window Header */}
-                        <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-3">
-                            <div className="flex items-center gap-2">
-                                <span className="h-3 w-3 rounded-full bg-red-500/80" />
-                                <span className="h-3 w-3 rounded-full bg-amber-500/80" />
-                                <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
-                                <span className="ml-2 hidden font-mono text-xs text-muted-foreground sm:inline">
-                                    kcal.holako.dev/diary
-                                </span>
-                            </div>
-
-                            {/* View Switcher Tabs */}
-                            <div className="flex items-center rounded-lg border border-border bg-background p-1 text-xs font-medium">
-                                <button
-                                    onClick={() => setActiveTab('diary')}
-                                    className={`rounded-md px-3 py-1 transition-all ${
-                                        activeTab === 'diary'
-                                            ? 'bg-primary text-primary-foreground shadow-xs'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                >
-                                    Diary & Macros
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('barcode')}
-                                    className={`rounded-md px-3 py-1 transition-all ${
-                                        activeTab === 'barcode'
-                                            ? 'bg-primary text-primary-foreground shadow-xs'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                >
-                                    Barcode Scanner
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('adaptive')}
-                                    className={`rounded-md px-3 py-1 transition-all ${
-                                        activeTab === 'adaptive'
-                                            ? 'bg-primary text-primary-foreground shadow-xs'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                >
-                                    Adaptive Engine
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('trend')}
-                                    className={`rounded-md px-3 py-1 transition-all ${
-                                        activeTab === 'trend'
-                                            ? 'bg-primary text-primary-foreground shadow-xs'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                >
-                                    Trends
-                                </button>
-                            </div>
+                    {/* Trust Value Badges */}
+                    <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-medium text-muted-foreground sm:text-sm">
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                            <span>100% Free & Open-Source</span>
                         </div>
-
-                        {/* Mock App Body */}
-                        <div className="bg-background p-4 sm:p-6 lg:p-8">
-                            {/* TAB 1: DIARY VIEW */}
-                            {activeTab === 'diary' && (
-                                <div className="space-y-6">
-                                    {/* Summary Banner */}
-                                    <div className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-muted/40 p-4 sm:grid-cols-5">
-                                        <div>
-                                            <div className="text-xs text-muted-foreground">
-                                                Calories Remaining
-                                            </div>
-                                            <div className="text-2xl font-extrabold text-primary">
-                                                530{' '}
-                                                <span className="text-xs font-normal text-muted-foreground">
-                                                    kcal
-                                                </span>
-                                            </div>
-                                            <div className="text-[11px] text-muted-foreground">
-                                                1,620 of 2,150 goal
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="text-xs text-muted-foreground">
-                                                Protein (80%)
-                                            </div>
-                                            <div className="text-xl font-bold text-blue-500">
-                                                145g{' '}
-                                                <span className="text-xs font-normal text-muted-foreground">
-                                                    / 180g
-                                                </span>
-                                            </div>
-                                            <div className="mt-1 h-1.5 w-full rounded-full bg-border">
-                                                <div
-                                                    className="h-1.5 rounded-full bg-blue-500"
-                                                    style={{ width: '80%' }}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="text-xs text-muted-foreground">
-                                                Carbs (76%)
-                                            </div>
-                                            <div className="text-xl font-bold text-amber-500">
-                                                165g{' '}
-                                                <span className="text-xs font-normal text-muted-foreground">
-                                                    / 215g
-                                                </span>
-                                            </div>
-                                            <div className="mt-1 h-1.5 w-full rounded-full bg-border">
-                                                <div
-                                                    className="h-1.5 rounded-full bg-amber-500"
-                                                    style={{ width: '76%' }}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="text-xs text-muted-foreground">
-                                                Fat (64%)
-                                            </div>
-                                            <div className="text-xl font-bold text-rose-500">
-                                                42g{' '}
-                                                <span className="text-xs font-normal text-muted-foreground">
-                                                    / 65g
-                                                </span>
-                                            </div>
-                                            <div className="mt-1 h-1.5 w-full rounded-full bg-border">
-                                                <div
-                                                    className="h-1.5 rounded-full bg-rose-500"
-                                                    style={{ width: '64%' }}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-span-2 sm:col-span-1">
-                                            <div className="text-xs text-muted-foreground">
-                                                Water (75%)
-                                            </div>
-                                            <div className="text-xl font-bold text-cyan-500">
-                                                2,250{' '}
-                                                <span className="text-xs font-normal text-muted-foreground">
-                                                    / 3,000ml
-                                                </span>
-                                            </div>
-                                            <div className="mt-1 h-1.5 w-full rounded-full bg-border">
-                                                <div
-                                                    className="h-1.5 rounded-full bg-cyan-500"
-                                                    style={{ width: '75%' }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Meal Slots Grid */}
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                        {/* Breakfast */}
-                                        <div className="rounded-xl border border-border bg-card p-4">
-                                            <div className="mb-2 flex items-center justify-between border-b border-border/60 pb-2">
-                                                <div className="flex items-center gap-2 text-sm font-semibold">
-                                                    <span className="rounded-md bg-amber-500/10 p-1 text-amber-600">
-                                                        🍳
-                                                    </span>
-                                                    Breakfast
-                                                </div>
-                                                <span className="text-xs font-bold text-foreground">
-                                                    480 kcal
-                                                </span>
-                                            </div>
-                                            <div className="space-y-2 text-xs">
-                                                <div className="flex items-center justify-between text-muted-foreground">
-                                                    <span>
-                                                        Rolled Oats with Whey &
-                                                        Berries (80g)
-                                                    </span>
-                                                    <span className="font-mono text-foreground">
-                                                        38P • 62C • 9F
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center justify-between text-muted-foreground">
-                                                    <span>Black Coffee</span>
-                                                    <span className="font-mono text-foreground">
-                                                        2 kcal
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Lunch */}
-                                        <div className="rounded-xl border border-border bg-card p-4">
-                                            <div className="mb-2 flex items-center justify-between border-b border-border/60 pb-2">
-                                                <div className="flex items-center gap-2 text-sm font-semibold">
-                                                    <span className="rounded-md bg-emerald-500/10 p-1 text-emerald-600">
-                                                        🥗
-                                                    </span>
-                                                    Lunch
-                                                </div>
-                                                <span className="text-xs font-bold text-foreground">
-                                                    650 kcal
-                                                </span>
-                                            </div>
-                                            <div className="space-y-2 text-xs">
-                                                <div className="flex items-center justify-between text-muted-foreground">
-                                                    <span>
-                                                        Grilled Chicken Salad
-                                                        with Quinoa (320g)
-                                                    </span>
-                                                    <span className="font-mono text-foreground">
-                                                        54P • 48C • 22F
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Dinner */}
-                                        <div className="rounded-xl border border-border bg-card p-4">
-                                            <div className="mb-2 flex items-center justify-between border-b border-border/60 pb-2">
-                                                <div className="flex items-center gap-2 text-sm font-semibold">
-                                                    <span className="rounded-md bg-blue-500/10 p-1 text-blue-600">
-                                                        🍽️
-                                                    </span>
-                                                    Dinner
-                                                </div>
-                                                <span className="text-xs font-bold text-foreground">
-                                                    270 kcal
-                                                </span>
-                                            </div>
-                                            <div className="space-y-2 text-xs">
-                                                <div className="flex items-center justify-between text-muted-foreground">
-                                                    <span>
-                                                        Baked Salmon with
-                                                        Steamed Asparagus
-                                                    </span>
-                                                    <span className="font-mono text-foreground">
-                                                        32P • 6C • 12F
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Snack */}
-                                        <div className="rounded-xl border border-border bg-card p-4">
-                                            <div className="mb-2 flex items-center justify-between border-b border-border/60 pb-2">
-                                                <div className="flex items-center gap-2 text-sm font-semibold">
-                                                    <span className="rounded-md bg-purple-500/10 p-1 text-purple-600">
-                                                        🍎
-                                                    </span>
-                                                    Snack
-                                                </div>
-                                                <span className="text-xs font-bold text-foreground">
-                                                    220 kcal
-                                                </span>
-                                            </div>
-                                            <div className="space-y-2 text-xs">
-                                                <div className="flex items-center justify-between text-muted-foreground">
-                                                    <span>
-                                                        Greek Yogurt 0% with Raw
-                                                        Almonds
-                                                    </span>
-                                                    <span className="font-mono text-foreground">
-                                                        21P • 7C • 11F
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* TAB 2: BARCODE SCANNER PREVIEW */}
-                            {activeTab === 'barcode' && (
-                                <div className="grid items-center gap-6 p-4 md:grid-cols-2">
-                                    <div className="space-y-4 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-6 text-center">
-                                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                                            <Barcode className="h-8 w-8" />
-                                        </div>
-                                        <div>
-                                            <div className="text-sm font-bold">
-                                                Live Camera Scanner Simulated
-                                            </div>
-                                            <div className="mt-1 text-xs text-muted-foreground">
-                                                EAN-13: 3017620422003 (Open Food
-                                                Facts Database)
-                                            </div>
-                                        </div>
-                                        <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600">
-                                            <Check className="h-3.5 w-3.5" />{' '}
-                                            Instant Match Verified
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3 rounded-xl border border-border bg-card p-5">
-                                        <div className="flex items-center justify-between">
-                                            <Badge
-                                                variant="secondary"
-                                                className="bg-emerald-500/15 font-bold text-emerald-600"
-                                            >
-                                                Nutri-Score A
-                                            </Badge>
-                                            <span className="font-mono text-xs text-muted-foreground">
-                                                100g portion
-                                            </span>
-                                        </div>
-                                        <div className="text-base font-bold">
-                                            Fage Total 0% Plain Greek Yogurt
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">
-                                            Brand: FAGE International • High
-                                            Protein Cultured Dairy
-                                        </p>
-                                        <div className="grid grid-cols-4 gap-2 border-t border-border pt-2 text-center">
-                                            <div className="rounded-lg bg-muted/60 p-2">
-                                                <div className="text-[10px] text-muted-foreground">
-                                                    Calories
-                                                </div>
-                                                <div className="text-sm font-bold text-foreground">
-                                                    54
-                                                </div>
-                                            </div>
-                                            <div className="rounded-lg bg-muted/60 p-2">
-                                                <div className="text-[10px] text-blue-500">
-                                                    Protein
-                                                </div>
-                                                <div className="text-sm font-bold text-blue-600">
-                                                    10.3g
-                                                </div>
-                                            </div>
-                                            <div className="rounded-lg bg-muted/60 p-2">
-                                                <div className="text-[10px] text-amber-500">
-                                                    Carbs
-                                                </div>
-                                                <div className="text-sm font-bold text-amber-600">
-                                                    3.0g
-                                                </div>
-                                            </div>
-                                            <div className="rounded-lg bg-muted/60 p-2">
-                                                <div className="text-[10px] text-rose-500">
-                                                    Fat
-                                                </div>
-                                                <div className="text-sm font-bold text-rose-600">
-                                                    0.0g
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            size="sm"
-                                            className="mt-2 w-full bg-primary font-medium text-primary-foreground"
-                                        >
-                                            Log to Breakfast
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* TAB 3: ADAPTIVE CALIBRATION ENGINE */}
-                            {activeTab === 'adaptive' && (
-                                <div className="space-y-5 rounded-xl border border-border bg-card p-4 sm:p-6">
-                                    <div className="flex flex-col justify-between gap-2 border-b border-border pb-4 sm:flex-row sm:items-center">
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <Sparkles className="h-4 w-4 text-primary" />
-                                                <span className="text-sm font-bold sm:text-base">
-                                                    Weekly Adaptive Checkpoint
-                                                </span>
-                                                <Badge className="border-primary/20 bg-primary/10 text-[11px] text-primary">
-                                                    Proposed
-                                                </Badge>
-                                            </div>
-                                            <p className="mt-0.5 text-xs text-muted-foreground">
-                                                Based on 7 daily weigh-ins and
-                                                an average logged intake of
-                                                2,120 kcal.
-                                            </p>
-                                        </div>
-                                        <div className="font-mono text-xs text-muted-foreground">
-                                            Recalibration Cycle #4
-                                        </div>
-                                    </div>
-
-                                    <div className="grid gap-4 sm:grid-cols-3">
-                                        <div className="rounded-lg border border-border bg-muted/40 p-3">
-                                            <div className="text-xs text-muted-foreground">
-                                                Target Weight Change
-                                            </div>
-                                            <div className="text-lg font-bold text-foreground">
-                                                -0.40 kg/wk
-                                            </div>
-                                            <div className="text-[11px] text-muted-foreground">
-                                                Moderate fat loss rate
-                                            </div>
-                                        </div>
-                                        <div className="rounded-lg border border-border bg-muted/40 p-3">
-                                            <div className="text-xs text-muted-foreground">
-                                                Actual Smoothed Trend
-                                            </div>
-                                            <div className="text-lg font-bold text-emerald-600">
-                                                -0.65 kg/wk
-                                            </div>
-                                            <div className="text-[11px] text-muted-foreground">
-                                                Losing faster than planned
-                                            </div>
-                                        </div>
-                                        <div className="rounded-lg border border-primary/20 bg-primary/10 p-3">
-                                            <div className="text-xs font-medium text-primary">
-                                                Proposed Target Adjustment
-                                            </div>
-                                            <div className="text-lg font-extrabold text-primary">
-                                                +120 kcal/day
-                                            </div>
-                                            <div className="text-[11px] text-primary/80">
-                                                Protects lean mass & energy
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-2.5 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-                                        <Activity className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                                        <span>
-                                            Your measured energy expenditure is
-                                            higher than initially estimated.
-                                            Increasing your daily ceiling from{' '}
-                                            <strong>2,150 kcal</strong> to{' '}
-                                            <strong>2,270 kcal</strong> keeps
-                                            your fat loss sustainable while
-                                            sparing muscle tissue.
-                                        </span>
-                                    </div>
-
-                                    <div className="flex items-center justify-end gap-3 pt-2">
-                                        {adaptiveAccepted ? (
-                                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600">
-                                                <CheckCircle2 className="h-4 w-4" />{' '}
-                                                Adjustment Applied (+120 kcal
-                                                updated)
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        alert(
-                                                            'Proposal rejected. Target remains 2,150 kcal.',
-                                                        )
-                                                    }
-                                                >
-                                                    Keep 2,150 kcal
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    className="bg-primary font-semibold text-primary-foreground"
-                                                    onClick={() =>
-                                                        setAdaptiveAccepted(
-                                                            true,
-                                                        )
-                                                    }
-                                                >
-                                                    Accept New Target (2,270
-                                                    kcal)
-                                                </Button>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* TAB 4: TRENDS PREVIEW */}
-                            {activeTab === 'trend' && (
-                                <div className="space-y-4 p-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="text-sm font-semibold">
-                                            Weight Trend vs Raw Weigh-Ins (Last
-                                            30 Days)
-                                        </div>
-                                        <div className="flex items-center gap-4 text-xs">
-                                            <span className="flex items-center gap-1.5">
-                                                <span className="h-2 w-2 rounded-full bg-slate-400" />{' '}
-                                                Daily Scale
-                                            </span>
-                                            <span className="flex items-center gap-1.5 font-bold text-primary">
-                                                <span className="h-2 w-2 rounded-full bg-primary" />{' '}
-                                                Exponential Trend (EMA)
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Simulated Trend SVG Chart */}
-                                    <div className="relative flex h-44 w-full items-end justify-between overflow-hidden rounded-xl border border-border bg-muted/30 p-4">
-                                        <svg
-                                            className="absolute inset-0 h-full w-full"
-                                            preserveAspectRatio="none"
-                                            viewBox="0 0 100 50"
-                                        >
-                                            {/* Grid lines */}
-                                            <line
-                                                x1="0"
-                                                y1="12"
-                                                x2="100"
-                                                y2="12"
-                                                stroke="currentColor"
-                                                strokeOpacity="0.08"
-                                            />
-                                            <line
-                                                x1="0"
-                                                y1="25"
-                                                x2="100"
-                                                y2="25"
-                                                stroke="currentColor"
-                                                strokeOpacity="0.08"
-                                            />
-                                            <line
-                                                x1="0"
-                                                y1="37"
-                                                x2="100"
-                                                y2="37"
-                                                stroke="currentColor"
-                                                strokeOpacity="0.08"
-                                            />
-
-                                            {/* Raw weigh-in dots & line */}
-                                            <path
-                                                d="M 5,10 L 15,14 L 25,12 L 35,19 L 45,17 L 55,24 L 65,22 L 75,29 L 85,31 L 95,37"
-                                                fill="none"
-                                                stroke="#94a3b8"
-                                                strokeWidth="1"
-                                                strokeDasharray="2,2"
-                                            />
-                                            {/* Smoothed trend line */}
-                                            <path
-                                                d="M 5,11 Q 25,14 45,18 T 95,36"
-                                                fill="none"
-                                                stroke="#10b981"
-                                                strokeWidth="2.5"
-                                            />
-                                        </svg>
-                                        <div className="relative z-10 flex w-full justify-between pt-36 text-[10px] text-muted-foreground">
-                                            <span>Week 1 (80.2 kg)</span>
-                                            <span>Week 2 (79.5 kg)</span>
-                                            <span>Week 3 (78.9 kg)</span>
-                                            <span>Week 4 (78.1 kg)</span>
-                                        </div>
-                                    </div>
-                                    <div className="text-center text-xs text-muted-foreground">
-                                        Daily water weight fluctuates up to ±1.5
-                                        kg. The trend line filters out noise to
-                                        measure true tissue loss.
-                                    </div>
-                                </div>
-                            )}
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                            <span>No Ads or Trackers</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                            <span>EWMA Weight Smoothing</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                            <span>Barcode Scanner Included</span>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Core Features Bento Grid */}
-            <section id="features" className="py-20 lg:py-28">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-16 text-center">
-                        <Badge
-                            variant="outline"
-                            className="mb-3 border-primary/30 bg-primary/5 text-primary"
-                        >
-                            Engineered for Clarity
-                        </Badge>
-                        <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
-                            Everything You Need to Master Your Nutrition
-                        </h2>
-                        <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground">
-                            No gimmicks, no social media bloat. Just deep
-                            nutrition intelligence, fast logging, and
-                            mathematically sound coaching.
-                        </p>
-                    </div>
-
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {/* Feature 1 */}
-                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
-                            <CardContent className="space-y-3 p-6">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                                    <Sparkles className="h-6 w-6" />
-                                </div>
-                                <h3 className="text-lg font-bold text-foreground">
-                                    Adaptive Target Engine
-                                </h3>
-                                <p className="text-sm leading-relaxed text-muted-foreground">
-                                    Weekly automatic check-ins calculate your
-                                    real-world metabolic expenditure. Stop
-                                    hitting confusing plateaus with automated,
-                                    actionable calorie adjustments.
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        {/* Feature 2 */}
-                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
-                            <CardContent className="space-y-3 p-6">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                                    <Barcode className="h-6 w-6" />
-                                </div>
-                                <h3 className="text-lg font-bold text-foreground">
-                                    3M+ Open Food Facts Catalog
-                                </h3>
-                                <p className="text-sm leading-relaxed text-muted-foreground">
-                                    Scan packaged food barcodes directly from
-                                    your phone camera or browser. Unlimited
-                                    scans, verified Nutri-Scores, and full macro
-                                    breakdowns included.
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        {/* Feature 3 */}
-                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
-                            <CardContent className="space-y-3 p-6">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                                    <Utensils className="h-6 w-6" />
-                                </div>
-                                <h3 className="text-lg font-bold text-foreground">
-                                    4 Standardized Meal Slots
-                                </h3>
-                                <p className="text-sm leading-relaxed text-muted-foreground">
-                                    Structured Breakfast, Lunch, Dinner, and
-                                    Snack logging with gram-weight serving
-                                    conversions and quick-add calorie support
-                                    when eating on the go.
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        {/* Feature 4 */}
-                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
-                            <CardContent className="space-y-3 p-6">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
-                                    <Layers className="h-6 w-6" />
-                                </div>
-                                <h3 className="text-lg font-bold text-foreground">
-                                    Custom Foods & Recipe Builder
-                                </h3>
-                                <p className="text-sm leading-relaxed text-muted-foreground">
-                                    Create private foods that are never
-                                    overridden by external catalog syncs. Build
-                                    multi-ingredient meal preps and calculate
-                                    precise portions effortlessly.
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        {/* Feature 5 */}
-                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
-                            <CardContent className="space-y-3 p-6">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
-                                    <Zap className="h-6 w-6" />
-                                </div>
-                                <h3 className="text-lg font-bold text-foreground">
-                                    Sub-Second Realtime Sync
-                                </h3>
-                                <p className="text-sm leading-relaxed text-muted-foreground">
-                                    Powered by Laravel Reverb websockets and
-                                    Redis Horizon queues. Log on your laptop and
-                                    see the rings update immediately on your
-                                    phone without refreshing.
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        {/* Feature 6 */}
-                        <Card className="border border-border/80 bg-card transition-all hover:border-primary/40 hover:shadow-md">
-                            <CardContent className="space-y-3 p-6">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                                    <ShieldCheck className="h-6 w-6" />
-                                </div>
-                                <h3 className="text-lg font-bold text-foreground">
-                                    Privacy First & Instant Exports
-                                </h3>
-                                <p className="text-sm leading-relaxed text-muted-foreground">
-                                    Your personal health data stays yours.
-                                    Generate structured PDF nutrition audits and
-                                    CSV exports with a single click. Zero 3rd
-                                    party trackers.
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </section>
-
-            {/* Interactive Nutrition & TDEE Calculator Widget */}
+            {/* SECTION: THE HOOK - INSTANT SCIENTIFIC MACRO CALCULATOR */}
             <section
                 id="calculator"
-                className="border-t border-border bg-muted/20 py-20"
+                className="relative border-y border-border/60 bg-card/40 py-16 md:py-24"
             >
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-12 text-center">
-                        <Badge
-                            variant="outline"
-                            className="mb-2 border-primary/30 bg-primary/5 text-primary"
-                        >
-                            Interactive Tool
-                        </Badge>
-                        <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+                <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    {/* Header */}
+                    <div className="mx-auto mb-12 max-w-3xl text-center">
+                        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                            <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
+                            Deterministic Biometric Engine
+                        </div>
+                        <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
                             Instant Scientific Macro Calculator
                         </h2>
-                        <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
-                            Test the Mifflin-St Jeor formula and see your
-                            personalized baseline numbers right now.
+                        <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+                            Live Mifflin-St Jeor biometric formula & Physical
+                            Activity Level (PAL) computation. Adjust your
+                            profile and watch your target intake recalculate
+                            instantly.
                         </p>
                     </div>
 
-                    <div className="mx-auto grid max-w-5xl items-start gap-8 lg:grid-cols-12">
-                        {/* Calculator Controls */}
-                        <div className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-sm lg:col-span-7">
-                            <h3 className="border-b border-border pb-3 text-base font-bold">
-                                Your Baseline Parameters
-                            </h3>
+                    {/* Calculator Card Grid */}
+                    <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+                        {/* Left Column: Interactive Inputs */}
+                        <div className="space-y-6 rounded-2xl border border-border/80 bg-card p-6 shadow-sm sm:p-8 lg:col-span-7">
+                            <div className="flex items-center justify-between border-b border-border pb-4">
+                                <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
+                                    <Sliders className="h-5 w-5 text-emerald-500" />
+                                    Biometric Parameters
+                                </h3>
+                                <Badge
+                                    variant="outline"
+                                    className="text-xs font-medium text-muted-foreground"
+                                >
+                                    Mifflin-St Jeor
+                                </Badge>
+                            </div>
 
                             {/* Sex Selector */}
                             <div>
-                                <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                <label className="mb-2 block text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                                     Biological Sex
                                 </label>
-                                <div className="mt-1.5 grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-3">
                                     <button
                                         type="button"
                                         onClick={() => setCalcSex('male')}
-                                        className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-all ${
+                                        className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all ${
                                             calcSex === 'male'
-                                                ? 'border-primary bg-primary text-primary-foreground'
-                                                : 'border-border text-foreground hover:bg-muted'
+                                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 shadow-sm dark:text-emerald-400'
+                                                : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
                                         }`}
                                     >
                                         Male
@@ -1114,10 +537,10 @@ export default function Welcome() {
                                     <button
                                         type="button"
                                         onClick={() => setCalcSex('female')}
-                                        className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-all ${
+                                        className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all ${
                                             calcSex === 'female'
-                                                ? 'border-primary bg-primary text-primary-foreground'
-                                                : 'border-border text-foreground hover:bg-muted'
+                                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 shadow-sm dark:text-emerald-400'
+                                                : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
                                         }`}
                                     >
                                         Female
@@ -1125,376 +548,1299 @@ export default function Welcome() {
                                 </div>
                             </div>
 
-                            {/* Weight, Height, Age */}
-                            <div className="grid grid-cols-3 gap-3">
-                                <div>
-                                    <label className="text-xs font-semibold text-muted-foreground">
-                                        Weight (kg)
-                                    </label>
+                            {/* Sliders: Weight, Height, Age */}
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                <div className="rounded-xl border border-border bg-background p-3.5">
+                                    <div className="mb-1.5 flex items-center justify-between">
+                                        <span className="text-xs font-medium text-muted-foreground">
+                                            Body Weight
+                                        </span>
+                                        <span className="text-sm font-bold text-foreground">
+                                            {calcWeight} kg
+                                        </span>
+                                    </div>
                                     <input
-                                        type="number"
+                                        type="range"
+                                        min={45}
+                                        max={140}
                                         value={calcWeight}
                                         onChange={(e) =>
                                             setCalcWeight(
-                                                Number(e.target.value) || 60,
+                                                Number(e.target.value),
                                             )
                                         }
-                                        className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-bold text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                        className="w-full cursor-pointer accent-emerald-500"
                                     />
+                                    <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                                        <span>45 kg</span>
+                                        <span>140 kg</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-muted-foreground">
-                                        Height (cm)
-                                    </label>
+
+                                <div className="rounded-xl border border-border bg-background p-3.5">
+                                    <div className="mb-1.5 flex items-center justify-between">
+                                        <span className="text-xs font-medium text-muted-foreground">
+                                            Height
+                                        </span>
+                                        <span className="text-sm font-bold text-foreground">
+                                            {calcHeight} cm
+                                        </span>
+                                    </div>
                                     <input
-                                        type="number"
+                                        type="range"
+                                        min={140}
+                                        max={215}
                                         value={calcHeight}
                                         onChange={(e) =>
                                             setCalcHeight(
-                                                Number(e.target.value) || 170,
+                                                Number(e.target.value),
                                             )
                                         }
-                                        className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-bold text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                        className="w-full cursor-pointer accent-emerald-500"
                                     />
+                                    <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                                        <span>140 cm</span>
+                                        <span>215 cm</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-muted-foreground">
-                                        Age (years)
-                                    </label>
+
+                                <div className="rounded-xl border border-border bg-background p-3.5">
+                                    <div className="mb-1.5 flex items-center justify-between">
+                                        <span className="text-xs font-medium text-muted-foreground">
+                                            Age
+                                        </span>
+                                        <span className="text-sm font-bold text-foreground">
+                                            {calcAge} yrs
+                                        </span>
+                                    </div>
                                     <input
-                                        type="number"
+                                        type="range"
+                                        min={16}
+                                        max={80}
                                         value={calcAge}
                                         onChange={(e) =>
-                                            setCalcAge(
-                                                Number(e.target.value) || 25,
-                                            )
+                                            setCalcAge(Number(e.target.value))
                                         }
-                                        className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-bold text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                                        className="w-full cursor-pointer accent-emerald-500"
                                     />
+                                    <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                                        <span>16</span>
+                                        <span>80</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Activity Level */}
+                            {/* Activity Multiplier */}
                             <div>
-                                <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    Weekly Activity
+                                <label className="mb-2 block text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                    Activity & Energy Multiplier (PAL)
                                 </label>
-                                <select
-                                    value={calcActivity}
-                                    onChange={(e) =>
-                                        setCalcActivity(
-                                            e.target.value as ActivityLevel,
-                                        )
-                                    }
-                                    className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
-                                >
-                                    <option value="sedentary">
-                                        Sedentary (Desk job, little exercise)
-                                    </option>
-                                    <option value="lightly_active">
-                                        Lightly Active (1-3 workouts / week)
-                                    </option>
-                                    <option value="moderately_active">
-                                        Moderately Active (3-5 workouts / week)
-                                    </option>
-                                    <option value="very_active">
-                                        Very Active (6-7 hard workouts / week)
-                                    </option>
-                                </select>
+                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                    {[
+                                        {
+                                            key: 'sedentary',
+                                            label: 'Sedentary',
+                                            pal: '1.20',
+                                            desc: 'Desk job, minimal movement',
+                                        },
+                                        {
+                                            key: 'lightly_active',
+                                            label: 'Light',
+                                            pal: '1.375',
+                                            desc: '1-3 workouts / week',
+                                        },
+                                        {
+                                            key: 'moderately_active',
+                                            label: 'Moderate',
+                                            pal: '1.55',
+                                            desc: '3-5 gym sessions / week',
+                                        },
+                                        {
+                                            key: 'very_active',
+                                            label: 'Very Active',
+                                            pal: '1.725',
+                                            desc: '6-7 heavy workouts',
+                                        },
+                                        {
+                                            key: 'extra_active',
+                                            label: 'Athlete',
+                                            pal: '1.90',
+                                            desc: 'Double daily sessions',
+                                        },
+                                    ].map((lvl) => (
+                                        <button
+                                            key={lvl.key}
+                                            type="button"
+                                            onClick={() =>
+                                                setCalcActivity(
+                                                    lvl.key as ActivityLevel,
+                                                )
+                                            }
+                                            className={`rounded-xl border p-3 text-left transition-all ${
+                                                calcActivity === lvl.key
+                                                    ? 'border-emerald-500 bg-emerald-500/10 shadow-sm'
+                                                    : 'border-border bg-background hover:bg-muted'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span
+                                                    className={`text-xs font-bold ${calcActivity === lvl.key ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}
+                                                >
+                                                    {lvl.label}
+                                                </span>
+                                                <span className="font-mono text-[10px] text-muted-foreground">
+                                                    ×{lvl.pal}
+                                                </span>
+                                            </div>
+                                            <p className="mt-1 text-[10px] leading-tight text-muted-foreground">
+                                                {lvl.desc}
+                                            </p>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
-                            {/* Primary Goal & Diet */}
-                            <div className="grid grid-cols-2 gap-3">
+                            {/* Goal & Diet Preset */}
+                            <div className="grid grid-cols-1 gap-4 pt-2 sm:grid-cols-2">
                                 <div>
-                                    <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                        Primary Goal
+                                    <label className="mb-2 block text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                        Primary Objective
                                     </label>
-                                    <select
-                                        value={calcGoal}
-                                        onChange={(e) =>
-                                            setCalcGoal(
-                                                e.target.value as GoalType,
-                                            )
-                                        }
-                                        className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
-                                    >
-                                        <option value="cut">
-                                            Fat Loss (-0.5 kg/week)
-                                        </option>
-                                        <option value="maintain">
-                                            Maintain Current Weight
-                                        </option>
-                                        <option value="bulk">
-                                            Muscle Gain (+0.25 kg/week)
-                                        </option>
-                                    </select>
+                                    <div className="flex flex-col gap-2">
+                                        {[
+                                            {
+                                                key: 'cut',
+                                                label: 'Fat Loss Cut',
+                                                delta: '-500 kcal/day',
+                                            },
+                                            {
+                                                key: 'maintain',
+                                                label: 'Maintain Weight',
+                                                delta: '0 kcal',
+                                            },
+                                            {
+                                                key: 'bulk',
+                                                label: 'Lean Bulk',
+                                                delta: '+250 kcal/day',
+                                            },
+                                        ].map((g) => (
+                                            <button
+                                                key={g.key}
+                                                type="button"
+                                                onClick={() =>
+                                                    setCalcGoal(
+                                                        g.key as GoalType,
+                                                    )
+                                                }
+                                                className={`flex items-center justify-between rounded-xl border px-3.5 py-2.5 text-xs font-medium transition-all ${
+                                                    calcGoal === g.key
+                                                        ? 'border-emerald-500 bg-emerald-500/10 font-semibold text-emerald-600 dark:text-emerald-400'
+                                                        : 'border-border bg-background text-foreground hover:bg-muted'
+                                                }`}
+                                            >
+                                                <span>{g.label}</span>
+                                                <span className="font-mono text-[10px] text-muted-foreground">
+                                                    {g.delta}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
+
                                 <div>
-                                    <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                        Diet Split
+                                    <label className="mb-2 block text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                        Dietary Macronutrient Split
                                     </label>
-                                    <select
-                                        value={calcDiet}
-                                        onChange={(e) =>
-                                            setCalcDiet(
-                                                e.target
-                                                    .value as DietPreference,
-                                            )
-                                        }
-                                        className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
-                                    >
-                                        <option value="balanced">
-                                            Balanced (30P / 40C / 30F)
-                                        </option>
-                                        <option value="high_protein">
-                                            High Protein (35P / 45C / 20F)
-                                        </option>
-                                        <option value="low_carb">
-                                            Low Carb (40P / 20C / 40F)
-                                        </option>
-                                        <option value="keto">
-                                            Keto (25P / 5C / 70F)
-                                        </option>
-                                    </select>
+                                    <div className="flex flex-col gap-2">
+                                        {[
+                                            {
+                                                key: 'balanced',
+                                                label: 'Balanced',
+                                                split: '30% P / 40% C / 30% F',
+                                            },
+                                            {
+                                                key: 'high_protein',
+                                                label: 'High Protein',
+                                                split: '35% P / 40% C / 25% F',
+                                            },
+                                            {
+                                                key: 'low_carb',
+                                                label: 'Low Carb',
+                                                split: '35% P / 20% C / 45% F',
+                                            },
+                                            {
+                                                key: 'keto',
+                                                label: 'Ketogenic',
+                                                split: '25% P / 5% C / 70% F',
+                                            },
+                                        ].map((d) => (
+                                            <button
+                                                key={d.key}
+                                                type="button"
+                                                onClick={() =>
+                                                    setCalcDiet(
+                                                        d.key as DietPreference,
+                                                    )
+                                                }
+                                                className={`flex items-center justify-between rounded-xl border px-3.5 py-2 text-xs font-medium transition-all ${
+                                                    calcDiet === d.key
+                                                        ? 'border-emerald-500 bg-emerald-500/10 font-semibold text-emerald-600 dark:text-emerald-400'
+                                                        : 'border-border bg-background text-foreground hover:bg-muted'
+                                                }`}
+                                            >
+                                                <span>{d.label}</span>
+                                                <span className="font-mono text-[10px] text-muted-foreground">
+                                                    {d.split}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Calculated Target Results Card */}
-                        <div className="space-y-6 rounded-2xl border border-primary/30 bg-primary/5 p-6 shadow-sm lg:col-span-5">
-                            <div className="border-b border-primary/20 pb-4">
-                                <div className="text-xs font-bold tracking-wider text-primary uppercase">
-                                    Recommended Starting Target
+                        {/* Right Column: Live Scientific Readout & Target Cockpit */}
+                        <div className="space-y-6 lg:col-span-5">
+                            {/* Target Calories Focal Card */}
+                            <div className="relative overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-500/15 via-card to-card p-6 shadow-lg shadow-emerald-500/5 sm:p-8">
+                                <div className="mb-4 flex items-center justify-between">
+                                    <span className="flex items-center gap-1.5 text-xs font-bold tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
+                                        <Target className="h-4 w-4" />
+                                        Calculated Daily Fuel Target
+                                    </span>
+                                    <Badge className="bg-emerald-600 font-mono text-xs text-white">
+                                        {calcGoal === 'cut'
+                                            ? 'Deficit'
+                                            : calcGoal === 'bulk'
+                                              ? 'Surplus'
+                                              : 'Equilibrium'}
+                                    </Badge>
                                 </div>
-                                <div className="mt-2 text-4xl font-extrabold text-foreground">
-                                    {calculatorResults.targetCalories.toLocaleString()}{' '}
-                                    <span className="text-base font-normal text-muted-foreground">
+
+                                <div className="mb-2 flex items-baseline gap-2">
+                                    <span className="font-mono text-5xl font-black tracking-tight text-foreground sm:text-6xl">
+                                        {calculatorResults.targetCalories.toLocaleString()}
+                                    </span>
+                                    <span className="text-lg font-semibold text-muted-foreground">
                                         kcal / day
                                     </span>
                                 </div>
-                                <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                                    <span>
-                                        BMR:{' '}
-                                        <strong>
-                                            {calculatorResults.bmr} kcal
-                                        </strong>
-                                    </span>
-                                    <span>•</span>
-                                    <span>
-                                        Maintenance (TDEE):{' '}
-                                        <strong>
-                                            {calculatorResults.tdee} kcal
-                                        </strong>
-                                    </span>
+
+                                <p className="mb-6 text-xs text-muted-foreground">
+                                    Calibrated for a baseline maintenance of{' '}
+                                    {calculatorResults.tdee.toLocaleString()}{' '}
+                                    kcal with a weekly target rate of{' '}
+                                    {calcGoal === 'cut'
+                                        ? '-0.50 kg'
+                                        : calcGoal === 'bulk'
+                                          ? '+0.25 kg'
+                                          : '0.00 kg'}
+                                    .
+                                </p>
+
+                                {/* Stacked Visual Macro Bar */}
+                                <div className="mb-6 space-y-2">
+                                    <div className="flex justify-between text-xs font-semibold text-muted-foreground">
+                                        <span>Macro Ratio</span>
+                                        <span>100% Calibrated</span>
+                                    </div>
+                                    <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted p-0.5">
+                                        <div
+                                            style={{
+                                                width: `${calculatorResults.split.proteinPercent}%`,
+                                            }}
+                                            className="h-full rounded-l-full bg-blue-500 transition-all duration-300"
+                                            title={`Protein ${calculatorResults.split.proteinPercent}%`}
+                                        />
+                                        <div
+                                            style={{
+                                                width: `${calculatorResults.split.carbsPercent}%`,
+                                            }}
+                                            className="h-full bg-amber-500 transition-all duration-300"
+                                            title={`Carbohydrates ${calculatorResults.split.carbsPercent}%`}
+                                        />
+                                        <div
+                                            style={{
+                                                width: `${calculatorResults.split.fatPercent}%`,
+                                            }}
+                                            className="h-full rounded-r-full bg-rose-500 transition-all duration-300"
+                                            title={`Dietary Fat ${calculatorResults.split.fatPercent}%`}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between pt-1 font-mono text-[10px] text-muted-foreground">
+                                        <span className="flex items-center gap-1">
+                                            <span className="inline-block h-2 w-2 rounded-full bg-blue-500" />{' '}
+                                            P:{' '}
+                                            {
+                                                calculatorResults.split
+                                                    .proteinPercent
+                                            }
+                                            %
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />{' '}
+                                            C:{' '}
+                                            {
+                                                calculatorResults.split
+                                                    .carbsPercent
+                                            }
+                                            %
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <span className="inline-block h-2 w-2 rounded-full bg-rose-500" />{' '}
+                                            F:{' '}
+                                            {calculatorResults.split.fatPercent}
+                                            %
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* 3 Macro Cards */}
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-3 text-center">
+                                        <span className="mb-1 block text-[10px] font-bold tracking-wider text-blue-500 uppercase">
+                                            Protein
+                                        </span>
+                                        <span className="block font-mono text-xl font-black text-foreground sm:text-2xl">
+                                            {calculatorResults.macros.protein}g
+                                        </span>
+                                        <span className="font-mono text-[10px] text-muted-foreground">
+                                            {calculatorResults.macros.protein *
+                                                4}{' '}
+                                            kcal
+                                        </span>
+                                    </div>
+                                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-center">
+                                        <span className="mb-1 block text-[10px] font-bold tracking-wider text-amber-500 uppercase">
+                                            Carbs
+                                        </span>
+                                        <span className="block font-mono text-xl font-black text-foreground sm:text-2xl">
+                                            {calculatorResults.macros.carbs}g
+                                        </span>
+                                        <span className="font-mono text-[10px] text-muted-foreground">
+                                            {calculatorResults.macros.carbs * 4}{' '}
+                                            kcal
+                                        </span>
+                                    </div>
+                                    <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-3 text-center">
+                                        <span className="mb-1 block text-[10px] font-bold tracking-wider text-rose-500 uppercase">
+                                            Fats
+                                        </span>
+                                        <span className="block font-mono text-xl font-black text-foreground sm:text-2xl">
+                                            {calculatorResults.macros.fat}g
+                                        </span>
+                                        <span className="font-mono text-[10px] text-muted-foreground">
+                                            {calculatorResults.macros.fat * 9}{' '}
+                                            kcal
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Metabolic Engine Telemetry */}
+                                <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-5 text-xs">
+                                    <div>
+                                        <span className="block text-muted-foreground">
+                                            Basal Metabolic Rate
+                                        </span>
+                                        <span className="font-mono font-bold text-foreground">
+                                            {calculatorResults.bmr.toLocaleString()}{' '}
+                                            kcal
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-muted-foreground">
+                                            Estimated TDEE
+                                        </span>
+                                        <span className="font-mono font-bold text-foreground">
+                                            {calculatorResults.tdee.toLocaleString()}{' '}
+                                            kcal
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Copy / Save CTA */}
+                                <div className="mt-6">
+                                    <Button
+                                        type="button"
+                                        onClick={handleCopyProtocol}
+                                        variant="outline"
+                                        className="flex w-full items-center justify-center gap-2 rounded-xl border-border text-xs font-medium hover:bg-muted"
+                                    >
+                                        {copiedTarget ? (
+                                            <>
+                                                <Check className="h-4 w-4 text-emerald-500" />
+                                                <span>
+                                                    Protocol Copied to
+                                                    Clipboard!
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Copy className="h-4 w-4 text-muted-foreground" />
+                                                <span>
+                                                    Copy Targets to Clipboard
+                                                </span>
+                                            </>
+                                        )}
+                                    </Button>
                                 </div>
                             </div>
 
-                            {/* Macro Gram Breakdown */}
-                            <div className="space-y-3">
-                                <div className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                                    Target Daily Macros
-                                </div>
-
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex items-center justify-between rounded-lg border border-border bg-background/80 p-2.5">
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-3 w-3 rounded-full bg-blue-500" />
-                                            <span className="font-semibold">
-                                                Protein (
-                                                {
-                                                    calculatorResults.split
-                                                        .proteinPercent
-                                                }
-                                                %)
-                                            </span>
-                                        </div>
-                                        <span className="font-mono font-extrabold text-blue-600">
-                                            {calculatorResults.macros.proteinG}g
-                                        </span>
-                                    </div>
-
-                                    <div className="flex items-center justify-between rounded-lg border border-border bg-background/80 p-2.5">
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-3 w-3 rounded-full bg-amber-500" />
-                                            <span className="font-semibold">
-                                                Carbohydrates (
-                                                {
-                                                    calculatorResults.split
-                                                        .carbsPercent
-                                                }
-                                                %)
-                                            </span>
-                                        </div>
-                                        <span className="font-mono font-extrabold text-amber-600">
-                                            {calculatorResults.macros.carbsG}g
-                                        </span>
-                                    </div>
-
-                                    <div className="flex items-center justify-between rounded-lg border border-border bg-background/80 p-2.5">
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-3 w-3 rounded-full bg-rose-500" />
-                                            <span className="font-semibold">
-                                                Fat (
-                                                {
-                                                    calculatorResults.split
-                                                        .fatPercent
-                                                }
-                                                %)
-                                            </span>
-                                        </div>
-                                        <span className="font-mono font-extrabold text-rose-600">
-                                            {calculatorResults.macros.fatG}g
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <Link href={register()} className="block">
-                                <Button className="w-full bg-primary py-5 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
-                                    Lock in this plan & start tracking
-                                    <ArrowRight className="ml-1.5 h-4 w-4" />
+                            {/* Direct Registration Callout with prefilled targets */}
+                            <div className="flex flex-col items-center rounded-2xl border border-border bg-card p-5 text-center">
+                                <p className="mb-3 text-xs text-muted-foreground">
+                                    Ready to let our algorithm auto-adjust these
+                                    numbers as your body composition evolves?
+                                </p>
+                                <Button
+                                    asChild
+                                    className="w-full rounded-xl bg-emerald-600 text-sm font-medium text-white shadow-sm hover:bg-emerald-500"
+                                >
+                                    <Link href={register()}>
+                                        Lock In This Target & Create Account
+                                        <ArrowRight className="ml-1.5 h-4 w-4" />
+                                    </Link>
                                 </Button>
-                            </Link>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Comparison Table */}
-            <section
-                id="comparison"
-                className="border-t border-border py-20 lg:py-24"
-            >
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-12 text-center">
-                        <Badge
-                            variant="outline"
-                            className="mb-2 border-primary/30 bg-primary/5 text-primary"
-                        >
-                            Honest Comparison
-                        </Badge>
-                        <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-                            Why Athletes & Trackers Switch to kcal-log
+            {/* SECTION: LIVE INTERACTIVE COCKPIT DEMO */}
+            <section id="cockpit" className="relative py-20 md:py-28">
+                <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="mx-auto mb-12 max-w-3xl text-center">
+                        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                            <Activity className="h-3.5 w-3.5 text-emerald-500" />
+                            Interactive Product Sandbox
+                        </div>
+                        <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                            Experience The Adaptive Cockpit
                         </h2>
+                        <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+                            Click around. Test how meals adjust remaining fuel,
+                            examine weekly adaptive expenditure checkpoints, and
+                            see how EWMA trend filters raw water weight spikes.
+                        </p>
                     </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="mx-auto w-full max-w-4xl border-collapse text-left text-sm">
-                            <thead>
-                                <tr className="border-b border-border">
-                                    <th className="px-4 py-4 font-bold text-muted-foreground">
-                                        Feature
-                                    </th>
-                                    <th className="rounded-t-xl bg-primary/5 px-4 py-4 text-center font-extrabold text-primary">
-                                        kcal-log
-                                    </th>
-                                    <th className="px-4 py-4 text-center font-semibold text-muted-foreground">
-                                        Legacy Apps (MFP / LoseIt)
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                                <tr>
-                                    <td className="px-4 py-3.5 font-medium text-foreground">
-                                        Weekly Adaptive Target Adjustments
-                                    </td>
-                                    <td className="bg-primary/5 px-4 py-3.5 text-center font-bold text-primary">
-                                        ✅ Automated & Mathematical
-                                    </td>
-                                    <td className="px-4 py-3.5 text-center text-muted-foreground">
-                                        ❌ Static / None
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td className="px-4 py-3.5 font-medium text-foreground">
-                                        Barcode Scanner
-                                    </td>
-                                    <td className="bg-primary/5 px-4 py-3.5 text-center font-bold text-primary">
-                                        ✅ 100% Free & Unlimited
-                                    </td>
-                                    <td className="px-4 py-3.5 text-center text-muted-foreground">
-                                        ❌ Paywalled ($80/year)
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td className="px-4 py-3.5 font-medium text-foreground">
-                                        Open Food Facts Integration
-                                    </td>
-                                    <td className="bg-primary/5 px-4 py-3.5 text-center font-bold text-primary">
-                                        ✅ 3M+ Global Foods
-                                    </td>
-                                    <td className="px-4 py-3.5 text-center text-muted-foreground">
-                                        ❌ Proprietary Lock-in
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td className="px-4 py-3.5 font-medium text-foreground">
-                                        Data Export (CSV & PDF)
-                                    </td>
-                                    <td className="bg-primary/5 px-4 py-3.5 text-center font-bold text-primary">
-                                        ✅ Complete Sovereignty
-                                    </td>
-                                    <td className="px-4 py-3.5 text-center text-muted-foreground">
-                                        ❌ Restricted
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td className="px-4 py-3.5 font-medium text-foreground">
-                                        Speed & Ad-Free Experience
-                                    </td>
-                                    <td className="bg-primary/5 px-4 py-3.5 text-center font-bold text-primary">
-                                        ✅ Sub-second & Zero Ads
-                                    </td>
-                                    <td className="px-4 py-3.5 text-center text-muted-foreground">
-                                        ❌ Cluttered with Ads
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    {/* Cockpit Card Wrapper */}
+                    <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl border border-border/80 bg-card shadow-2xl">
+                        {/* Tab Bar */}
+                        <div className="flex scrollbar-none gap-2 overflow-x-auto border-b border-border bg-muted/30 px-4 pt-3">
+                            {[
+                                {
+                                    id: 'diary',
+                                    label: '1. Daily Fuel Diary',
+                                    icon: Utensils,
+                                },
+                                {
+                                    id: 'adaptive',
+                                    label: '2. Adaptive Checkpoint',
+                                    icon: RefreshCw,
+                                },
+                                {
+                                    id: 'trend',
+                                    label: '3. EWMA Trend vs Water Spikes',
+                                    icon: TrendingUp,
+                                },
+                                {
+                                    id: 'scanner',
+                                    label: '4. Barcode Quick-Lookup',
+                                    icon: Barcode,
+                                },
+                            ].map((t) => {
+                                const Icon = t.icon;
+                                const isActive = cockpitTab === t.id;
+                                return (
+                                    <button
+                                        key={t.id}
+                                        type="button"
+                                        onClick={() =>
+                                            setCockpitTab(
+                                                t.id as
+                                                    | 'diary'
+                                                    | 'adaptive'
+                                                    | 'trend'
+                                                    | 'scanner',
+                                            )
+                                        }
+                                        className={`flex items-center gap-2 rounded-t-xl border-b-2 px-4 py-2.5 text-xs font-semibold whitespace-nowrap transition-all sm:text-sm ${
+                                            isActive
+                                                ? 'border-emerald-500 bg-card text-emerald-600 shadow-sm dark:text-emerald-400'
+                                                : 'border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                        }`}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        <span>{t.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* TAB 1: DAILY FUEL DIARY */}
+                        {cockpitTab === 'diary' && (
+                            <div className="space-y-8 p-6 sm:p-8">
+                                {/* Top KPI Summary */}
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                                    <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+                                        <span className="mb-1 block text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                            Remaining Fuel
+                                        </span>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="font-mono text-3xl font-extrabold text-foreground">
+                                                {remainingCalories > 0
+                                                    ? remainingCalories
+                                                    : 0}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                                / {targetDiaryCalories} kcal
+                                            </span>
+                                        </div>
+                                        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+                                            <div
+                                                className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                                                style={{
+                                                    width: `${Math.min(100, (currentDiaryTotals.calories / targetDiaryCalories) * 100)}%`,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-4">
+                                        <span className="mb-1 block text-xs font-semibold text-blue-500">
+                                            Protein
+                                        </span>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="font-mono text-2xl font-bold text-foreground">
+                                                {currentDiaryTotals.protein}g
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                                / 180g
+                                            </span>
+                                        </div>
+                                        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                                            <div
+                                                className="h-full rounded-full bg-blue-500 transition-all duration-300"
+                                                style={{
+                                                    width: `${Math.min(100, (currentDiaryTotals.protein / 180) * 100)}%`,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
+                                        <span className="mb-1 block text-xs font-semibold text-amber-500">
+                                            Carbs
+                                        </span>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="font-mono text-2xl font-bold text-foreground">
+                                                {currentDiaryTotals.carbs}g
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                                / 240g
+                                            </span>
+                                        </div>
+                                        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                                            <div
+                                                className="h-full rounded-full bg-amber-500 transition-all duration-300"
+                                                style={{
+                                                    width: `${Math.min(100, (currentDiaryTotals.carbs / 240) * 100)}%`,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-4">
+                                        <span className="mb-1 block text-xs font-semibold text-rose-500">
+                                            Fats
+                                        </span>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="font-mono text-2xl font-bold text-foreground">
+                                                {currentDiaryTotals.fat}g
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                                / 65g
+                                            </span>
+                                        </div>
+                                        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                                            <div
+                                                className="h-full rounded-full bg-rose-500 transition-all duration-300"
+                                                style={{
+                                                    width: `${Math.min(100, (currentDiaryTotals.fat / 65) * 100)}%`,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Interactive Meals List */}
+                                <div>
+                                    <div className="mb-4 flex items-center justify-between">
+                                        <h4 className="text-sm font-bold tracking-wider text-muted-foreground uppercase">
+                                            Today's Meals (Click to Log / Unlog)
+                                        </h4>
+                                        <span className="text-xs text-muted-foreground">
+                                            {loggedMealIds.length} of{' '}
+                                            {sampleMeals.length} logged
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {sampleMeals.map((meal) => {
+                                            const isLogged =
+                                                loggedMealIds.includes(meal.id);
+                                            return (
+                                                <button
+                                                    key={meal.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (isLogged) {
+                                                            setLoggedMealIds(
+                                                                loggedMealIds.filter(
+                                                                    (id) =>
+                                                                        id !==
+                                                                        meal.id,
+                                                                ),
+                                                            );
+                                                        } else {
+                                                            setLoggedMealIds([
+                                                                ...loggedMealIds,
+                                                                meal.id,
+                                                            ]);
+                                                        }
+                                                    }}
+                                                    className={`flex w-full flex-col justify-between gap-3 rounded-xl border p-4 text-left transition-all sm:flex-row sm:items-center ${
+                                                        isLogged
+                                                            ? 'border-emerald-500/40 bg-emerald-500/5 shadow-sm'
+                                                            : 'border-border/60 bg-background/50 opacity-60 hover:bg-muted/40 hover:opacity-100'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <div
+                                                            className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-md border transition-all ${
+                                                                isLogged
+                                                                    ? 'border-emerald-500 bg-emerald-500 text-white'
+                                                                    : 'border-muted-foreground/40 bg-background'
+                                                            }`}
+                                                        >
+                                                            {isLogged && (
+                                                                <Check className="h-3.5 w-3.5 stroke-[3]" />
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm font-bold text-foreground">
+                                                                    {meal.name}
+                                                                </span>
+                                                                <span className="font-mono text-[10px] text-muted-foreground">
+                                                                    {meal.time}
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                                                {meal.desc}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-4 self-end font-mono text-xs sm:self-center">
+                                                        <span className="font-bold text-foreground">
+                                                            {meal.calories} kcal
+                                                        </span>
+                                                        <span className="font-semibold text-blue-500">
+                                                            {meal.protein}g P
+                                                        </span>
+                                                        <span className="font-semibold text-amber-500">
+                                                            {meal.carbs}g C
+                                                        </span>
+                                                        <span className="font-semibold text-rose-500">
+                                                            {meal.fat}g F
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 2: ADAPTIVE CHECKPOINT */}
+                        {cockpitTab === 'adaptive' && (
+                            <div className="space-y-6 p-6 sm:p-8">
+                                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6">
+                                    <div className="flex items-center justify-between border-b border-emerald-500/20 pb-4">
+                                        <div>
+                                            <span className="text-xs font-bold tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
+                                                Weekly Checkpoint • Week 4
+                                            </span>
+                                            <h4 className="mt-1 text-xl font-extrabold text-foreground">
+                                                Metabolism Acceleration Detected
+                                            </h4>
+                                        </div>
+                                        <Badge className="bg-emerald-600 text-white">
+                                            Algorithm Recommendation
+                                        </Badge>
+                                    </div>
+
+                                    <div className="my-6 grid grid-cols-1 gap-6 text-sm sm:grid-cols-3">
+                                        <div>
+                                            <span className="block text-xs text-muted-foreground">
+                                                Observed Weight Loss
+                                            </span>
+                                            <span className="font-mono text-2xl font-bold text-foreground">
+                                                -0.68 kg / wk
+                                            </span>
+                                            <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                                                Faster than -0.50 kg goal
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="block text-xs text-muted-foreground">
+                                                Calculated Expenditure (TDEE)
+                                            </span>
+                                            <span className="font-mono text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                                2,810 kcal / day
+                                            </span>
+                                            <span className="mt-0.5 block text-[10px] text-emerald-500">
+                                                +85 kcal vs last week
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="block text-xs text-muted-foreground">
+                                                New Recommended Target
+                                            </span>
+                                            <span className="font-mono text-2xl font-bold text-foreground">
+                                                2,310 kcal / day
+                                            </span>
+                                            <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                                                +85 kcal to protect muscle
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col items-center gap-4 border-t border-emerald-500/20 pt-4 sm:flex-row">
+                                        {adaptiveAccepted ? (
+                                            <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                                                <CheckCircle2 className="h-5 w-5" />
+                                                <span>
+                                                    Targets successfully updated
+                                                    to 2,310 kcal/day for the
+                                                    upcoming week!
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <Button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setAdaptiveAccepted(
+                                                            true,
+                                                        )
+                                                    }
+                                                    className="w-full rounded-xl bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-500 sm:w-auto"
+                                                >
+                                                    Accept Target Adjustment
+                                                    (+85 kcal)
+                                                </Button>
+                                                <span className="text-xs text-muted-foreground">
+                                                    You maintain full control.
+                                                    Rejections leave your
+                                                    current targets unchanged.
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 3: EWMA TREND VS WATER SPIKES */}
+                        {cockpitTab === 'trend' && (
+                            <div className="space-y-6 p-6 sm:p-8">
+                                <div className="flex flex-col justify-between gap-4 border-b border-border pb-4 sm:flex-row sm:items-center">
+                                    <div>
+                                        <h4 className="text-base font-bold text-foreground">
+                                            The Anti-Panic Smoothing Algorithm
+                                        </h4>
+                                        <p className="mt-0.5 text-xs text-muted-foreground">
+                                            Sodium, carbohydrate replenishment,
+                                            and hydration cause scale
+                                            fluctuations of ±2 kg overnight.
+                                        </p>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                            setWaterSpikeActive(
+                                                !waterSpikeActive,
+                                            )
+                                        }
+                                        className={`rounded-xl border text-xs font-semibold transition-all ${
+                                            waterSpikeActive
+                                                ? 'border-rose-500 bg-rose-500/10 text-rose-500'
+                                                : 'border-border text-foreground hover:bg-muted'
+                                        }`}
+                                    >
+                                        {waterSpikeActive
+                                            ? 'Remove Simulated Water Spike'
+                                            : 'Simulate +2.5 kg Sodium/Sushi Water Spike'}
+                                    </Button>
+                                </div>
+
+                                {/* Mini Chart Visualization Table */}
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-xs">
+                                        <thead>
+                                            <tr className="border-b border-border text-muted-foreground">
+                                                <th className="py-2.5 font-semibold">
+                                                    Date
+                                                </th>
+                                                <th className="py-2.5 font-semibold">
+                                                    Raw Scale Reading
+                                                </th>
+                                                <th className="py-2.5 font-semibold">
+                                                    True EWMA Trend
+                                                </th>
+                                                <th className="py-2.5 font-semibold">
+                                                    Algorithm Diagnosis
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-border/60">
+                                            {rawWeightsSample.map(
+                                                (entry, idx) => {
+                                                    const isSpike =
+                                                        waterSpikeActive &&
+                                                        (entry.date ===
+                                                            'Oct 13' ||
+                                                            entry.date ===
+                                                                'Oct 15');
+                                                    return (
+                                                        <tr
+                                                            key={idx}
+                                                            className={
+                                                                isSpike
+                                                                    ? 'bg-rose-500/5'
+                                                                    : ''
+                                                            }
+                                                        >
+                                                            <td className="py-3 font-mono font-medium text-foreground">
+                                                                {entry.date}
+                                                            </td>
+                                                            <td className="py-3 font-mono">
+                                                                <span
+                                                                    className={
+                                                                        isSpike
+                                                                            ? 'font-bold text-rose-500'
+                                                                            : 'text-foreground'
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        entry.rawWeightKg
+                                                                    }{' '}
+                                                                    kg
+                                                                </span>
+                                                                {isSpike && (
+                                                                    <span className="ml-2 text-[10px] font-semibold text-rose-500">
+                                                                        (Temporary
+                                                                        Water
+                                                                        Noise)
+                                                                    </span>
+                                                                )}
+                                                            </td>
+                                                            <td className="py-3 font-mono font-bold text-emerald-500">
+                                                                {
+                                                                    entry.trendWeightKg
+                                                                }{' '}
+                                                                kg
+                                                            </td>
+                                                            <td className="py-3 text-muted-foreground">
+                                                                {isSpike
+                                                                    ? 'Trend remains on track. Zero panic deficit cuts.'
+                                                                    : 'Healthy progressive tissue loss.'}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                },
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 4: BARCODE & SEARCH */}
+                        {cockpitTab === 'scanner' && (
+                            <div className="space-y-6 p-6 sm:p-8">
+                                <div className="mx-auto max-w-md space-y-4 text-center">
+                                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-500">
+                                        <Barcode className="h-6 w-6" />
+                                    </div>
+                                    <h4 className="text-base font-bold text-foreground">
+                                        Instant Universal Barcode Decoupling
+                                    </h4>
+                                    <p className="text-xs leading-relaxed text-muted-foreground">
+                                        Scan barcodes in milliseconds using your
+                                        device camera or lookup via
+                                        OpenFoodFacts. Zero paywalls.
+                                    </p>
+                                    <div className="space-y-2 rounded-xl border border-border bg-background p-4 text-left">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="font-mono text-muted-foreground">
+                                                Barcode: 5000169121453
+                                            </span>
+                                            <Badge
+                                                variant="outline"
+                                                className="border-emerald-500/30 text-[10px] text-emerald-500"
+                                            >
+                                                Verified
+                                            </Badge>
+                                        </div>
+                                        <div className="text-sm font-bold text-foreground">
+                                            Optimum Nutrition Gold Standard Whey
+                                            100%
+                                        </div>
+                                        <div className="flex gap-4 pt-1 font-mono text-xs text-muted-foreground">
+                                            <span>Serving: 30.4g</span>
+                                            <span className="font-bold text-foreground">
+                                                120 kcal
+                                            </span>
+                                            <span className="font-bold text-blue-500">
+                                                24g P
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>
 
-            {/* FAQ Accordion */}
+            {/* SECTION: BENTO GRID - ARCHITECTURE & CAPABILITIES */}
             <section
-                id="faq"
-                className="border-t border-border bg-muted/20 py-20"
+                id="science"
+                className="border-t border-border/60 bg-card/40 py-20 md:py-28"
             >
-                <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-12 text-center">
-                        <Badge
-                            variant="outline"
-                            className="mb-2 border-primary/30 bg-primary/5 text-primary"
-                        >
-                            Got Questions?
-                        </Badge>
-                        <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-                            Frequently Asked Questions
+                <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="mx-auto mb-16 max-w-3xl text-center">
+                        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                            <Dna className="h-3.5 w-3.5 text-emerald-500" />
+                            Engineered For Precision
+                        </div>
+                        <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                            Why Traditional Calorie Trackers Fail You
                         </h2>
+                        <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+                            Static formulas assume your metabolism never
+                            changes. But as you lose weight, metabolic
+                            adaptation reduces your energy expenditure by up to
+                            15%. kcal-log solves this algorithmically.
+                        </p>
                     </div>
 
-                    <div className="space-y-3">
-                        {faqs.map((faq, idx) => {
-                            const isOpen = openFaq === idx;
+                    {/* Bento Cards */}
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        {/* Card 1: Adaptive Expenditure (Wide) */}
+                        <div className="flex flex-col justify-between rounded-2xl border border-border bg-card p-8 shadow-sm md:col-span-2">
+                            <div>
+                                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+                                    <Activity className="h-5 w-5" />
+                                </div>
+                                <h3 className="mb-2 text-xl font-bold text-foreground">
+                                    Continuous Metabolic Rate Solving
+                                </h3>
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                    Instead of trusting gym machines or
+                                    smartwatches that over-report active
+                                    calories by up to 40%, kcal-log calculates
+                                    energy balance mathematically from your
+                                    logged intake and EWMA smoothed scale
+                                    readings.
+                                </p>
+                            </div>
+                            <div className="mt-8 grid grid-cols-2 gap-4 border-t border-border/60 pt-6 font-mono text-xs">
+                                <div>
+                                    <span className="block text-muted-foreground">
+                                        Algorithm
+                                    </span>
+                                    <span className="font-bold text-foreground">
+                                        Rolling Multi-Week EWMA
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="block text-muted-foreground">
+                                        Adjustment Frequency
+                                    </span>
+                                    <span className="font-bold text-emerald-500">
+                                        Weekly Checkpoints
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Card 2: Zero Paywalls */}
+                        <div className="flex flex-col justify-between rounded-2xl border border-border bg-card p-8 shadow-sm">
+                            <div>
+                                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500/10 text-teal-500">
+                                    <Barcode className="h-5 w-5" />
+                                </div>
+                                <h3 className="mb-2 text-xl font-bold text-foreground">
+                                    Barcode Scanner Free Forever
+                                </h3>
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                    We never charge \$79/year for scanning
+                                    barcodes. Powered by open food databases
+                                    with instant camera autofocus.
+                                </p>
+                            </div>
+                            <div className="mt-8 border-t border-border/60 pt-6 font-mono text-xs">
+                                <span className="block text-muted-foreground">
+                                    Database Coverage
+                                </span>
+                                <span className="font-bold text-foreground">
+                                    3.2M+ Global Products
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Card 3: Calorie Banking & Zig-Zag */}
+                        <div className="flex flex-col justify-between rounded-2xl border border-border bg-card p-8 shadow-sm">
+                            <div>
+                                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
+                                    <Zap className="h-5 w-5" />
+                                </div>
+                                <h3 className="mb-2 text-xl font-bold text-foreground">
+                                    Dynamic Zig-Zag Calorie Banking
+                                </h3>
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                    Fuel hard training days with more carbs
+                                    while keeping rest days lower, preserving
+                                    the exact weekly deficit.
+                                </p>
+                            </div>
+                            <div className="mt-8 border-t border-border/60 pt-6 font-mono text-xs">
+                                <span className="block text-muted-foreground">
+                                    Weekly Compliance
+                                </span>
+                                <span className="font-bold text-foreground">
+                                    100% Calorie Parity
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Card 4: Local-First & 100% Privacy (Wide) */}
+                        <div className="flex flex-col justify-between rounded-2xl border border-border bg-card p-8 shadow-sm md:col-span-2">
+                            <div>
+                                <div className="mb-6 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500">
+                                    <ShieldCheck className="h-5 w-5" />
+                                </div>
+                                <h3 className="mb-2 text-xl font-bold text-foreground">
+                                    Local-First Architecture & Privacy
+                                    Sovereignty
+                                </h3>
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                    Works offline with local-first storage. No
+                                    third-party ad networks tracking your
+                                    weight, no data brokers, and 1-click export
+                                    to standard CSV or JSON anytime you want.
+                                </p>
+                            </div>
+                            <div className="mt-8 grid grid-cols-2 gap-4 border-t border-border/60 pt-6 font-mono text-xs">
+                                <div>
+                                    <span className="block text-muted-foreground">
+                                        Data Tracking
+                                    </span>
+                                    <span className="font-bold text-emerald-500">
+                                        Zero Analytics Trackers
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="block text-muted-foreground">
+                                        Export Format
+                                    </span>
+                                    <span className="font-bold text-foreground">
+                                        Full JSON & CSV Dumps
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION: TRANSPARENT COMPARISON MATRIX */}
+            <section id="comparison" className="py-20 md:py-28">
+                <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="mx-auto mb-16 max-w-3xl text-center">
+                        <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                            Compare kcal-log Against The Industry
+                        </h2>
+                        <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+                            See how we stack up against proprietary incumbents
+                            and static spreadsheets.
+                        </p>
+                    </div>
+
+                    <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead>
+                                    <tr className="border-b border-border bg-muted/40 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                        <th className="px-6 py-4">
+                                            Capability
+                                        </th>
+                                        <th className="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-400">
+                                            kcal-log
+                                        </th>
+                                        <th className="px-6 py-4">
+                                            MyFitnessPal
+                                        </th>
+                                        <th className="px-6 py-4">
+                                            MacroFactor
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border/60">
+                                    <tr>
+                                        <td className="px-6 py-4 font-medium text-foreground">
+                                            Pricing
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-emerald-500">
+                                            100% Free / Open
+                                        </td>
+                                        <td className="px-6 py-4 text-muted-foreground">
+                                            \$19.99/mo (\$79/yr)
+                                        </td>
+                                        <td className="px-6 py-4 text-muted-foreground">
+                                            \$11.99/mo (\$71/yr)
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="px-6 py-4 font-medium text-foreground">
+                                            Barcode Scanner
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-emerald-500">
+                                            Included Free
+                                        </td>
+                                        <td className="px-6 py-4 text-muted-foreground">
+                                            Paywalled (Premium)
+                                        </td>
+                                        <td className="px-6 py-4 text-muted-foreground">
+                                            Included in Subscription
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="px-6 py-4 font-medium text-foreground">
+                                            Adaptive Expenditure (TDEE)
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-emerald-500">
+                                            Continuous Algorithm
+                                        </td>
+                                        <td className="px-6 py-4 text-muted-foreground">
+                                            Static / Manual
+                                        </td>
+                                        <td className="px-6 py-4 font-semibold text-foreground">
+                                            Continuous Algorithm
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="px-6 py-4 font-medium text-foreground">
+                                            EWMA Weight Smoothing
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-emerald-500">
+                                            Built-in (Anti-Panic)
+                                        </td>
+                                        <td className="px-6 py-4 text-muted-foreground">
+                                            Raw Weights Only
+                                        </td>
+                                        <td className="px-6 py-4 font-semibold text-foreground">
+                                            Smoothed Trend
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="px-6 py-4 font-medium text-foreground">
+                                            Third-Party Ads & Trackers
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-emerald-500">
+                                            Zero Ads / Trackers
+                                        </td>
+                                        <td className="px-6 py-4 font-semibold text-rose-500">
+                                            Heavy Ad Network
+                                        </td>
+                                        <td className="px-6 py-4 text-muted-foreground">
+                                            Zero Ads
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="px-6 py-4 font-medium text-foreground">
+                                            Data Sovereignty
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-emerald-500">
+                                            Open JSON/CSV Export
+                                        </td>
+                                        <td className="px-6 py-4 text-muted-foreground">
+                                            Restricted Export
+                                        </td>
+                                        <td className="px-6 py-4 text-muted-foreground">
+                                            Export Available
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION: ACCORDION FAQ */}
+            <section
+                id="faq"
+                className="border-t border-border/60 bg-card/40 py-20 md:py-28"
+            >
+                <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+                    <div className="mb-16 text-center">
+                        <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                            Frequently Asked Questions
+                        </h2>
+                        <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+                            Clear answers to your technical and nutrition
+                            questions.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        {faqs.map((faq, index) => {
+                            const isOpen = openFaqIndex === index;
                             return (
                                 <div
-                                    key={idx}
-                                    className="overflow-hidden rounded-xl border border-border bg-card"
+                                    key={index}
+                                    className="overflow-hidden rounded-2xl border border-border bg-card transition-all"
                                 >
                                     <button
                                         type="button"
                                         onClick={() =>
-                                            setOpenFaq(isOpen ? null : idx)
+                                            setOpenFaqIndex(
+                                                isOpen ? null : index,
+                                            )
                                         }
-                                        className="flex w-full items-center justify-between p-4 text-left font-semibold text-foreground transition-colors hover:bg-muted/30 sm:p-5"
+                                        className="flex w-full items-center justify-between gap-4 p-6 text-left text-base font-bold text-foreground transition-colors hover:bg-muted/30"
                                     >
                                         <span>{faq.q}</span>
                                         <ChevronDown
-                                            className={`h-4 w-4 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                                            className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 ${
+                                                isOpen
+                                                    ? 'rotate-180 text-emerald-500'
+                                                    : ''
+                                            }`}
                                         />
                                     </button>
                                     {isOpen && (
-                                        <div className="border-t border-border/40 px-4 pt-3 pb-5 text-sm leading-relaxed text-muted-foreground sm:px-5">
+                                        <div className="border-t border-border/40 px-6 pt-4 pb-6 text-sm leading-relaxed text-muted-foreground">
                                             {faq.a}
                                         </div>
                                     )}
@@ -1505,82 +1851,94 @@ export default function Welcome() {
                 </div>
             </section>
 
-            {/* Final CTA Banner */}
-            <section className="border-t border-border py-20 lg:py-24">
-                <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-                    <div className="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950 via-slate-900 to-black p-8 text-center text-white shadow-2xl sm:p-14">
-                        {/* Decorative background circle */}
-                        <div className="pointer-events-none absolute -right-24 -bottom-24 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
-
-                        <div className="relative z-10 mx-auto max-w-2xl space-y-6">
-                            <Badge className="border-emerald-400/30 bg-emerald-500/20 text-emerald-300">
-                                Stop Guessing. Start Adapting.
-                            </Badge>
-                            <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
-                                Take Control of Your Nutrition Today
+            {/* SECTION: FINAL CALL TO ACTION */}
+            <section className="relative py-20 md:py-28">
+                <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+                    <div className="relative overflow-hidden rounded-3xl border border-emerald-500/40 bg-gradient-to-br from-emerald-500/15 via-card to-card p-8 text-center shadow-2xl sm:p-14">
+                        <div className="mx-auto max-w-2xl space-y-6">
+                            <h2 className="text-3xl leading-tight font-extrabold tracking-tight text-foreground sm:text-5xl">
+                                Take Full Command Of Your Metabolism Today.
                             </h2>
-                            <p className="mx-auto max-w-xl text-sm text-emerald-100/80 sm:text-base">
-                                Experience fast, science-backed nutrition
-                                tracking with weekly metabolic recalibration and
-                                zero paywalls.
+                            <p className="text-base text-muted-foreground sm:text-lg">
+                                Free forever. No paywalled barcodes. No credit
+                                card required. Start tracking your true daily
+                                energy expenditure in under two minutes.
                             </p>
-                            <div className="pt-2">
-                                <Link href={register()}>
-                                    <Button
-                                        size="lg"
-                                        className="bg-emerald-500 px-8 py-6 text-base font-bold text-slate-950 shadow-lg transition-all hover:scale-105 hover:bg-emerald-400"
-                                    >
-                                        Create Your Free Account
-                                        <ArrowRight className="ml-2 h-5 w-5" />
-                                    </Button>
-                                </Link>
+                            <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+                                <Button
+                                    asChild
+                                    size="lg"
+                                    className="h-12 rounded-full bg-emerald-600 px-8 font-semibold text-white shadow-lg shadow-emerald-600/30 transition-all hover:bg-emerald-500 active:scale-95"
+                                >
+                                    <Link href={register()}>
+                                        Create Free Account
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Link>
+                                </Button>
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    size="lg"
+                                    className="h-12 rounded-full border-border px-8 font-medium hover:bg-muted"
+                                >
+                                    <Link href={login()}>
+                                        Log In to Existing Account
+                                    </Link>
+                                </Button>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="border-t border-border bg-background py-12 text-sm text-muted-foreground">
-                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-4 sm:flex-row sm:px-6 lg:px-8">
-                    <div className="flex items-center gap-2.5">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                            <Flame className="h-4 w-4" />
-                        </div>
+            {/* MINIMAL SLEEK FOOTER */}
+            <footer className="border-t border-border bg-background py-12">
+                <div className="container mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-4 text-xs text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
+                    <div className="flex items-center gap-2">
+                        <Flame className="h-4 w-4 text-emerald-500" />
                         <span className="font-bold text-foreground">
                             {appName}
                         </span>
-                        <span className="text-xs text-muted-foreground">
-                            © {new Date().getFullYear()} Precision Nutrition.
-                        </span>
+                        <span>• Precision Open-Source Nutrition System</span>
                     </div>
 
-                    <div className="flex items-center gap-6 text-xs">
-                        <Link href={login()} className="hover:text-foreground">
-                            Sign In
-                        </Link>
-                        <Link
-                            href={register()}
-                            className="hover:text-foreground"
-                        >
-                            Sign Up
-                        </Link>
+                    <div className="flex items-center gap-6 font-medium">
                         <a
-                            href="/docs/api"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="hover:text-foreground"
+                            href="#calculator"
+                            className="transition-colors hover:text-foreground"
                         >
-                            API Documentation
+                            Macro Calculator
+                        </a>
+                        <a
+                            href="#cockpit"
+                            className="transition-colors hover:text-foreground"
+                        >
+                            Live Cockpit
+                        </a>
+                        <a
+                            href="#science"
+                            className="transition-colors hover:text-foreground"
+                        >
+                            Metabolic Science
+                        </a>
+                        <a
+                            href="#comparison"
+                            className="transition-colors hover:text-foreground"
+                        >
+                            Compare
                         </a>
                         <a
                             href="https://github.com/DevHolako/kcal-log"
                             target="_blank"
                             rel="noreferrer"
-                            className="hover:text-foreground"
+                            className="transition-colors hover:text-foreground"
                         >
                             GitHub
                         </a>
+                    </div>
+
+                    <div>
+                        <span>Released under MIT License.</span>
                     </div>
                 </div>
             </footer>
