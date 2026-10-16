@@ -61,7 +61,7 @@ class GetWeightHistoryTool implements Tool
 
         $mappedLogs = $logs->map(function (WeightLog $log) {
             return [
-                'date' => $log->date ? $log->date->format('Y-m-d') : null,
+                'date' => $log->date->format('Y-m-d'),
                 'weight_kg' => (float) $log->weight_kg,
                 'body_fat_pct' => $log->body_fat_pct ? (float) $log->body_fat_pct : null,
             ];

@@ -155,7 +155,7 @@ class AssistantController extends Controller
                             }
                             flush();
                         } elseif ($event instanceof ToolResult) {
-                            echo 'data: '.json_encode(['type' => 'tool_result', 'tool' => $event->toolCall->name])."\n\n";
+                            echo 'data: '.json_encode(['type' => 'tool_result', 'tool' => $event->toolResult->name])."\n\n";
                             if (ob_get_level() > 0) {
                                 ob_flush();
                             }

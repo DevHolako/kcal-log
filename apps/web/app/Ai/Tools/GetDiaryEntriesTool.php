@@ -54,9 +54,9 @@ class GetDiaryEntriesTool implements Tool
         $entries = $query->get()->map(function (DiaryEntry $entry) {
             return [
                 'id' => $entry->id,
-                'date' => $entry->date ? $entry->date->format('Y-m-d') : null,
+                'date' => $entry->date->format('Y-m-d'),
                 'meal_slot' => $entry->meal_slot,
-                'food_name' => $entry->food ? $entry->food->name : 'Unknown Food',
+                'food_name' => $entry->food->name,
                 'quantity' => (float) $entry->quantity,
                 'unit' => $entry->unit,
                 'grams' => (float) $entry->grams,

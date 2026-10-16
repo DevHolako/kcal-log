@@ -12,6 +12,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   secret-scan:
@@ -25,6 +26,12 @@ jobs:
 
       - name: Run Secret Leak Guard
         run: bash scripts/check-secrets.sh
+
+      - name: Cancel workflow if failed
+        if: failure()
+        run: gh run cancel ${{ github.run_id }} || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   packages-and-lint:
     name: Monorepo Domain Tests & Quality
@@ -65,6 +72,12 @@ jobs:
       - name: Lint and Code Formatting Check
         run: pnpm lint
 
+      - name: Cancel workflow if failed
+        if: failure()
+        run: gh run cancel ${{ github.run_id }} || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   phpstan:
     name: PHPStan Level 5 Static Analysis
     runs-on: ubuntu-24.04
@@ -94,6 +107,12 @@ jobs:
       - name: Run PHPStan Analysis
         working-directory: apps/web
         run: ./vendor/bin/phpstan analyse --error-format=github
+
+      - name: Cancel workflow if failed
+        if: failure()
+        run: gh run cancel ${{ github.run_id }} || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   backend-tests:
     name: Pest Feature & Unit Suite
@@ -166,6 +185,12 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
         run: php artisan test --parallel
+
+      - name: Cancel workflow if failed
+        if: failure()
+        run: gh run cancel ${{ github.run_id }} || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   e2e-playwright:
     name: Playwright End-to-End Suite
@@ -252,6 +277,12 @@ jobs:
             apps/web/playwright-report/
           retention-days: 7
 
+      - name: Cancel workflow if failed
+        if: failure()
+        run: gh run cancel ${{ github.run_id }} || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   docker-build:
     name: Production Docker Build & Verify
     runs-on: ubuntu-24.04
@@ -271,6 +302,12 @@ jobs:
           tags: kcal-log-web:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Cancel workflow if failed
+        if: failure()
+        run: gh run cancel ${{ github.run_id }} || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-coolify:
     name: Deploy to Production (Coolify Webhook)

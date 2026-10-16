@@ -431,16 +431,20 @@ export default function AssistantPage({
                                 {activeTool && (
                                     <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 p-2 text-xs font-medium text-primary">
                                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                        Checking your nutrition data ({activeTool})...
+                                        Checking your nutrition data (
+                                        {activeTool})...
                                     </div>
                                 )}
 
-                                {isStreaming && !streamingContent && !activeTool && (
-                                    <div className="flex items-center gap-2 p-2 text-xs text-muted-foreground">
-                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                        Thinking and analyzing nutrition logs...
-                                    </div>
-                                )}
+                                {isStreaming &&
+                                    !streamingContent &&
+                                    !activeTool && (
+                                        <div className="flex items-center gap-2 p-2 text-xs text-muted-foreground">
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                            Thinking and analyzing nutrition
+                                            logs...
+                                        </div>
+                                    )}
 
                                 {streamError && (
                                     <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
@@ -464,7 +468,11 @@ export default function AssistantPage({
                                                 variant="destructive"
                                                 className="gap-2"
                                             >
-                                                <Link href={providerError.action_url}>
+                                                <Link
+                                                    href={
+                                                        providerError.action_url
+                                                    }
+                                                >
                                                     <KeyRound className="h-3.5 w-3.5" />
                                                     Open AI Settings
                                                 </Link>

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -12,16 +11,14 @@ use Illuminate\Support\Carbon;
  * @property int $ai_conversation_id
  * @property string $role
  * @property string|null $content
- * @property array|null $tool_calls
- * @property array|null $tool_results
+ * @property array<string, mixed>|null $tool_calls
+ * @property array<string, mixed>|null $tool_results
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read AiConversation $conversation
  */
 class AiMessage extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'ai_conversation_id',
         'role',
