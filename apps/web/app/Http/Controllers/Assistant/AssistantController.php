@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserAiConnection;
 use App\Services\AiModelService;
 use App\Services\ScopedAiRunner;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -86,15 +87,32 @@ class AssistantController extends Controller
     /**
      * Create a new conversation thread.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
 
+        $title = 'New Conversation';
+        if ($request->filled('prompt')) {
+            $title = Str::limit((string) $request->input('prompt'), 35);
+        }
+
         $conversation = AiConversation::create([
             'user_id' => $user->id,
-            'title' => 'New Conversation',
+            'title' => $title,
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'conversation' => [
+                    'id' => $conversation->id,
+                    'title' => $conversation->title,
+                    'messages' => [],
+                    'created_at' => $conversation->created_at?->toIso8601String(),
+                    'updated_at' => $conversation->updated_at?->toIso8601String(),
+                ],
+            ]);
+        }
 
         return redirect()->route('assistant.index', ['conversation' => $conversation->id]);
     }

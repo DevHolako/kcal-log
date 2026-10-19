@@ -222,3 +222,48 @@ test('upstream provider quota failure streams error card and marks connection di
         'is_connected' => false,
     ]);
 });
+
+test('user can create a new conversation thread via json with initial prompt', function () {
+    $user = createTestUser();
+
+    UserAiConnection::create([
+        'user_id' => $user->id,
+        'provider' => 'openai',
+        'model' => 'gpt-4o-mini',
+        'api_key' => 'sk-test-key',
+        'is_connected' => true,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->postJson(route('assistant.conversations.store'), [
+            'prompt' => 'Analyze my protein intake for today',
+        ]);
+
+    $response->assertOk()
+        ->assertJsonStructure([
+            'conversation' => ['id', 'title', 'messages', 'created_at', 'updated_at'],
+        ]);
+
+    $this->assertDatabaseHas('ai_conversations', [
+        'user_id' => $user->id,
+        'title' => 'Analyze my protein intake for today',
+    ]);
+});
+
+test('user can create a new conversation thread via json with default title when prompt is absent', function () {
+    $user = createTestUser();
+
+    $response = $this->actingAs($user)
+        ->postJson(route('assistant.conversations.store'), []);
+
+    $response->assertOk()
+        ->assertJsonStructure([
+            'conversation' => ['id', 'title', 'messages', 'created_at', 'updated_at'],
+        ]);
+
+    $this->assertDatabaseHas('ai_conversations', [
+        'user_id' => $user->id,
+        'title' => 'New Conversation',
+    ]);
+});
+

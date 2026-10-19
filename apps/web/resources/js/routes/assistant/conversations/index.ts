@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::store
-* @see app/Http/Controllers/Assistant/AssistantController.php:89
+* @see app/Http/Controllers/Assistant/AssistantController.php:90
 * @route '/assistant/conversations'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::store
-* @see app/Http/Controllers/Assistant/AssistantController.php:89
+* @see app/Http/Controllers/Assistant/AssistantController.php:90
 * @route '/assistant/conversations'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::store
-* @see app/Http/Controllers/Assistant/AssistantController.php:89
+* @see app/Http/Controllers/Assistant/AssistantController.php:90
 * @route '/assistant/conversations'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::store
-* @see app/Http/Controllers/Assistant/AssistantController.php:89
+* @see app/Http/Controllers/Assistant/AssistantController.php:90
 * @route '/assistant/conversations'
 */
 const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => 
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::store
-* @see app/Http/Controllers/Assistant/AssistantController.php:89
+* @see app/Http/Controllers/Assistant/AssistantController.php:90
 * @route '/assistant/conversations'
 */
 storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -57,7 +57,7 @@ store.form = storeForm
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::destroy
-* @see app/Http/Controllers/Assistant/AssistantController.php:105
+* @see app/Http/Controllers/Assistant/AssistantController.php:123
 * @route '/assistant/conversations/{conversation}'
 */
 export const destroy = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -72,7 +72,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::destroy
-* @see app/Http/Controllers/Assistant/AssistantController.php:105
+* @see app/Http/Controllers/Assistant/AssistantController.php:123
 * @route '/assistant/conversations/{conversation}'
 */
 destroy.url = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -105,7 +105,7 @@ destroy.url = (args: { conversation: number | { id: number } } | [conversation: 
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::destroy
-* @see app/Http/Controllers/Assistant/AssistantController.php:105
+* @see app/Http/Controllers/Assistant/AssistantController.php:123
 * @route '/assistant/conversations/{conversation}'
 */
 destroy.delete = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -115,7 +115,7 @@ destroy.delete = (args: { conversation: number | { id: number } } | [conversatio
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::destroy
-* @see app/Http/Controllers/Assistant/AssistantController.php:105
+* @see app/Http/Controllers/Assistant/AssistantController.php:123
 * @route '/assistant/conversations/{conversation}'
 */
 const destroyForm = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -130,7 +130,7 @@ const destroyForm = (args: { conversation: number | { id: number } } | [conversa
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::destroy
-* @see app/Http/Controllers/Assistant/AssistantController.php:105
+* @see app/Http/Controllers/Assistant/AssistantController.php:123
 * @route '/assistant/conversations/{conversation}'
 */
 destroyForm.delete = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -147,7 +147,7 @@ destroy.form = destroyForm
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::stream
-* @see app/Http/Controllers/Assistant/AssistantController.php:122
+* @see app/Http/Controllers/Assistant/AssistantController.php:140
 * @route '/assistant/conversations/{conversation}/stream'
 */
 export const stream = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -162,7 +162,7 @@ stream.definition = {
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::stream
-* @see app/Http/Controllers/Assistant/AssistantController.php:122
+* @see app/Http/Controllers/Assistant/AssistantController.php:140
 * @route '/assistant/conversations/{conversation}/stream'
 */
 stream.url = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -195,7 +195,7 @@ stream.url = (args: { conversation: number | { id: number } } | [conversation: n
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::stream
-* @see app/Http/Controllers/Assistant/AssistantController.php:122
+* @see app/Http/Controllers/Assistant/AssistantController.php:140
 * @route '/assistant/conversations/{conversation}/stream'
 */
 stream.post = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -205,7 +205,7 @@ stream.post = (args: { conversation: number | { id: number } } | [conversation: 
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::stream
-* @see app/Http/Controllers/Assistant/AssistantController.php:122
+* @see app/Http/Controllers/Assistant/AssistantController.php:140
 * @route '/assistant/conversations/{conversation}/stream'
 */
 const streamForm = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -215,7 +215,7 @@ const streamForm = (args: { conversation: number | { id: number } } | [conversat
 
 /**
 * @see \App\Http\Controllers\Assistant\AssistantController::stream
-* @see app/Http/Controllers/Assistant/AssistantController.php:122
+* @see app/Http/Controllers/Assistant/AssistantController.php:140
 * @route '/assistant/conversations/{conversation}/stream'
 */
 streamForm.post = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

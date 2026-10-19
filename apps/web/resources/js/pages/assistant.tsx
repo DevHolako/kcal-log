@@ -197,6 +197,15 @@ function formatRelativeTime(dateStr?: string) {
     });
 }
 
+function getCsrfToken(): string {
+    const metaTag = document.querySelector(
+        'meta[name="csrf-token"]',
+    ) as HTMLMetaElement | null;
+    if (metaTag?.content) return metaTag.content;
+    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+}
+
 export default function AssistantPage({
     isConnected,
     connection,
@@ -209,6 +218,20 @@ export default function AssistantPage({
         connection?.model || '',
     );
     const [isUpdatingModel, setIsUpdatingModel] = useState(false);
+
+    // Active conversation thread & thread list state
+    const [activeConvState, setActiveConvState] = useState<
+        | {
+              id: number;
+              title: string;
+              messages?: Message[];
+          }
+        | null
+        | undefined
+    >(activeConversation || null);
+    const [conversationsList, setConversationsList] = useState<Conversation[]>(
+        conversations || [],
+    );
 
     // Chat state
     const [prompt, setPrompt] = useState('');
@@ -254,21 +277,31 @@ export default function AssistantPage({
     }, [connection?.model]);
 
     useEffect(() => {
-        setMessages(activeConversation?.messages || []);
+        setActiveConvState(activeConversation || null);
+    }, [activeConversation?.id]);
+
+    useEffect(() => {
+        setConversationsList(conversations || []);
+    }, [conversations]);
+
+    useEffect(() => {
+        setMessages(activeConvState?.messages || []);
         setStreamingContent('');
         setStreamError(null);
         setProviderError(null);
-    }, [activeConversation?.id]);
+    }, [activeConvState?.id]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, streamingContent]);
 
     const filteredConversations = useMemo(() => {
-        if (!searchQuery.trim()) return conversations;
+        if (!searchQuery.trim()) return conversationsList;
         const q = searchQuery.toLowerCase();
-        return conversations.filter((c) => c.title.toLowerCase().includes(q));
-    }, [conversations, searchQuery]);
+        return conversationsList.filter((c) =>
+            c.title.toLowerCase().includes(q),
+        );
+    }, [conversationsList, searchQuery]);
 
     // Live models list for connected provider
     const connectedModelsList = useMemo(() => {
@@ -282,17 +315,34 @@ export default function AssistantPage({
     }, [availableModels, connection?.model]);
 
     const handleCreateConversation = () => {
-        router.post('/assistant/conversations');
+        if (isStreaming) return;
+        setActiveConvState(null);
+        setMessages([]);
+        setStreamingContent('');
+        setStreamError(null);
+        setProviderError(null);
+        setPrompt('');
+        window.history.pushState(null, '', '/assistant');
     };
 
     const handleDeleteConversation = (e: React.MouseEvent, id: number) => {
         e.stopPropagation();
         if (confirm('Are you sure you want to delete this conversation?')) {
-            router.delete(`/assistant/conversations/${id}`);
+            setConversationsList((prev) => prev.filter((c) => c.id !== id));
+            if (activeConvState?.id === id) {
+                setActiveConvState(null);
+                setMessages([]);
+                window.history.pushState(null, '', '/assistant');
+            }
+            router.delete(`/assistant/conversations/${id}`, {
+                preserveScroll: true,
+                preserveState: true,
+            });
         }
     };
 
     const handleSelectConversation = (id: number) => {
+        if (isStreaming) return;
         router.get(`/assistant?conversation=${id}`);
     };
 
@@ -328,12 +378,7 @@ export default function AssistantPage({
 
         setIsFetchingModels(true);
         try {
-            const csrfToken =
-                (
-                    document.querySelector(
-                        'meta[name="csrf-token"]',
-                    ) as HTMLMetaElement
-                )?.content || '';
+            const csrfToken = getCsrfToken();
 
             const response = await fetch('/settings/ai/models', {
                 method: 'POST',
@@ -366,21 +411,10 @@ export default function AssistantPage({
     };
 
     const handleSendPrompt = async (textToSend?: string) => {
-        const text = textToSend || prompt;
-        if (!text.trim() || isStreaming) return;
+        const text = (textToSend || prompt).trim();
+        if (!text || isStreaming) return;
 
-        if (!activeConversation) {
-            router.post(
-                '/assistant/conversations',
-                {},
-                {
-                    onSuccess: () => {
-                        // User redirected to new conversation
-                    },
-                },
-            );
-            return;
-        }
+        setPrompt('');
 
         const userMsg: Message = {
             role: 'user',
@@ -389,22 +423,59 @@ export default function AssistantPage({
         };
 
         setMessages((prev) => [...prev, userMsg]);
-        setPrompt('');
         setIsStreaming(true);
         setStreamingContent('');
         setStreamError(null);
         setProviderError(null);
 
-        try {
-            const csrfToken =
-                (
-                    document.querySelector(
-                        'meta[name="csrf-token"]',
-                    ) as HTMLMetaElement
-                )?.content || '';
+        const csrfToken = getCsrfToken();
+        let targetId = activeConvState?.id;
 
+        // If there is no active conversation yet, create one seamlessly via JSON
+        if (!targetId) {
+            try {
+                const res = await fetch('/assistant/conversations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        Accept: 'application/json',
+                    },
+                    body: JSON.stringify({ prompt: text }),
+                });
+
+                if (!res.ok) {
+                    throw new Error('Failed to create conversation thread.');
+                }
+
+                const data = await res.json();
+                const newConv = data.conversation;
+                targetId = newConv.id;
+
+                setActiveConvState(newConv);
+                setConversationsList((prev) => [
+                    newConv,
+                    ...prev.filter((c) => c.id !== newConv.id),
+                ]);
+                window.history.pushState(
+                    null,
+                    '',
+                    `/assistant?conversation=${targetId}`,
+                );
+            } catch (err: unknown) {
+                setIsStreaming(false);
+                setStreamError(
+                    err instanceof Error
+                        ? err.message
+                        : 'Could not create conversation.',
+                );
+                return;
+            }
+        }
+
+        try {
             const response = await fetch(
-                `/assistant/conversations/${activeConversation.id}/stream`,
+                `/assistant/conversations/${targetId}/stream`,
                 {
                     method: 'POST',
                     headers: {
@@ -469,6 +540,14 @@ export default function AssistantPage({
                     },
                 ]);
             }
+
+            setConversationsList((prev) =>
+                prev.map((c) =>
+                    c.id === targetId
+                        ? { ...c, updated_at: new Date().toISOString() }
+                        : c,
+                ),
+            );
         } catch (err: unknown) {
             const errorMessage =
                 err instanceof Error
@@ -976,7 +1055,7 @@ export default function AssistantPage({
                             ) : (
                                 filteredConversations.map((conv) => {
                                     const isActive =
-                                        activeConversation?.id === conv.id;
+                                        activeConvState?.id === conv.id;
                                     return (
                                         <div
                                             key={conv.id}
@@ -1076,7 +1155,7 @@ export default function AssistantPage({
                                 </div>
                                 <div className="min-w-0">
                                     <h2 className="truncate text-sm font-semibold text-foreground">
-                                        {activeConversation?.title ||
+                                        {activeConvState?.title ||
                                             'Nutrition Assistant'}
                                     </h2>
                                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
