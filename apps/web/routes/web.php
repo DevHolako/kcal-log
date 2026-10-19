@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified', EnsureOnboardingIsComplete::class])->grou
     Route::get('foods/{food}', [WebFoodController::class, 'show'])->name('foods.show');
     Route::post('foods/sync', [WebFoodController::class, 'sync'])->name('foods.sync');
     Route::post('foods/custom', [WebFoodController::class, 'storeCustom'])->name('foods.custom.store');
+    Route::put('foods/custom/{food}', [WebFoodController::class, 'updateCustom'])->name('foods.custom.update');
     Route::delete('foods/custom/{food}', [WebFoodController::class, 'destroyCustom'])->name('foods.custom.destroy');
 
     // Recipes & Multi-Ingredient Meals

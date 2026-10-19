@@ -15,6 +15,7 @@ import {
     Globe,
     Loader2,
     Minus,
+    Pencil,
     Plus,
     RefreshCw,
     Scale,
@@ -410,6 +411,71 @@ export default function FoodsIndex({
             onSuccess: () => {
                 setIsCreateOpen(false);
                 customFoodForm.reset();
+            },
+        });
+    };
+
+    // Edit Custom Food Dialog State
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editingFood, setEditingFood] = useState<FoodItem | null>(null);
+
+    const editFoodForm = useForm({
+        name: '',
+        brand: '',
+        barcode: '',
+        serving_size: 100,
+        serving_unit: 'g',
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: '',
+        sugar: '',
+        saturated_fat: '',
+        sodium: '',
+    });
+
+    const handleOpenEditCustomFood = (food: FoodItem) => {
+        setEditingFood(food);
+        editFoodForm.setData({
+            name: food.name,
+            brand: food.brand || '',
+            barcode: food.barcode || '',
+            serving_size: Number(food.serving_size) || 100,
+            serving_unit: food.serving_unit || 'g',
+            calories: Number(food.calories) || 0,
+            protein: Number(food.protein) || 0,
+            carbs: Number(food.carbs) || 0,
+            fat: Number(food.fat) || 0,
+            fiber:
+                food.fiber !== null && food.fiber !== undefined
+                    ? String(food.fiber)
+                    : '',
+            sugar:
+                food.sugar !== null && food.sugar !== undefined
+                    ? String(food.sugar)
+                    : '',
+            saturated_fat:
+                food.saturated_fat !== null && food.saturated_fat !== undefined
+                    ? String(food.saturated_fat)
+                    : '',
+            sodium:
+                food.sodium !== null && food.sodium !== undefined
+                    ? String(food.sodium)
+                    : '',
+        });
+        setIsEditOpen(true);
+    };
+
+    const handleUpdateCustomFood = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingFood) return;
+
+        editFoodForm.put(`/foods/custom/${editingFood.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsEditOpen(false);
+                setEditingFood(null);
             },
         });
     };
@@ -1041,16 +1107,30 @@ export default function FoodsIndex({
                                 </Link>
 
                                 {food.is_custom && (
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() =>
-                                            handleDeleteCustomFood(food.id)
-                                        }
-                                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() =>
+                                                handleOpenEditCustomFood(food)
+                                            }
+                                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                            title={t('action.edit')}
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() =>
+                                                handleDeleteCustomFood(food.id)
+                                            }
+                                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                            title={t('action.delete')}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </>
                                 )}
                             </CardFooter>
                         </Card>
@@ -1855,6 +1935,341 @@ export default function FoodsIndex({
                                 {customFoodForm.processing
                                     ? t('action.save') + '...'
                                     : t('foods.save_custom')}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit Custom Food Dialog */}
+            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Pencil className="h-5 w-5 text-primary" />
+                            {t('foods.edit_custom_title', 'Edit Custom Food')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t(
+                                'foods.edit_custom_desc',
+                                'Update nutritional values and portion information for this item.',
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form
+                        onSubmit={handleUpdateCustomFood}
+                        className="space-y-4 py-2"
+                    >
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                                <Label htmlFor="edit-custom-name">
+                                    Food Name *
+                                </Label>
+                                <Input
+                                    id="edit-custom-name"
+                                    placeholder="e.g. Oatmeal with Protein"
+                                    value={editFoodForm.data.name}
+                                    onChange={(e) =>
+                                        editFoodForm.setData(
+                                            'name',
+                                            e.target.value,
+                                        )
+                                    }
+                                    required
+                                />
+                                <InputError
+                                    message={editFoodForm.errors.name}
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <Label htmlFor="edit-custom-brand">
+                                    Brand / Creator
+                                </Label>
+                                <Input
+                                    id="edit-custom-brand"
+                                    placeholder="e.g. Homemade, Kitchen"
+                                    value={editFoodForm.data.brand}
+                                    onChange={(e) =>
+                                        editFoodForm.setData(
+                                            'brand',
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <InputError
+                                    message={editFoodForm.errors.brand}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                                <Label htmlFor="edit-custom-serving-size">
+                                    Serving Size *
+                                </Label>
+                                <Input
+                                    id="edit-custom-serving-size"
+                                    type="number"
+                                    step="0.1"
+                                    value={editFoodForm.data.serving_size}
+                                    onChange={(e) =>
+                                        editFoodForm.setData(
+                                            'serving_size',
+                                            Number(e.target.value),
+                                        )
+                                    }
+                                    required
+                                />
+                                <InputError
+                                    message={editFoodForm.errors.serving_size}
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <Label htmlFor="edit-custom-serving-unit">
+                                    Serving Unit *
+                                </Label>
+                                <select
+                                    id="edit-custom-serving-unit"
+                                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden"
+                                    value={editFoodForm.data.serving_unit}
+                                    onChange={(e) =>
+                                        editFoodForm.setData(
+                                            'serving_unit',
+                                            e.target.value,
+                                        )
+                                    }
+                                >
+                                    <option value="g">Grams (g)</option>
+                                    <option value="ml">Milliliters (ml)</option>
+                                    <option value="oz">Ounces (oz)</option>
+                                </select>
+                                <InputError
+                                    message={editFoodForm.errors.serving_unit}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1">
+                            <Label htmlFor="edit-custom-barcode">
+                                Barcode (Optional)
+                            </Label>
+                            <Input
+                                id="edit-custom-barcode"
+                                placeholder="Scan or enter barcode"
+                                value={editFoodForm.data.barcode}
+                                onChange={(e) =>
+                                    editFoodForm.setData(
+                                        'barcode',
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            <InputError message={editFoodForm.errors.barcode} />
+                        </div>
+
+                        {/* Nutrition per Serving */}
+                        <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-3">
+                            <div className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                Nutritional Values (per serving)
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                <div className="space-y-1">
+                                    <Label
+                                        htmlFor="edit-custom-cal"
+                                        className="text-xs"
+                                    >
+                                        Calories *
+                                    </Label>
+                                    <Input
+                                        id="edit-custom-cal"
+                                        type="number"
+                                        step="0.1"
+                                        value={editFoodForm.data.calories}
+                                        onChange={(e) =>
+                                            editFoodForm.setData(
+                                                'calories',
+                                                Number(e.target.value),
+                                            )
+                                        }
+                                        required
+                                    />
+                                    <InputError
+                                        message={editFoodForm.errors.calories}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label
+                                        htmlFor="edit-custom-pro"
+                                        className="text-xs"
+                                    >
+                                        Protein (g) *
+                                    </Label>
+                                    <Input
+                                        id="edit-custom-pro"
+                                        type="number"
+                                        step="0.1"
+                                        value={editFoodForm.data.protein}
+                                        onChange={(e) =>
+                                            editFoodForm.setData(
+                                                'protein',
+                                                Number(e.target.value),
+                                            )
+                                        }
+                                        required
+                                    />
+                                    <InputError
+                                        message={editFoodForm.errors.protein}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label
+                                        htmlFor="edit-custom-carb"
+                                        className="text-xs"
+                                    >
+                                        Carbs (g) *
+                                    </Label>
+                                    <Input
+                                        id="edit-custom-carb"
+                                        type="number"
+                                        step="0.1"
+                                        value={editFoodForm.data.carbs}
+                                        onChange={(e) =>
+                                            editFoodForm.setData(
+                                                'carbs',
+                                                Number(e.target.value),
+                                            )
+                                        }
+                                        required
+                                    />
+                                    <InputError
+                                        message={editFoodForm.errors.carbs}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label
+                                        htmlFor="edit-custom-fat"
+                                        className="text-xs"
+                                    >
+                                        Fat (g) *
+                                    </Label>
+                                    <Input
+                                        id="edit-custom-fat"
+                                        type="number"
+                                        step="0.1"
+                                        value={editFoodForm.data.fat}
+                                        onChange={(e) =>
+                                            editFoodForm.setData(
+                                                'fat',
+                                                Number(e.target.value),
+                                            )
+                                        }
+                                        required
+                                    />
+                                    <InputError
+                                        message={editFoodForm.errors.fat}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2">
+                                <div className="space-y-1">
+                                    <Label
+                                        htmlFor="edit-custom-fiber"
+                                        className="text-xs"
+                                    >
+                                        Fiber (g)
+                                    </Label>
+                                    <Input
+                                        id="edit-custom-fiber"
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="Optional"
+                                        value={editFoodForm.data.fiber}
+                                        onChange={(e) =>
+                                            editFoodForm.setData(
+                                                'fiber',
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={editFoodForm.errors.fiber}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label
+                                        htmlFor="edit-custom-sugar"
+                                        className="text-xs"
+                                    >
+                                        Sugar (g)
+                                    </Label>
+                                    <Input
+                                        id="edit-custom-sugar"
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="Optional"
+                                        value={editFoodForm.data.sugar}
+                                        onChange={(e) =>
+                                            editFoodForm.setData(
+                                                'sugar',
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={editFoodForm.errors.sugar}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label
+                                        htmlFor="edit-custom-sodium"
+                                        className="text-xs"
+                                    >
+                                        Sodium (mg)
+                                    </Label>
+                                    <Input
+                                        id="edit-custom-sodium"
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="Optional"
+                                        value={editFoodForm.data.sodium}
+                                        onChange={(e) =>
+                                            editFoodForm.setData(
+                                                'sodium',
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={editFoodForm.errors.sodium}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <DialogFooter className="pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                    setIsEditOpen(false);
+                                    setEditingFood(null);
+                                }}
+                            >
+                                {t('action.cancel')}
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={editFoodForm.processing}
+                            >
+                                {editFoodForm.processing ? (
+                                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                ) : null}
+                                {t('action.save')}
                             </Button>
                         </DialogFooter>
                     </form>

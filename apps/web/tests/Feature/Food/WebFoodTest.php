@@ -272,3 +272,60 @@ test('user can get json details from foods.show when json requested', function (
         ->assertJsonPath('food.name', 'Instant Check Chia Seeds')
         ->assertJsonPath('food.calories', '454.00');
 });
+
+test('user can update custom food through web route', function () {
+    $food = Food::factory()->create([
+        'name' => 'Original Custom Oats',
+        'serving_size' => 100,
+        'serving_unit' => 'g',
+        'calories' => 350,
+        'protein' => 20,
+        'carbs' => 55,
+        'fat' => 5,
+        'is_custom' => true,
+        'user_id' => $this->user->id,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->put(route('foods.custom.update', $food), [
+            'name' => 'Updated Custom Oats',
+            'brand' => 'My Brand',
+            'serving_size' => 120,
+            'serving_unit' => 'g',
+            'calories' => 420,
+            'protein' => 24,
+            'carbs' => 66,
+            'fat' => 6,
+        ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('foods', [
+        'id' => $food->id,
+        'name' => 'Updated Custom Oats',
+        'brand' => 'My Brand',
+        'calories' => 420,
+    ]);
+});
+
+test('user cannot update another users custom food through web route', function () {
+    $otherUser = User::factory()->create();
+    $food = Food::factory()->create([
+        'name' => 'Other Users Meal',
+        'is_custom' => true,
+        'user_id' => $otherUser->id,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->put(route('foods.custom.update', $food), [
+            'name' => 'Malicious Rename',
+            'serving_size' => 100,
+            'serving_unit' => 'g',
+            'calories' => 100,
+            'protein' => 10,
+            'carbs' => 10,
+            'fat' => 10,
+        ]);
+
+    $response->assertForbidden();
+});
+

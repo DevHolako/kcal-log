@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Actions\Food\CreateCustomFoodAction;
 use App\Actions\Food\DeleteCustomFoodAction;
+use App\Actions\Food\UpdateCustomFoodAction;
 use App\DTOs\Food\CreateCustomFoodDTO;
+use App\DTOs\Food\UpdateCustomFoodDTO;
 use App\Http\Requests\Food\StoreCustomFoodRequest;
+use App\Http\Requests\Food\UpdateCustomFoodRequest;
 use App\Jobs\SyncOpenFoodFactsJob;
 use App\Models\Food;
 use App\Models\User;
@@ -22,6 +25,7 @@ class FoodController extends Controller
     public function __construct(
         protected FoodService $foodService,
         protected CreateCustomFoodAction $createCustomFoodAction,
+        protected UpdateCustomFoodAction $updateCustomFoodAction,
         protected DeleteCustomFoodAction $deleteCustomFoodAction,
     ) {}
 
@@ -322,6 +326,20 @@ class FoodController extends Controller
         $this->createCustomFoodAction->execute($user, $dto);
 
         return back()->with('status', 'Custom food created successfully.');
+    }
+
+    /**
+     * Update an existing custom food item via web.
+     */
+    public function updateCustom(UpdateCustomFoodRequest $request, Food $food): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $dto = UpdateCustomFoodDTO::fromRequest($request);
+        $this->updateCustomFoodAction->execute($user, $food, $dto);
+
+        return back()->with('status', 'Custom food updated successfully.');
     }
 
     /**

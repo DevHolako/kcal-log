@@ -168,6 +168,9 @@ export const translations: Record<Locale, Record<string, string>> = {
         'foods.portion_and_log': 'Portion & Log',
         'foods.no_foods_found': 'No foods found matching your query.',
         'foods.create_custom_title': 'Create Custom Food',
+        'foods.edit_custom_title': 'Edit Custom Food',
+        'foods.edit_custom_desc':
+            'Update nutritional values and portion information for this item.',
         'foods.food_name': 'Food Name',
         'foods.brand': 'Brand',
         'foods.serving_size_g': 'Serving Size (g)',
@@ -535,6 +538,9 @@ export const translations: Record<Locale, Record<string, string>> = {
         'foods.portion_and_log': 'Choisir portion et enregistrer',
         'foods.no_foods_found': 'Aucun aliment trouvé pour votre recherche.',
         'foods.create_custom_title': 'Créer un aliment personnalisé',
+        'foods.edit_custom_title': 'Modifier l’aliment personnalisé',
+        'foods.edit_custom_desc':
+            'Modifiez les valeurs nutritionnelles et les informations de portion de cet aliment.',
         'foods.food_name': 'Nom de l’aliment',
         'foods.brand': 'Marque',
         'foods.serving_size_g': 'Portion de référence (g)',
