@@ -138,7 +138,7 @@ connect.form = connectForm
 
 /**
 * @see \App\Http\Controllers\Settings\AiSettingsController::disconnect
-* @see app/Http/Controllers/Settings/AiSettingsController.php:86
+* @see app/Http/Controllers/Settings/AiSettingsController.php:88
 * @route '/settings/ai/disconnect'
 */
 export const disconnect = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -153,7 +153,7 @@ disconnect.definition = {
 
 /**
 * @see \App\Http\Controllers\Settings\AiSettingsController::disconnect
-* @see app/Http/Controllers/Settings/AiSettingsController.php:86
+* @see app/Http/Controllers/Settings/AiSettingsController.php:88
 * @route '/settings/ai/disconnect'
 */
 disconnect.url = (options?: RouteQueryOptions) => {
@@ -162,7 +162,7 @@ disconnect.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Settings\AiSettingsController::disconnect
-* @see app/Http/Controllers/Settings/AiSettingsController.php:86
+* @see app/Http/Controllers/Settings/AiSettingsController.php:88
 * @route '/settings/ai/disconnect'
 */
 disconnect.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -172,7 +172,7 @@ disconnect.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\Settings\AiSettingsController::disconnect
-* @see app/Http/Controllers/Settings/AiSettingsController.php:86
+* @see app/Http/Controllers/Settings/AiSettingsController.php:88
 * @route '/settings/ai/disconnect'
 */
 const disconnectForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -182,7 +182,7 @@ const disconnectForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'
 
 /**
 * @see \App\Http\Controllers\Settings\AiSettingsController::disconnect
-* @see app/Http/Controllers/Settings/AiSettingsController.php:86
+* @see app/Http/Controllers/Settings/AiSettingsController.php:88
 * @route '/settings/ai/disconnect'
 */
 disconnectForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

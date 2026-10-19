@@ -25,6 +25,7 @@ class ConnectAiRequest extends FormRequest
             'provider' => ['required', 'string', 'in:openai,anthropic,gemini,deepseek'],
             'model' => ['required', 'string', 'max:100'],
             'api_key' => ['required', 'string', 'min:8', 'max:500'],
+            'redirect_to' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

@@ -5,6 +5,7 @@ import FoodController from './FoodController'
 import RecipeController from './RecipeController'
 import ExportController from './ExportController'
 import AdaptiveController from './AdaptiveController'
+import Assistant from './Assistant'
 import Settings from './Settings'
 
 const Controllers = {
@@ -15,6 +16,7 @@ const Controllers = {
     RecipeController: Object.assign(RecipeController, RecipeController),
     ExportController: Object.assign(ExportController, ExportController),
     AdaptiveController: Object.assign(AdaptiveController, AdaptiveController),
+    Assistant: Object.assign(Assistant, Assistant),
     Settings: Object.assign(Settings, Settings),
 }
 

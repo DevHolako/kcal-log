@@ -34,9 +34,11 @@ class AssistantController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $isConnected = UserAiConnection::where('user_id', $user->id)
+        $connection = UserAiConnection::where('user_id', $user->id)
             ->where('is_connected', true)
-            ->exists();
+            ->first();
+
+        $isConnected = $connection !== null;
 
         $conversations = AiConversation::where('user_id', $user->id)
             ->latest('updated_at')
@@ -59,6 +61,11 @@ class AssistantController extends Controller
 
         return Inertia::render('assistant', [
             'isConnected' => $isConnected,
+            'connection' => $connection ? [
+                'provider' => $connection->provider,
+                'model' => $connection->model,
+                'last_verified_at' => $connection->last_verified_at?->toIso8601String(),
+            ] : null,
             'conversations' => $conversations,
             'activeConversation' => $activeConversation ? [
                 'id' => $activeConversation->id,

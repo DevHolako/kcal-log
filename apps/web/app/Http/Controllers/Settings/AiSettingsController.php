@@ -76,7 +76,9 @@ class AiSettingsController extends Controller
             ],
         );
 
-        return redirect()->route('settings.ai.edit')
+        $redirectTo = (string) $request->input('redirect_to', route('settings.ai.edit'));
+
+        return redirect()->to($redirectTo)
             ->with('status', 'AI credentials connected and verified successfully.');
     }
 
