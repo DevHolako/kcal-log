@@ -26,6 +26,7 @@ import {
     Zap,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -325,20 +326,27 @@ export default function AssistantPage({
         window.history.pushState(null, '', '/assistant');
     };
 
+    const [deleteConvId, setDeleteConvId] = useState<number | null>(null);
+
     const handleDeleteConversation = (e: React.MouseEvent, id: number) => {
         e.stopPropagation();
-        if (confirm('Are you sure you want to delete this conversation?')) {
-            setConversationsList((prev) => prev.filter((c) => c.id !== id));
-            if (activeConvState?.id === id) {
-                setActiveConvState(null);
-                setMessages([]);
-                window.history.pushState(null, '', '/assistant');
-            }
-            router.delete(`/assistant/conversations/${id}`, {
-                preserveScroll: true,
-                preserveState: true,
-            });
+        setDeleteConvId(id);
+    };
+
+    const confirmDeleteConversation = () => {
+        if (!deleteConvId) return;
+        const id = deleteConvId;
+        setDeleteConvId(null);
+        setConversationsList((prev) => prev.filter((c) => c.id !== id));
+        if (activeConvState?.id === id) {
+            setActiveConvState(null);
+            setMessages([]);
+            window.history.pushState(null, '', '/assistant');
         }
+        router.delete(`/assistant/conversations/${id}`, {
+            preserveScroll: true,
+            preserveState: true,
+        });
     };
 
     const handleSelectConversation = (id: number) => {
@@ -1539,6 +1547,16 @@ export default function AssistantPage({
                     </main>
                 </div>
             )}
+            <ConfirmDialog
+                open={deleteConvId !== null}
+                onOpenChange={(open) => !open && setDeleteConvId(null)}
+                title="Delete Conversation"
+                description="Are you sure you want to delete this conversation thread? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="destructive"
+                onConfirm={confirmDeleteConversation}
+            />
         </>
     );
 }

@@ -20,6 +20,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import {
     Card,
     CardContent,
@@ -684,11 +685,13 @@ export default function RecipesIndex({
         );
     };
 
+    const [recipeToDelete, setRecipeToDelete] = useState<MealRecipeData | null>(
+        null,
+    );
+
     // Delete recipe
     const handleDeleteRecipe = (recipe: MealRecipeData) => {
-        if (!confirm(`Are you sure you want to delete "${recipe.name}"?`))
-            return;
-        router.delete(`/recipes/${recipe.id}`);
+        setRecipeToDelete(recipe);
     };
 
     const handleQuickLogKit = (e: React.FormEvent) => {
@@ -2163,6 +2166,27 @@ export default function RecipesIndex({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Delete Recipe Confirmation Dialog */}
+            <ConfirmDialog
+                open={recipeToDelete !== null}
+                onOpenChange={(open) => !open && setRecipeToDelete(null)}
+                title="Delete Recipe"
+                description={
+                    recipeToDelete
+                        ? `Are you sure you want to delete "${recipeToDelete.name}"? This cannot be undone.`
+                        : 'Are you sure you want to delete this recipe?'
+                }
+                confirmText={t('action.delete')}
+                cancelText={t('common.cancel')}
+                variant="destructive"
+                onConfirm={() => {
+                    if (recipeToDelete) {
+                        router.delete(`/recipes/${recipeToDelete.id}`);
+                        setRecipeToDelete(null);
+                    }
+                }}
+            />
         </div>
     );
 }

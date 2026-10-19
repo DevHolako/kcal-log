@@ -23,6 +23,7 @@ import {
 import { useEffect, useState } from 'react';
 import BarcodeScannerModal from '@/components/barcode-scanner-modal';
 import ConcentricMacroRings from '@/components/concentric-macro-rings';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import MacroDonutChart from '@/components/macro-donut-chart';
 import WeeklyIntakeBarChart, {
     type DailyIntakeItem,
@@ -416,10 +417,10 @@ export default function DiaryIndex({
         });
     };
 
+    const [deleteEntryId, setDeleteEntryId] = useState<number | null>(null);
+
     const handleDeleteEntry = (id: number) => {
-        if (confirm('Remove this food item from your diary?')) {
-            router.delete(`/diary/${id}`, { preserveScroll: true });
-        }
+        setDeleteEntryId(id);
     };
 
     const handleLogWater = (ml: number) => {
@@ -2148,6 +2149,25 @@ export default function DiaryIndex({
                 onFoodFound={(food) => {
                     handleSelectFood(food);
                     setIsAddFoodOpen(true);
+                }}
+            />
+
+            {/* Delete Entry Confirmation Dialog */}
+            <ConfirmDialog
+                open={deleteEntryId !== null}
+                onOpenChange={(open) => !open && setDeleteEntryId(null)}
+                title="Remove Diary Entry"
+                description="Are you sure you want to remove this food item from your daily diary?"
+                confirmText={t('action.delete')}
+                cancelText={t('common.cancel')}
+                variant="destructive"
+                onConfirm={() => {
+                    if (deleteEntryId !== null) {
+                        router.delete(`/diary/${deleteEntryId}`, {
+                            preserveScroll: true,
+                        });
+                        setDeleteEntryId(null);
+                    }
                 }}
             />
         </div>

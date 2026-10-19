@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import BarcodeScannerModal from '@/components/barcode-scanner-modal';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -413,10 +414,10 @@ export default function FoodsIndex({
         });
     };
 
+    const [deleteFoodId, setDeleteFoodId] = useState<number | null>(null);
+
     const handleDeleteCustomFood = (foodId: number) => {
-        if (confirm('Are you sure you want to delete this custom food item?')) {
-            router.delete(`/foods/custom/${foodId}`, { preserveScroll: true });
-        }
+        setDeleteFoodId(foodId);
     };
 
     const handleLogToDiary = (e: React.FormEvent) => {
@@ -2000,8 +2001,26 @@ export default function FoodsIndex({
             {/* Live Camera Barcode Scanner Modal */}
             <BarcodeScannerModal
                 open={scannerOpen}
-                onOpenChange={setScannerOpen}
                 onFoodFound={(food) => openCalculator(food)}
+            />
+
+            {/* Delete Custom Food Confirmation Dialog */}
+            <ConfirmDialog
+                open={deleteFoodId !== null}
+                onOpenChange={(open) => !open && setDeleteFoodId(null)}
+                title="Delete Custom Food"
+                description="Are you sure you want to delete this custom food item? This cannot be undone."
+                confirmText={t('action.delete')}
+                cancelText={t('common.cancel')}
+                variant="destructive"
+                onConfirm={() => {
+                    if (deleteFoodId !== null) {
+                        router.delete(`/foods/custom/${deleteFoodId}`, {
+                            preserveScroll: true,
+                        });
+                        setDeleteFoodId(null);
+                    }
+                }}
             />
         </div>
     );
