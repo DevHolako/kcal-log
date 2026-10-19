@@ -8,6 +8,7 @@ use App\Models\AiConversation;
 use App\Models\AiMessage;
 use App\Models\User;
 use App\Models\UserAiConnection;
+use App\Services\AiModelService;
 use App\Services\ScopedAiRunner;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class AssistantController extends Controller
 {
     public function __construct(
         protected ScopedAiRunner $runner,
+        protected AiModelService $modelService,
     ) {}
 
     /**
@@ -59,6 +61,11 @@ class AssistantController extends Controller
                 ->first();
         }
 
+        $availableModels = [];
+        if ($connection && $isConnected) {
+            $availableModels = $this->modelService->getModelsForConnection($connection);
+        }
+
         return Inertia::render('assistant', [
             'isConnected' => $isConnected,
             'connection' => $connection ? [
@@ -66,6 +73,7 @@ class AssistantController extends Controller
                 'model' => $connection->model,
                 'last_verified_at' => $connection->last_verified_at?->toIso8601String(),
             ] : null,
+            'availableModels' => $availableModels,
             'conversations' => $conversations,
             'activeConversation' => $activeConversation ? [
                 'id' => $activeConversation->id,

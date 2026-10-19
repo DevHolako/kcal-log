@@ -37,6 +37,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('settings/ai', [AiSettingsController::class, 'edit'])->name('settings.ai.edit');
     Route::post('settings/ai/connect', [AiSettingsController::class, 'connect'])->name('settings.ai.connect');
     Route::post('settings/ai/disconnect', [AiSettingsController::class, 'disconnect'])->name('settings.ai.disconnect');
+    Route::get('settings/ai/models', [AiSettingsController::class, 'models'])->name('settings.ai.models');
+    Route::post('settings/ai/models', [AiSettingsController::class, 'fetchModels'])->name('settings.ai.fetch-models');
+    Route::patch('settings/ai/model', [AiSettingsController::class, 'updateModel'])->name('settings.ai.update-model');
 });
 
 Route::get('.well-known/passkey-endpoints', function () {

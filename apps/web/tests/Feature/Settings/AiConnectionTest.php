@@ -193,3 +193,92 @@ test('user can disconnect their AI credentials', function () {
         'is_connected' => false,
     ]);
 });
+
+test('user can fetch models dynamically for their connected provider', function () {
+    $user = User::factory()->create();
+
+    UserAiConnection::create([
+        'user_id' => $user->id,
+        'provider' => 'openai',
+        'model' => 'gpt-4o-mini',
+        'api_key' => 'sk-test-key',
+        'is_connected' => true,
+        'last_verified_at' => now(),
+    ]);
+
+    Http::fake([
+        'https://api.openai.com/v1/models' => Http::response([
+            'data' => [
+                ['id' => 'gpt-4o-mini'],
+                ['id' => 'gpt-4o'],
+                ['id' => 'text-embedding-3-small'],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get(route('settings.ai.models'));
+
+    $response->assertOk()
+        ->assertJson([
+            'connected' => true,
+            'provider' => 'openai',
+            'active_model' => 'gpt-4o-mini',
+        ])
+        ->assertJsonFragment(['id' => 'gpt-4o-mini'])
+        ->assertJsonFragment(['id' => 'gpt-4o'])
+        ->assertJsonMissing(['id' => 'text-embedding-3-small']);
+});
+
+test('user can dynamically preview models with API key before connecting', function () {
+    $user = User::factory()->create();
+
+    Http::fake([
+        'https://api.anthropic.com/v1/models' => Http::response([
+            'data' => [
+                ['id' => 'claude-3-5-sonnet-20241022', 'display_name' => 'Claude 3.5 Sonnet'],
+                ['id' => 'claude-3-5-haiku-20241022', 'display_name' => 'Claude 3.5 Haiku'],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->actingAs($user)
+        ->post(route('settings.ai.fetch-models'), [
+            'provider' => 'anthropic',
+            'api_key' => 'sk-ant-test-key-1234',
+        ]);
+
+    $response->assertOk()
+        ->assertJson([
+            'provider' => 'anthropic',
+        ])
+        ->assertJsonFragment(['id' => 'claude-3-5-sonnet-20241022'])
+        ->assertJsonFragment(['id' => 'claude-3-5-haiku-20241022']);
+});
+
+test('user can dynamically update their active model', function () {
+    $user = User::factory()->create();
+
+    UserAiConnection::create([
+        'user_id' => $user->id,
+        'provider' => 'openai',
+        'model' => 'gpt-4o-mini',
+        'api_key' => 'sk-test-key',
+        'is_connected' => true,
+        'last_verified_at' => now(),
+    ]);
+
+    $response = $this->actingAs($user)
+        ->patch(route('settings.ai.update-model'), [
+            'model' => 'gpt-4o',
+        ]);
+
+    $response->assertRedirect();
+
+    $this->assertDatabaseHas('user_ai_connections', [
+        'user_id' => $user->id,
+        'model' => 'gpt-4o',
+        'is_connected' => true,
+    ]);
+});
+

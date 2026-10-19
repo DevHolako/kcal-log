@@ -14,6 +14,7 @@ import {
     Loader2,
     MessageSquare,
     Plus,
+    RefreshCw,
     Scale,
     Search,
     Send,
@@ -67,9 +68,15 @@ interface ConnectionInfo {
     last_verified_at: string | null;
 }
 
+interface ModelOption {
+    id: string;
+    label: string;
+}
+
 interface Props {
     isConnected: boolean;
     connection?: ConnectionInfo | null;
+    availableModels?: ModelOption[];
     conversations: Conversation[];
     activeConversation?: {
         id: number;
@@ -90,76 +97,32 @@ const PROVIDER_METADATA: Record<
 > = {
     openai: {
         name: 'OpenAI',
-        tagline: 'GPT-4o & GPT-4o Mini',
+        tagline: 'Direct from api.openai.com',
         badge: 'Popular',
         keyUrl: 'https://platform.openai.com/api-keys',
         keyPlaceholder: 'sk-proj-...',
     },
     anthropic: {
         name: 'Anthropic',
-        tagline: 'Claude 3.5 Haiku & Sonnet',
+        tagline: 'Direct from api.anthropic.com',
         badge: 'High Reasoning',
         keyUrl: 'https://console.anthropic.com/settings/keys',
         keyPlaceholder: 'sk-ant-...',
     },
     gemini: {
         name: 'Google Gemini',
-        tagline: 'Gemini 2.5 Flash & Pro',
+        tagline: 'Direct from generativelanguage.googleapis.com',
         badge: 'Ultra Fast',
         keyUrl: 'https://aistudio.google.com/app/apikey',
         keyPlaceholder: 'AIzaSy...',
     },
     deepseek: {
         name: 'DeepSeek',
-        tagline: 'DeepSeek-V3 & R1 Reasoner',
+        tagline: 'Direct from api.deepseek.com',
         badge: 'Economical',
         keyUrl: 'https://platform.deepseek.com/api_keys',
         keyPlaceholder: 'sk-...',
     },
-};
-
-const PROVIDER_MODELS: Record<ProviderType, { id: string; label: string }[]> = {
-    openai: [
-        {
-            id: 'gpt-4o-mini',
-            label: 'GPT-4o Mini (Fast & Economical - Recommended)',
-        },
-        { id: 'gpt-4o', label: 'GPT-4o (High Reasoning)' },
-    ],
-    anthropic: [
-        {
-            id: 'claude-3-5-haiku-20241022',
-            label: 'Claude 3.5 Haiku (Fast & Economical - Recommended)',
-        },
-        {
-            id: 'claude-3-5-sonnet-20241022',
-            label: 'Claude 3.5 Sonnet (High Reasoning)',
-        },
-    ],
-    gemini: [
-        {
-            id: 'gemini-2.5-flash',
-            label: 'Gemini 2.5 Flash (Fast & Economical - Recommended)',
-        },
-        {
-            id: 'gemini-2.5-pro',
-            label: 'Gemini 2.5 Pro (High Reasoning)',
-        },
-        {
-            id: 'gemini-1.5-flash',
-            label: 'Gemini 1.5 Flash (Economical)',
-        },
-    ],
-    deepseek: [
-        {
-            id: 'deepseek-chat',
-            label: 'DeepSeek-V3 Chat (Fast & Economical - Recommended)',
-        },
-        {
-            id: 'deepseek-reasoner',
-            label: 'DeepSeek-R1 Reasoner (Deep Reasoning)',
-        },
-    ],
 };
 
 const STARTER_PROMPTS = [
@@ -218,10 +181,6 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
     GetWeightHistoryTool: 'Retrieving body weight history...',
 };
 
-function formatMessageContent(content: string) {
-    return content;
-}
-
 function formatRelativeTime(dateStr?: string) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -241,9 +200,16 @@ function formatRelativeTime(dateStr?: string) {
 export default function AssistantPage({
     isConnected,
     connection,
+    availableModels = [],
     conversations,
     activeConversation,
 }: Props) {
+    // Dynamic active model from connected provider
+    const [currentModel, setCurrentModel] = useState<string>(
+        connection?.model || '',
+    );
+    const [isUpdatingModel, setIsUpdatingModel] = useState(false);
+
     // Chat state
     const [prompt, setPrompt] = useState('');
     const [isStreaming, setIsStreaming] = useState(false);
@@ -260,8 +226,12 @@ export default function AssistantPage({
     const [searchQuery, setSearchQuery] = useState('');
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-    // Inline connect form state
+    // Dynamic model discovery for unconnected onboarding
+    const [discoveredModels, setDiscoveredModels] = useState<ModelOption[]>([]);
+    const [isFetchingModels, setIsFetchingModels] = useState(false);
+    const [modelsFetched, setModelsFetched] = useState(false);
     const [showKey, setShowKey] = useState(false);
+
     const connectForm = useForm<{
         provider: ProviderType;
         model: string;
@@ -269,13 +239,19 @@ export default function AssistantPage({
         redirect_to: string;
     }>({
         provider: 'openai',
-        model: 'gpt-4o-mini',
+        model: '',
         api_key: '',
         redirect_to: '/assistant',
     });
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        if (connection?.model) {
+            setCurrentModel(connection.model);
+        }
+    }, [connection?.model]);
 
     useEffect(() => {
         setMessages(activeConversation?.messages || []);
@@ -293,6 +269,17 @@ export default function AssistantPage({
         const q = searchQuery.toLowerCase();
         return conversations.filter((c) => c.title.toLowerCase().includes(q));
     }, [conversations, searchQuery]);
+
+    // Live models list for connected provider
+    const connectedModelsList = useMemo(() => {
+        if (availableModels && availableModels.length > 0) {
+            return availableModels;
+        }
+        if (connection?.model) {
+            return [{ id: connection.model, label: connection.model }];
+        }
+        return [];
+    }, [availableModels, connection?.model]);
 
     const handleCreateConversation = () => {
         router.post('/assistant/conversations');
@@ -316,6 +303,65 @@ export default function AssistantPage({
             setTimeout(() => setCopiedIndex(null), 2000);
         } catch {
             // Clipboard fallback
+        }
+    };
+
+    // Dynamically switch active model on connected provider
+    const handleActiveModelChange = (newModel: string) => {
+        setCurrentModel(newModel);
+        setIsUpdatingModel(true);
+        router.patch(
+            '/settings/ai/model',
+            { model: newModel },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => setIsUpdatingModel(false),
+            },
+        );
+    };
+
+    // Dynamically query provider API to load models for given key
+    const handleFetchModelsFromProvider = async () => {
+        const apiKey = connectForm.data.api_key.trim();
+        if (!apiKey) return;
+
+        setIsFetchingModels(true);
+        try {
+            const csrfToken =
+                (
+                    document.querySelector(
+                        'meta[name="csrf-token"]',
+                    ) as HTMLMetaElement
+                )?.content || '';
+
+            const response = await fetch('/settings/ai/models', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({
+                    provider: connectForm.data.provider,
+                    api_key: apiKey,
+                }),
+            });
+
+            const data = await response.json();
+            if (
+                data.models &&
+                Array.isArray(data.models) &&
+                data.models.length > 0
+            ) {
+                setDiscoveredModels(data.models);
+                setModelsFetched(true);
+                connectForm.setData('model', data.models[0].id);
+            }
+        } catch {
+            // Handled gracefully
+        } finally {
+            setIsFetchingModels(false);
         }
     };
 
@@ -449,11 +495,12 @@ export default function AssistantPage({
     };
 
     const handleProviderChange = (newProvider: ProviderType) => {
-        const defaultModel = PROVIDER_MODELS[newProvider][0].id;
+        setDiscoveredModels([]);
+        setModelsFetched(false);
         connectForm.setData({
             ...connectForm.data,
             provider: newProvider,
-            model: defaultModel,
+            model: '',
         });
     };
 
@@ -483,7 +530,8 @@ export default function AssistantPage({
                                 <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-semibold text-primary backdrop-blur-xs">
                                     <Sparkles className="h-3.5 w-3.5" />
                                     <span>
-                                        Zero Platform Markup • Private by Design
+                                        Dynamic Provider Discovery • Zero
+                                        Platform Markup
                                     </span>
                                 </div>
 
@@ -492,11 +540,12 @@ export default function AssistantPage({
                                 </h1>
 
                                 <p className="max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                                    Connect your OpenAI, Anthropic, Gemini, or
-                                    DeepSeek API key. Query your logged foods,
-                                    evaluate daily macronutrient targets, and
-                                    get personalized meal recommendations
-                                    directly at wholesale provider token rates.
+                                    Connect directly to OpenAI, Anthropic,
+                                    Google Gemini, or DeepSeek. Models are
+                                    fetched dynamically from the connected
+                                    provider itself, giving you immediate access
+                                    to your model of choice at wholesale token
+                                    rates.
                                 </p>
                             </div>
 
@@ -570,14 +619,14 @@ export default function AssistantPage({
                                 </span>
                                 <div className="flex items-center gap-1.5">
                                     <Cpu className="h-4 w-4 text-blue-500" />
-                                    <span>Isolated Execution</span>
+                                    <span>FrankenPHP Worker Isolation</span>
                                 </div>
                                 <span className="hidden text-border sm:inline">
                                     •
                                 </span>
                                 <div className="flex items-center gap-1.5">
                                     <Zap className="h-4 w-4 text-amber-500" />
-                                    <span>Wholesale Provider Rates</span>
+                                    <span>Dynamic Provider Models</span>
                                 </div>
                             </div>
                         </div>
@@ -595,8 +644,8 @@ export default function AssistantPage({
                                                 Connect AI Provider
                                             </CardTitle>
                                             <CardDescription className="text-xs">
-                                                Start chatting immediately
-                                                without leaving this page
+                                                Models are fetched directly from
+                                                the provider API
                                             </CardDescription>
                                         </div>
                                     </div>
@@ -666,44 +715,6 @@ export default function AssistantPage({
                                             />
                                         </div>
 
-                                        {/* Model Selection */}
-                                        <div className="space-y-1.5">
-                                            <Label className="text-xs font-semibold">
-                                                Model
-                                            </Label>
-                                            <Select
-                                                value={connectForm.data.model}
-                                                onValueChange={(val) =>
-                                                    connectForm.setData(
-                                                        'model',
-                                                        val,
-                                                    )
-                                                }
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Select a model" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {PROVIDER_MODELS[
-                                                        connectForm.data
-                                                            .provider
-                                                    ].map((m) => (
-                                                        <SelectItem
-                                                            key={m.id}
-                                                            value={m.id}
-                                                        >
-                                                            {m.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <InputError
-                                                message={
-                                                    connectForm.errors.model
-                                                }
-                                            />
-                                        </div>
-
                                         {/* API Key Input */}
                                         <div className="space-y-1.5">
                                             <div className="flex items-center justify-between">
@@ -746,12 +757,12 @@ export default function AssistantPage({
                                                     value={
                                                         connectForm.data.api_key
                                                     }
-                                                    onChange={(e) =>
+                                                    onChange={(e) => {
                                                         connectForm.setData(
                                                             'api_key',
                                                             e.target.value,
-                                                        )
-                                                    }
+                                                        );
+                                                    }}
                                                     placeholder={
                                                         PROVIDER_METADATA[
                                                             connectForm.data
@@ -782,6 +793,92 @@ export default function AssistantPage({
                                             />
                                         </div>
 
+                                        {/* Dynamic Model Discovery Row */}
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center justify-between">
+                                                <Label className="text-xs font-semibold">
+                                                    Provider Model (Dynamic)
+                                                </Label>
+                                                {connectForm.data.api_key.trim()
+                                                    .length >= 8 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={
+                                                            handleFetchModelsFromProvider
+                                                        }
+                                                        disabled={
+                                                            isFetchingModels
+                                                        }
+                                                        className="flex items-center gap-1 text-[11px] text-primary hover:underline"
+                                                    >
+                                                        {isFetchingModels ? (
+                                                            <>
+                                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                                Loading from
+                                                                provider...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <RefreshCw className="h-3 w-3" />
+                                                                Load live models
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {discoveredModels.length > 0 ? (
+                                                <Select
+                                                    value={
+                                                        connectForm.data
+                                                            .model ||
+                                                        discoveredModels[0].id
+                                                    }
+                                                    onValueChange={(val) =>
+                                                        connectForm.setData(
+                                                            'model',
+                                                            val,
+                                                        )
+                                                    }
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Select dynamic model" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {discoveredModels.map(
+                                                            (m) => (
+                                                                <SelectItem
+                                                                    key={m.id}
+                                                                    value={m.id}
+                                                                >
+                                                                    {m.label}
+                                                                </SelectItem>
+                                                            ),
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            ) : (
+                                                <div className="flex items-center justify-between rounded-lg border border-dashed border-border/70 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                                                    <span>
+                                                        {modelsFetched
+                                                            ? 'No models discovered'
+                                                            : 'Auto-discovers from provider upon connection'}
+                                                    </span>
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="text-[10px]"
+                                                    >
+                                                        Live API
+                                                    </Badge>
+                                                </div>
+                                            )}
+                                            <InputError
+                                                message={
+                                                    connectForm.errors.model
+                                                }
+                                            />
+                                        </div>
+
                                         <Button
                                             type="submit"
                                             disabled={
@@ -793,7 +890,8 @@ export default function AssistantPage({
                                             {connectForm.processing ? (
                                                 <>
                                                     <Loader2 className="h-4 w-4 animate-spin" />
-                                                    Verifying Credentials...
+                                                    Connecting & Discovering
+                                                    Models...
                                                 </>
                                             ) : (
                                                 <>
@@ -932,7 +1030,7 @@ export default function AssistantPage({
                             )}
                         </div>
 
-                        {/* Sidebar Footer: Active Provider Card */}
+                        {/* Sidebar Footer: Active Provider & Live Model */}
                         <div className="border-t border-border/40 bg-muted/20 p-3">
                             <div className="flex items-center justify-between">
                                 <div className="flex min-w-0 items-center gap-2">
@@ -943,10 +1041,12 @@ export default function AssistantPage({
                                     <div className="min-w-0">
                                         <p className="truncate text-xs font-semibold text-foreground capitalize">
                                             {connection?.provider || 'AI'}{' '}
-                                            Online
+                                            Connected
                                         </p>
                                         <p className="truncate font-mono text-[10px] text-muted-foreground">
-                                            {connection?.model || 'Active'}
+                                            {currentModel ||
+                                                connection?.model ||
+                                                'Active'}
                                         </p>
                                     </div>
                                 </div>
@@ -968,7 +1068,7 @@ export default function AssistantPage({
 
                     {/* Main Chat Panel */}
                     <main className="flex flex-1 flex-col overflow-hidden bg-background">
-                        {/* Top Header Bar */}
+                        {/* Top Header Bar with Dynamic Model Selector */}
                         <header className="flex h-14 shrink-0 items-center justify-between border-b border-border/40 bg-card/40 px-4 backdrop-blur-xs sm:px-6">
                             <div className="flex min-w-0 items-center gap-3">
                                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -986,14 +1086,39 @@ export default function AssistantPage({
                                 </div>
                             </div>
 
+                            {/* Dynamic Model Dropdown from Connected Provider */}
                             <div className="flex items-center gap-2">
-                                {connection?.model && (
-                                    <Badge
-                                        variant="secondary"
-                                        className="hidden font-mono text-[11px] sm:inline-flex"
-                                    >
-                                        {connection.model}
-                                    </Badge>
+                                {connectedModelsList.length > 0 && (
+                                    <div className="flex items-center gap-1.5 rounded-lg border border-border/70 bg-card px-2 py-1 shadow-2xs">
+                                        <Cpu className="hidden h-3.5 w-3.5 shrink-0 text-primary sm:inline" />
+                                        <Select
+                                            value={currentModel}
+                                            onValueChange={
+                                                handleActiveModelChange
+                                            }
+                                            disabled={isUpdatingModel}
+                                        >
+                                            <SelectTrigger className="h-6 max-w-[220px] min-w-[120px] border-0 bg-transparent p-0 font-mono text-xs font-medium shadow-none focus:ring-0">
+                                                <SelectValue placeholder="Select dynamic model" />
+                                            </SelectTrigger>
+                                            <SelectContent align="end">
+                                                {connectedModelsList.map(
+                                                    (m) => (
+                                                        <SelectItem
+                                                            key={m.id}
+                                                            value={m.id}
+                                                            className="font-mono text-xs"
+                                                        >
+                                                            {m.label}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                        {isUpdatingModel && (
+                                            <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                                        )}
+                                    </div>
                                 )}
 
                                 <Button
@@ -1175,11 +1300,7 @@ export default function AssistantPage({
                                                         </div>
                                                     )}
 
-                                                    <div>
-                                                        {formatMessageContent(
-                                                            msg.content,
-                                                        )}
-                                                    </div>
+                                                    <div>{msg.content}</div>
                                                 </div>
                                             </div>
                                         );

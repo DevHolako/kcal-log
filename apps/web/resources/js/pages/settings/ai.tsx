@@ -1,10 +1,13 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import {
     Bot,
     CheckCircle2,
+    Cpu,
     Eye,
     EyeOff,
     KeyRound,
+    Loader2,
+    RefreshCw,
     ShieldCheck,
     Unlink,
 } from 'lucide-react';
@@ -25,6 +28,11 @@ import { Label } from '@/components/ui/label';
 
 type ProviderType = 'openai' | 'anthropic' | 'gemini' | 'deepseek';
 
+interface ModelOption {
+    id: string;
+    label: string;
+}
+
 interface Props {
     connection: {
         connected: boolean;
@@ -32,6 +40,7 @@ interface Props {
         model: string;
         last_verified_at: string | null;
     };
+    availableModels?: ModelOption[];
     status?: string;
 }
 
@@ -79,8 +88,14 @@ const PROVIDER_MODELS: Record<ProviderType, { id: string; label: string }[]> = {
     ],
 };
 
-export default function AiSettings({ connection, status }: Props) {
+export default function AiSettings({
+    connection,
+    availableModels = [],
+    status,
+}: Props) {
     const [showKey, setShowKey] = useState(false);
+    const [discoveredModels, setDiscoveredModels] = useState<ModelOption[]>([]);
+    const [isFetchingModels, setIsFetchingModels] = useState(false);
 
     const connectForm = useForm<{
         provider: ProviderType;
@@ -95,12 +110,52 @@ export default function AiSettings({ connection, status }: Props) {
     const disconnectForm = useForm({});
 
     const handleProviderChange = (newProvider: ProviderType) => {
+        setDiscoveredModels([]);
         const defaultModel = PROVIDER_MODELS[newProvider][0].id;
         connectForm.setData({
             ...connectForm.data,
             provider: newProvider,
             model: defaultModel,
         });
+    };
+
+    const handleFetchModels = async () => {
+        const key = connectForm.data.api_key.trim();
+        if (!key) return;
+        setIsFetchingModels(true);
+        try {
+            const csrfToken =
+                (
+                    document.querySelector(
+                        'meta[name="csrf-token"]',
+                    ) as HTMLMetaElement
+                )?.content || '';
+            const res = await fetch('/settings/ai/models', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({
+                    provider: connectForm.data.provider,
+                    api_key: key,
+                }),
+            });
+            const data = await res.json();
+            if (
+                data.models &&
+                Array.isArray(data.models) &&
+                data.models.length > 0
+            ) {
+                setDiscoveredModels(data.models);
+                connectForm.setData('model', data.models[0].id);
+            }
+        } catch {
+            // Fallback
+        } finally {
+            setIsFetchingModels(false);
+        }
     };
 
     const handleConnect: FormEventHandler = (e) => {
@@ -212,6 +267,51 @@ export default function AiSettings({ connection, status }: Props) {
                                     ).toLocaleString()}
                                 </p>
                             )}
+
+                            {/* Dynamic Model Switcher for Connected Provider */}
+                            <div className="space-y-2 rounded-lg border border-border/60 bg-background/50 p-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5 text-xs font-semibold">
+                                        <Cpu className="h-3.5 w-3.5 text-emerald-500" />
+                                        <span>
+                                            Active Model (From{' '}
+                                            <span className="capitalize">
+                                                {connection.provider}
+                                            </span>
+                                            )
+                                        </span>
+                                    </div>
+                                    <span className="text-[11px] text-muted-foreground">
+                                        Dynamic Provider Model
+                                    </span>
+                                </div>
+                                <select
+                                    value={connection.model}
+                                    onChange={(e) => {
+                                        router.patch(
+                                            '/settings/ai/model',
+                                            { model: e.target.value },
+                                            { preserveScroll: true },
+                                        );
+                                    }}
+                                    className="w-full rounded-md border border-input bg-background px-3 py-1.5 font-mono text-xs shadow-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden"
+                                >
+                                    {(availableModels &&
+                                    availableModels.length > 0
+                                        ? availableModels
+                                        : [
+                                              {
+                                                  id: connection.model,
+                                                  label: connection.model,
+                                              },
+                                          ]
+                                    ).map((m) => (
+                                        <option key={m.id} value={m.id}>
+                                            {m.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
                             <div className="flex items-center gap-4">
                                 <form onSubmit={handleDisconnect}>
@@ -340,7 +440,33 @@ export default function AiSettings({ connection, status }: Props) {
 
                             {/* Model Selection */}
                             <div className="space-y-2">
-                                <Label htmlFor="model">Model Tier</Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="model">
+                                        Model (Dynamic)
+                                    </Label>
+                                    {connectForm.data.api_key.trim().length >=
+                                        8 && (
+                                        <button
+                                            type="button"
+                                            onClick={handleFetchModels}
+                                            disabled={isFetchingModels}
+                                            className="flex items-center gap-1 text-xs text-primary hover:underline"
+                                        >
+                                            {isFetchingModels ? (
+                                                <>
+                                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                                    Fetching from provider...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <RefreshCw className="h-3 w-3" />
+                                                    Discover models from
+                                                    provider
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
                                 <select
                                     id="model"
                                     value={connectForm.data.model}
@@ -350,11 +476,14 @@ export default function AiSettings({ connection, status }: Props) {
                                             e.target.value,
                                         )
                                     }
-                                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
+                                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden"
                                 >
-                                    {PROVIDER_MODELS[
-                                        connectForm.data.provider
-                                    ].map((m) => (
+                                    {(discoveredModels.length > 0
+                                        ? discoveredModels
+                                        : PROVIDER_MODELS[
+                                              connectForm.data.provider
+                                          ]
+                                    ).map((m) => (
                                         <option key={m.id} value={m.id}>
                                             {m.label}
                                         </option>
