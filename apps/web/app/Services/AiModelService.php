@@ -105,7 +105,7 @@ class AiModelService
             return strcasecmp($a['id'], $b['id']);
         });
 
-        return empty($models) ? $this->getFallbackModels('openai') : array_values($models);
+        return empty($models) ? $this->getFallbackModels('openai') : $models;
     }
 
     protected function isOpenAiChatModel(string $id): bool
@@ -178,7 +178,7 @@ class AiModelService
             }
         }
 
-        return empty($models) ? $this->getFallbackModels('anthropic') : array_values($models);
+        return empty($models) ? $this->getFallbackModels('anthropic') : $models;
     }
 
     /**
@@ -234,7 +234,7 @@ class AiModelService
             return strcasecmp($b['id'], $a['id']);
         });
 
-        return empty($models) ? $this->getFallbackModels('gemini') : array_values($models);
+        return empty($models) ? $this->getFallbackModels('gemini') : $models;
     }
 
     /**
@@ -269,7 +269,7 @@ class AiModelService
             ];
         }
 
-        return empty($models) ? $this->getFallbackModels('deepseek') : array_values($models);
+        return empty($models) ? $this->getFallbackModels('deepseek') : $models;
     }
 
     /**
