@@ -13,11 +13,15 @@ use App\DTOs\Diary\LogWaterDTO;
 use App\DTOs\Diary\QuickAddDTO;
 use App\DTOs\Diary\UpdateFoodLogDTO;
 use App\Http\Requests\Diary\QuickAddRequest;
+use App\Http\Requests\Diary\StoreBodyMeasurementRequest;
 use App\Http\Requests\Diary\StoreDiaryEntryRequest;
+use App\Http\Requests\Diary\StoreExerciseLogRequest;
 use App\Http\Requests\Diary\StoreWaterLogRequest;
 use App\Http\Requests\Diary\StoreWeightLogRequest;
 use App\Http\Requests\Diary\UpdateDiaryEntryRequest;
+use App\Models\BodyMeasurement;
 use App\Models\DiaryEntry;
+use App\Models\ExerciseLog;
 use App\Models\Food;
 use App\Models\User;
 use App\Models\WaterLog;
@@ -178,5 +182,66 @@ class DiaryController extends Controller
         $this->diaryService->deleteWeight($user, $date);
 
         return back()->with('status', 'Weight log removed.');
+    }
+
+    /**
+     * Store or update body circumference measurements.
+     */
+    public function storeMeasurements(StoreBodyMeasurementRequest $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $this->diaryService->logMeasurements(
+            $user,
+            (string) $request->validated('date'),
+            $request->validated()
+        );
+
+        return back()->with('status', 'Body measurements recorded.');
+    }
+
+    /**
+     * Delete body measurements for a date.
+     */
+    public function destroyMeasurements(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $date = (string) $request->input('date', now()->format('Y-m-d'));
+        $this->diaryService->deleteMeasurements($user, $date);
+
+        return back()->with('status', 'Body measurements removed.');
+    }
+
+    /**
+     * Log an exercise session.
+     */
+    public function storeExercise(StoreExerciseLogRequest $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $this->diaryService->logExercise(
+            $user,
+            (string) $request->validated('date'),
+            $request->validated()
+        );
+
+        return back()->with('status', 'Exercise session logged.');
+    }
+
+    /**
+     * Delete an exercise session.
+     */
+    public function destroyExercise(ExerciseLog $exerciseLog, Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $this->diaryService->deleteExercise($user, $exerciseLog);
+
+        return back()->with('status', 'Exercise session removed.');
     }
 }

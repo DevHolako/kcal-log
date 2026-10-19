@@ -14,11 +14,15 @@ use App\DTOs\Diary\QuickAddDTO;
 use App\DTOs\Diary\UpdateFoodLogDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Diary\QuickAddRequest;
+use App\Http\Requests\Diary\StoreBodyMeasurementRequest;
 use App\Http\Requests\Diary\StoreDiaryEntryRequest;
+use App\Http\Requests\Diary\StoreExerciseLogRequest;
 use App\Http\Requests\Diary\StoreWaterLogRequest;
 use App\Http\Requests\Diary\StoreWeightLogRequest;
 use App\Http\Requests\Diary\UpdateDiaryEntryRequest;
+use App\Models\BodyMeasurement;
 use App\Models\DiaryEntry;
+use App\Models\ExerciseLog;
 use App\Models\User;
 use App\Models\WaterLog;
 use App\Services\DiaryService;
@@ -184,6 +188,77 @@ class DiaryController extends Controller
 
         return response()->json([
             'message' => 'Weight log deleted successfully.',
+        ]);
+    }
+
+    /**
+     * Store or update body circumference measurements.
+     */
+    public function storeMeasurements(StoreBodyMeasurementRequest $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $measurement = $this->diaryService->logMeasurements(
+            $user,
+            (string) $request->validated('date'),
+            $request->validated()
+        );
+
+        return response()->json([
+            'message' => 'Body measurements saved successfully.',
+            'data' => $measurement,
+        ], 201);
+    }
+
+    /**
+     * Delete body measurements for a date.
+     */
+    public function destroyMeasurements(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $date = (string) $request->input('date', now()->format('Y-m-d'));
+        $this->diaryService->deleteMeasurements($user, $date);
+
+        return response()->json([
+            'message' => 'Body measurements deleted successfully.',
+        ]);
+    }
+
+    /**
+     * Log an exercise session.
+     */
+    public function storeExercise(StoreExerciseLogRequest $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $log = $this->diaryService->logExercise(
+            $user,
+            (string) $request->validated('date'),
+            $request->validated()
+        );
+
+        return response()->json([
+            'message' => 'Exercise session logged successfully.',
+            'data' => $log,
+        ], 201);
+    }
+
+    /**
+     * Delete an exercise session.
+     */
+    public function destroyExercise(ExerciseLog $exerciseLog, Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $this->diaryService->deleteExercise($user, $exerciseLog);
+
+        return response()->json([
+            'message' => 'Exercise session deleted successfully.',
         ]);
     }
 }

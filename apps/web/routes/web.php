@@ -29,6 +29,10 @@ Route::middleware(['auth', 'verified', EnsureOnboardingIsComplete::class])->grou
     Route::delete('diary/water/{waterLog}', [WebDiaryController::class, 'destroyWater'])->name('diary.water.destroy');
     Route::post('diary/weight', [WebDiaryController::class, 'storeWeight'])->name('diary.weight.store');
     Route::delete('diary/weight', [WebDiaryController::class, 'destroyWeight'])->name('diary.weight.destroy');
+    Route::post('diary/measurements', [WebDiaryController::class, 'storeMeasurements'])->name('diary.measurements.store');
+    Route::delete('diary/measurements', [WebDiaryController::class, 'destroyMeasurements'])->name('diary.measurements.destroy');
+    Route::post('diary/exercises', [WebDiaryController::class, 'storeExercise'])->name('diary.exercises.store');
+    Route::delete('diary/exercises/{exerciseLog}', [WebDiaryController::class, 'destroyExercise'])->name('diary.exercises.destroy');
     Route::put('diary/{entry}', [WebDiaryController::class, 'update'])->name('diary.update');
     Route::delete('diary/{entry}', [WebDiaryController::class, 'destroy'])->name('diary.destroy');
 

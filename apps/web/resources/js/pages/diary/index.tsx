@@ -7,12 +7,15 @@ import {
     Clock,
     Cookie,
     Droplet,
+    Dumbbell,
+    Flame,
     Globe,
     Loader2,
     Minus,
     Moon,
     Plus,
     Pencil,
+    Ruler,
     Scale,
     Search,
     Sparkles,
@@ -69,6 +72,31 @@ interface DiaryEntryData {
     serving?: FoodServingData;
 }
 
+export interface BodyMeasurementData {
+    id: number;
+    user_id: number;
+    date: string;
+    neck_cm?: number | string | null;
+    waist_cm?: number | string | null;
+    hips_cm?: number | string | null;
+    chest_cm?: number | string | null;
+    biceps_cm?: number | string | null;
+    thighs_cm?: number | string | null;
+    calves_cm?: number | string | null;
+    notes?: string | null;
+}
+
+export interface ExerciseLogData {
+    id: number;
+    user_id: number;
+    date: string;
+    name: string;
+    exercise_type: 'cardio' | 'strength' | 'other';
+    duration_minutes: number;
+    calories_burned: number | string;
+    notes?: string | null;
+}
+
 interface DiarySummary {
     total_calories: number;
     target_calories: number;
@@ -88,6 +116,11 @@ interface DiarySummary {
     water_ml: number;
     target_water_ml: number;
     weight_kg: number | null;
+    weight_note?: string | null;
+    body_measurement?: BodyMeasurementData | null;
+    exercise_logs?: ExerciseLogData[];
+    exercise_calories_burned?: number;
+    exercise_duration_minutes?: number;
 }
 
 interface Props {
@@ -242,6 +275,150 @@ export default function DiaryIndex({
                 setConfirmDeleteWeight(false);
             },
             onFinish: () => setIsWeightSubmitting(false),
+        });
+    };
+
+    // Circumference Measurements state
+    const [isMeasurementModalOpen, setIsMeasurementModalOpen] = useState(false);
+    const [neckInput, setNeckInput] = useState<string>('');
+    const [waistInput, setWaistInput] = useState<string>('');
+    const [hipsInput, setHipsInput] = useState<string>('');
+    const [chestInput, setChestInput] = useState<string>('');
+    const [bicepsInput, setBicepsInput] = useState<string>('');
+    const [thighsInput, setThighsInput] = useState<string>('');
+    const [calvesInput, setCalvesInput] = useState<string>('');
+    const [measurementNotes, setMeasurementNotes] = useState<string>('');
+    const [isMeasurementSubmitting, setIsMeasurementSubmitting] =
+        useState(false);
+    const [confirmDeleteMeasurements, setConfirmDeleteMeasurements] =
+        useState(false);
+
+    useEffect(() => {
+        const m = summary.body_measurement;
+        setNeckInput(
+            m?.neck_cm !== null && m?.neck_cm !== undefined
+                ? m.neck_cm.toString()
+                : '',
+        );
+        setWaistInput(
+            m?.waist_cm !== null && m?.waist_cm !== undefined
+                ? m.waist_cm.toString()
+                : '',
+        );
+        setHipsInput(
+            m?.hips_cm !== null && m?.hips_cm !== undefined
+                ? m.hips_cm.toString()
+                : '',
+        );
+        setChestInput(
+            m?.chest_cm !== null && m?.chest_cm !== undefined
+                ? m.chest_cm.toString()
+                : '',
+        );
+        setBicepsInput(
+            m?.biceps_cm !== null && m?.biceps_cm !== undefined
+                ? m.biceps_cm.toString()
+                : '',
+        );
+        setThighsInput(
+            m?.thighs_cm !== null && m?.thighs_cm !== undefined
+                ? m.thighs_cm.toString()
+                : '',
+        );
+        setCalvesInput(
+            m?.calves_cm !== null && m?.calves_cm !== undefined
+                ? m.calves_cm.toString()
+                : '',
+        );
+        setMeasurementNotes(m?.notes || '');
+        setConfirmDeleteMeasurements(false);
+    }, [summary.body_measurement, selectedDate]);
+
+    const handleSaveMeasurements = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsMeasurementSubmitting(true);
+        router.post(
+            '/diary/measurements',
+            {
+                date: selectedDate,
+                neck_cm: neckInput ? parseFloat(neckInput) : undefined,
+                waist_cm: waistInput ? parseFloat(waistInput) : undefined,
+                hips_cm: hipsInput ? parseFloat(hipsInput) : undefined,
+                chest_cm: chestInput ? parseFloat(chestInput) : undefined,
+                biceps_cm: bicepsInput ? parseFloat(bicepsInput) : undefined,
+                thighs_cm: thighsInput ? parseFloat(thighsInput) : undefined,
+                calves_cm: calvesInput ? parseFloat(calvesInput) : undefined,
+                notes: measurementNotes || undefined,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => setIsMeasurementModalOpen(false),
+                onFinish: () => setIsMeasurementSubmitting(false),
+            },
+        );
+    };
+
+    const handleDeleteMeasurements = () => {
+        setIsMeasurementSubmitting(true);
+        router.delete('/diary/measurements', {
+            data: { date: selectedDate },
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsMeasurementModalOpen(false);
+                setConfirmDeleteMeasurements(false);
+            },
+            onFinish: () => setIsMeasurementSubmitting(false),
+        });
+    };
+
+    // Exercise Logging state
+    const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
+    const [exerciseName, setExerciseName] = useState<string>('');
+    const [exerciseType, setExerciseType] = useState<
+        'cardio' | 'strength' | 'other'
+    >('cardio');
+    const [exerciseDuration, setExerciseDuration] = useState<number>(30);
+    const [exerciseCalories, setExerciseCalories] = useState<number>(200);
+    const [exerciseNotes, setExerciseNotes] = useState<string>('');
+    const [isExerciseSubmitting, setIsExerciseSubmitting] = useState(false);
+    const [deleteExerciseId, setDeleteExerciseId] = useState<number | null>(
+        null,
+    );
+
+    const handleSaveExercise = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!exerciseName.trim()) return;
+
+        setIsExerciseSubmitting(true);
+        router.post(
+            '/diary/exercises',
+            {
+                date: selectedDate,
+                name: exerciseName.trim(),
+                exercise_type: exerciseType,
+                duration_minutes: exerciseDuration,
+                calories_burned: exerciseCalories,
+                notes: exerciseNotes || undefined,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsExerciseModalOpen(false);
+                    setExerciseName('');
+                    setExerciseDuration(30);
+                    setExerciseCalories(200);
+                    setExerciseNotes('');
+                },
+                onFinish: () => setIsExerciseSubmitting(false),
+            },
+        );
+    };
+
+    const handleDeleteExercise = () => {
+        if (deleteExerciseId === null) return;
+        router.delete(`/diary/exercises/${deleteExerciseId}`, {
+            preserveScroll: true,
+            onSuccess: () => setDeleteExerciseId(null),
         });
     };
 
@@ -1110,6 +1287,236 @@ export default function DiaryIndex({
                             )}
                         </div>
                     </CardHeader>
+                </Card>
+
+                {/* Circumference Measurements Widget */}
+                <Card className="overflow-hidden rounded-2xl border border-violet-500/25 bg-card shadow-2xs transition-all hover:border-violet-500/40 hover:shadow-xs">
+                    <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 bg-gradient-to-r from-violet-500/10 via-violet-500/[0.03] to-transparent px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                            <div className="rounded-lg bg-violet-500/15 p-1.5 text-violet-500 shadow-2xs">
+                                <Ruler className="h-4 w-4 text-violet-500" />
+                            </div>
+                            <CardTitle className="text-base font-semibold">
+                                {t('diary.measurements')}
+                            </CardTitle>
+                            {summary.body_measurement ? (
+                                <Badge
+                                    variant="outline"
+                                    className="ml-1 border-violet-500/25 bg-violet-500/10 font-mono text-xs font-bold text-violet-800 dark:text-violet-300"
+                                >
+                                    {summary.body_measurement.waist_cm
+                                        ? `Waist: ${summary.body_measurement.waist_cm} cm`
+                                        : 'Recorded'}
+                                </Badge>
+                            ) : (
+                                <Badge
+                                    variant="outline"
+                                    className="ml-1 border-muted bg-muted/40 text-xs font-medium text-muted-foreground"
+                                >
+                                    {t('diary.not_logged')}
+                                </Badge>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                            {summary.body_measurement ? (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                        setIsMeasurementModalOpen(true)
+                                    }
+                                    className="h-7 border-violet-500/30 px-2.5 text-xs font-semibold text-violet-800 shadow-2xs hover:bg-violet-500/10 dark:text-violet-200"
+                                >
+                                    {t('diary.update_measurements')}
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                        setIsMeasurementModalOpen(true)
+                                    }
+                                    className="h-7 border-violet-500/30 px-3 text-xs font-semibold text-violet-800 shadow-2xs hover:bg-violet-500/10 dark:text-violet-200"
+                                >
+                                    <Plus className="mr-1 h-3.5 w-3.5" />
+                                    {t('diary.record_measurements')}
+                                </Button>
+                            )}
+                        </div>
+                    </CardHeader>
+                    {summary.body_measurement ? (
+                        <CardContent className="px-4 py-3">
+                            <div className="flex flex-wrap gap-2 text-xs">
+                                {summary.body_measurement.waist_cm && (
+                                    <span className="rounded-md bg-muted/50 px-2 py-1 font-mono">
+                                        <span className="font-semibold text-muted-foreground">
+                                            {t('diary.waist_cm')}:
+                                        </span>{' '}
+                                        {summary.body_measurement.waist_cm} cm
+                                    </span>
+                                )}
+                                {summary.body_measurement.hips_cm && (
+                                    <span className="rounded-md bg-muted/50 px-2 py-1 font-mono">
+                                        <span className="font-semibold text-muted-foreground">
+                                            {t('diary.hips_cm')}:
+                                        </span>{' '}
+                                        {summary.body_measurement.hips_cm} cm
+                                    </span>
+                                )}
+                                {summary.body_measurement.chest_cm && (
+                                    <span className="rounded-md bg-muted/50 px-2 py-1 font-mono">
+                                        <span className="font-semibold text-muted-foreground">
+                                            {t('diary.chest_cm')}:
+                                        </span>{' '}
+                                        {summary.body_measurement.chest_cm} cm
+                                    </span>
+                                )}
+                                {summary.body_measurement.neck_cm && (
+                                    <span className="rounded-md bg-muted/50 px-2 py-1 font-mono">
+                                        <span className="font-semibold text-muted-foreground">
+                                            {t('diary.neck_cm')}:
+                                        </span>{' '}
+                                        {summary.body_measurement.neck_cm} cm
+                                    </span>
+                                )}
+                                {summary.body_measurement.biceps_cm && (
+                                    <span className="rounded-md bg-muted/50 px-2 py-1 font-mono">
+                                        <span className="font-semibold text-muted-foreground">
+                                            {t('diary.biceps_cm')}:
+                                        </span>{' '}
+                                        {summary.body_measurement.biceps_cm} cm
+                                    </span>
+                                )}
+                                {summary.body_measurement.thighs_cm && (
+                                    <span className="rounded-md bg-muted/50 px-2 py-1 font-mono">
+                                        <span className="font-semibold text-muted-foreground">
+                                            {t('diary.thighs_cm')}:
+                                        </span>{' '}
+                                        {summary.body_measurement.thighs_cm} cm
+                                    </span>
+                                )}
+                                {summary.body_measurement.calves_cm && (
+                                    <span className="rounded-md bg-muted/50 px-2 py-1 font-mono">
+                                        <span className="font-semibold text-muted-foreground">
+                                            {t('diary.calves_cm')}:
+                                        </span>{' '}
+                                        {summary.body_measurement.calves_cm} cm
+                                    </span>
+                                )}
+                            </div>
+                            {summary.body_measurement.notes && (
+                                <p className="mt-2 text-xs text-muted-foreground italic">
+                                    "{summary.body_measurement.notes}"
+                                </p>
+                            )}
+                        </CardContent>
+                    ) : null}
+                </Card>
+
+                {/* Exercise & Physical Activity Widget */}
+                <Card className="overflow-hidden rounded-2xl border border-amber-500/25 bg-card shadow-2xs transition-all hover:border-amber-500/40 hover:shadow-xs">
+                    <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 bg-gradient-to-r from-amber-500/10 via-amber-500/[0.03] to-transparent px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                            <div className="rounded-lg bg-amber-500/15 p-1.5 text-amber-500 shadow-2xs">
+                                <Flame className="h-4 w-4 text-amber-500" />
+                            </div>
+                            <CardTitle className="text-base font-semibold">
+                                {t('diary.exercise_activity')}
+                            </CardTitle>
+                            {(summary.exercise_calories_burned || 0) > 0 ? (
+                                <Badge
+                                    variant="outline"
+                                    className="ml-1 border-amber-500/25 bg-amber-500/10 font-mono text-xs font-bold text-amber-800 dark:text-amber-300"
+                                >
+                                    {summary.exercise_calories_burned} kcal ·{' '}
+                                    {summary.exercise_duration_minutes || 0} min
+                                </Badge>
+                            ) : (
+                                <Badge
+                                    variant="outline"
+                                    className="ml-1 border-muted bg-muted/40 text-xs font-medium text-muted-foreground"
+                                >
+                                    {t('diary.not_logged')}
+                                </Badge>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsExerciseModalOpen(true)}
+                                className="h-7 border-amber-500/30 px-3 text-xs font-semibold text-amber-800 shadow-2xs hover:bg-amber-500/10 dark:text-amber-200"
+                            >
+                                <Plus className="mr-1 h-3.5 w-3.5" />
+                                {t('diary.log_exercise')}
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    {summary.exercise_logs &&
+                    summary.exercise_logs.length > 0 ? (
+                        <CardContent className="divide-y divide-border/40 px-4 py-1">
+                            {summary.exercise_logs.map((log) => (
+                                <div
+                                    key={log.id}
+                                    className="flex items-center justify-between py-2.5 text-xs"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Dumbbell className="h-3.5 w-3.5 text-amber-500" />
+                                        <div>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="font-semibold text-foreground">
+                                                    {log.name}
+                                                </span>
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="px-1.5 py-0 text-[10px] capitalize"
+                                                >
+                                                    {log.exercise_type ===
+                                                    'cardio'
+                                                        ? t('diary.cardio')
+                                                        : log.exercise_type ===
+                                                            'strength'
+                                                          ? t('diary.strength')
+                                                          : t(
+                                                                'diary.other_activity',
+                                                            )}
+                                                </Badge>
+                                            </div>
+                                            {log.notes && (
+                                                <p className="text-[11px] text-muted-foreground">
+                                                    {log.notes}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-right font-mono">
+                                            <span className="font-bold text-amber-600 dark:text-amber-400">
+                                                {log.calories_burned} kcal
+                                            </span>
+                                            <span className="ml-1.5 text-muted-foreground">
+                                                ({log.duration_minutes} min)
+                                            </span>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() =>
+                                                setDeleteExerciseId(log.id)
+                                            }
+                                            className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                            title={t('diary.delete_exercise')}
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </CardContent>
+                    ) : null}
                 </Card>
             </div>
 
@@ -2253,6 +2660,436 @@ export default function DiaryIndex({
                 </DialogContent>
             </Dialog>
 
+            {/* Circumference Measurements Dialog */}
+            <Dialog
+                open={isMeasurementModalOpen}
+                onOpenChange={setIsMeasurementModalOpen}
+            >
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Ruler className="h-5 w-5 text-violet-500" />
+                            {t('diary.measurements')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t('diary.measurements_desc')}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form
+                        onSubmit={handleSaveMeasurements}
+                        className="space-y-4 py-2"
+                    >
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="waist_cm">
+                                    {t('diary.waist_cm')}
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="waist_cm"
+                                        type="number"
+                                        step="0.1"
+                                        min="10"
+                                        max="300"
+                                        placeholder="e.g. 80.5"
+                                        value={waistInput}
+                                        onChange={(e) =>
+                                            setWaistInput(e.target.value)
+                                        }
+                                        className="pr-9"
+                                    />
+                                    <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                                        cm
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="hips_cm">
+                                    {t('diary.hips_cm')}
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="hips_cm"
+                                        type="number"
+                                        step="0.1"
+                                        min="10"
+                                        max="300"
+                                        placeholder="e.g. 95.0"
+                                        value={hipsInput}
+                                        onChange={(e) =>
+                                            setHipsInput(e.target.value)
+                                        }
+                                        className="pr-9"
+                                    />
+                                    <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                                        cm
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="chest_cm">
+                                    {t('diary.chest_cm')}
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="chest_cm"
+                                        type="number"
+                                        step="0.1"
+                                        min="10"
+                                        max="300"
+                                        placeholder="e.g. 100.0"
+                                        value={chestInput}
+                                        onChange={(e) =>
+                                            setChestInput(e.target.value)
+                                        }
+                                        className="pr-9"
+                                    />
+                                    <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                                        cm
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="neck_cm">
+                                    {t('diary.neck_cm')}
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="neck_cm"
+                                        type="number"
+                                        step="0.1"
+                                        min="10"
+                                        max="100"
+                                        placeholder="e.g. 38.0"
+                                        value={neckInput}
+                                        onChange={(e) =>
+                                            setNeckInput(e.target.value)
+                                        }
+                                        className="pr-9"
+                                    />
+                                    <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                                        cm
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="biceps_cm">
+                                    {t('diary.biceps_cm')}
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="biceps_cm"
+                                        type="number"
+                                        step="0.1"
+                                        min="10"
+                                        max="100"
+                                        placeholder="e.g. 34.0"
+                                        value={bicepsInput}
+                                        onChange={(e) =>
+                                            setBicepsInput(e.target.value)
+                                        }
+                                        className="pr-9"
+                                    />
+                                    <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                                        cm
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="thighs_cm">
+                                    {t('diary.thighs_cm')}
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="thighs_cm"
+                                        type="number"
+                                        step="0.1"
+                                        min="10"
+                                        max="150"
+                                        placeholder="e.g. 56.0"
+                                        value={thighsInput}
+                                        onChange={(e) =>
+                                            setThighsInput(e.target.value)
+                                        }
+                                        className="pr-9"
+                                    />
+                                    <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                                        cm
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="col-span-2 space-y-1.5">
+                                <Label htmlFor="calves_cm">
+                                    {t('diary.calves_cm')}
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="calves_cm"
+                                        type="number"
+                                        step="0.1"
+                                        min="10"
+                                        max="100"
+                                        placeholder="e.g. 37.0"
+                                        value={calvesInput}
+                                        onChange={(e) =>
+                                            setCalvesInput(e.target.value)
+                                        }
+                                        className="pr-9"
+                                    />
+                                    <span className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                                        cm
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="measurement_notes">
+                                {t('diary.weight_note')}
+                            </Label>
+                            <Input
+                                id="measurement_notes"
+                                type="text"
+                                placeholder={t('diary.description_placeholder')}
+                                value={measurementNotes}
+                                onChange={(e) =>
+                                    setMeasurementNotes(e.target.value)
+                                }
+                            />
+                        </div>
+
+                        {confirmDeleteMeasurements && (
+                            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                                <p className="font-semibold">
+                                    {t('diary.confirm_delete_measurements')}
+                                </p>
+                                <div className="mt-2 flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={handleDeleteMeasurements}
+                                        disabled={isMeasurementSubmitting}
+                                        className="h-7 text-xs"
+                                    >
+                                        {t('action.delete')}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                            setConfirmDeleteMeasurements(false)
+                                        }
+                                        className="h-7 text-xs"
+                                    >
+                                        {t('action.cancel')}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        <DialogFooter className="flex items-center justify-between pt-2 sm:justify-between">
+                            <div>
+                                {summary.body_measurement &&
+                                    !confirmDeleteMeasurements && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                                setConfirmDeleteMeasurements(
+                                                    true,
+                                                )
+                                            }
+                                            disabled={isMeasurementSubmitting}
+                                            className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                        >
+                                            <Trash2 className="mr-1 h-3.5 w-3.5" />
+                                            {t('diary.delete_measurements')}
+                                        </Button>
+                                    )}
+                            </div>
+
+                            <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setIsMeasurementModalOpen(false);
+                                        setConfirmDeleteMeasurements(false);
+                                    }}
+                                >
+                                    {t('action.cancel')}
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    size="sm"
+                                    disabled={isMeasurementSubmitting}
+                                >
+                                    {isMeasurementSubmitting ? (
+                                        <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                                    ) : null}
+                                    {t('action.save')}
+                                </Button>
+                            </div>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Exercise Logging Dialog */}
+            <Dialog
+                open={isExerciseModalOpen}
+                onOpenChange={setIsExerciseModalOpen}
+            >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Flame className="h-5 w-5 text-amber-500" />
+                            {t('diary.log_exercise')}
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <form
+                        onSubmit={handleSaveExercise}
+                        className="space-y-4 py-2"
+                    >
+                        <div className="space-y-2">
+                            <Label htmlFor="exercise_name">
+                                {t('diary.exercise_name')}
+                            </Label>
+                            <Input
+                                id="exercise_name"
+                                type="text"
+                                required
+                                placeholder="e.g. Running, Weightlifting, Cycling..."
+                                value={exerciseName}
+                                onChange={(e) =>
+                                    setExerciseName(e.target.value)
+                                }
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>{t('diary.exercise_type')}</Label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {(['cardio', 'strength', 'other'] as const).map(
+                                    (type) => (
+                                        <Button
+                                            key={type}
+                                            type="button"
+                                            variant={
+                                                exerciseType === type
+                                                    ? 'default'
+                                                    : 'outline'
+                                            }
+                                            size="sm"
+                                            onClick={() =>
+                                                setExerciseType(type)
+                                            }
+                                            className="h-8 text-xs capitalize"
+                                        >
+                                            {type === 'cardio'
+                                                ? t('diary.cardio')
+                                                : type === 'strength'
+                                                  ? t('diary.strength')
+                                                  : t('diary.other_activity')}
+                                        </Button>
+                                    ),
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="duration_minutes">
+                                    {t('diary.duration_minutes')}
+                                </Label>
+                                <Input
+                                    id="duration_minutes"
+                                    type="number"
+                                    min="1"
+                                    max="1440"
+                                    required
+                                    value={exerciseDuration}
+                                    onChange={(e) =>
+                                        setExerciseDuration(
+                                            parseInt(e.target.value) || 0,
+                                        )
+                                    }
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="calories_burned">
+                                    {t('diary.calories_burned')}
+                                </Label>
+                                <Input
+                                    id="calories_burned"
+                                    type="number"
+                                    min="0"
+                                    max="10000"
+                                    required
+                                    value={exerciseCalories}
+                                    onChange={(e) =>
+                                        setExerciseCalories(
+                                            parseInt(e.target.value) || 0,
+                                        )
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="exercise_notes">
+                                {t('diary.weight_note')}
+                            </Label>
+                            <Input
+                                id="exercise_notes"
+                                type="text"
+                                placeholder={t('diary.description_placeholder')}
+                                value={exerciseNotes}
+                                onChange={(e) =>
+                                    setExerciseNotes(e.target.value)
+                                }
+                            />
+                        </div>
+
+                        <DialogFooter className="flex items-center justify-end gap-2 pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsExerciseModalOpen(false)}
+                            >
+                                {t('action.cancel')}
+                            </Button>
+                            <Button
+                                type="submit"
+                                size="sm"
+                                disabled={
+                                    isExerciseSubmitting || !exerciseName.trim()
+                                }
+                            >
+                                {isExerciseSubmitting ? (
+                                    <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                                ) : null}
+                                {t('action.save')}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
             {/* Edit Food Entry Dialog */}
             <Dialog open={isEditEntryOpen} onOpenChange={setIsEditEntryOpen}>
                 <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
@@ -2649,6 +3486,18 @@ export default function DiaryIndex({
                         setDeleteEntryId(null);
                     }
                 }}
+            />
+
+            {/* Delete Exercise Confirmation Dialog */}
+            <ConfirmDialog
+                open={deleteExerciseId !== null}
+                onOpenChange={(open) => !open && setDeleteExerciseId(null)}
+                title={t('diary.delete_exercise')}
+                description={t('diary.confirm_delete_exercise')}
+                confirmText={t('action.delete')}
+                cancelText={t('common.cancel')}
+                variant="destructive"
+                onConfirm={handleDeleteExercise}
             />
         </div>
     );

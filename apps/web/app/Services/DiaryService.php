@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Events\DiaryUpdated;
+use App\Models\BodyMeasurement;
 use App\Models\DiaryEntry;
+use App\Models\ExerciseLog;
 use App\Models\Food;
 use App\Models\FoodServing;
 use App\Models\MealRecipe;
@@ -74,6 +76,16 @@ class DiaryService
             ->whereDate('date', $date)
             ->first();
 
+        /** @var BodyMeasurement|null $bodyMeasurement */
+        $bodyMeasurement = BodyMeasurement::where('user_id', $user->id)
+            ->whereDate('date', $date)
+            ->first();
+
+        /** @var Collection<int, ExerciseLog> $exerciseLogs */
+        $exerciseLogs = ExerciseLog::where('user_id', $user->id)
+            ->whereDate('date', $date)
+            ->get();
+
         return [
             'date' => $date,
             'summary' => [
@@ -95,6 +107,11 @@ class DiaryService
                 'water_ml' => $waterTotal,
                 'target_water_ml' => $targetWater,
                 'weight_kg' => $weightLog ? (float) $weightLog->weight_kg : null,
+                'weight_note' => $weightLog ? $weightLog->note : null,
+                'body_measurement' => $bodyMeasurement,
+                'exercise_logs' => $exerciseLogs,
+                'exercise_calories_burned' => round((float) $exerciseLogs->sum('calories_burned'), 2),
+                'exercise_duration_minutes' => (int) $exerciseLogs->sum('duration_minutes'),
             ],
             'slots' => [
                 'breakfast' => [
@@ -589,6 +606,119 @@ class DiaryService
 
         if ($deleted) {
             DiaryUpdated::dispatch($user->id, $dateFormatted, 'weight_deleted', []);
+        }
+
+        return $deleted;
+    }
+
+    /**
+     * Log or update body circumference measurements for a specific date.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function logMeasurements(User $user, string $date, array $data): BodyMeasurement
+    {
+        $dateFormatted = substr($date, 0, 10);
+
+        /** @var BodyMeasurement|null $existing */
+        $existing = BodyMeasurement::where('user_id', $user->id)
+            ->whereDate('date', $dateFormatted)
+            ->first();
+
+        $attributes = [
+            'neck_cm' => isset($data['neck_cm']) && $data['neck_cm'] !== '' ? (float) $data['neck_cm'] : null,
+            'waist_cm' => isset($data['waist_cm']) && $data['waist_cm'] !== '' ? (float) $data['waist_cm'] : null,
+            'hips_cm' => isset($data['hips_cm']) && $data['hips_cm'] !== '' ? (float) $data['hips_cm'] : null,
+            'chest_cm' => isset($data['chest_cm']) && $data['chest_cm'] !== '' ? (float) $data['chest_cm'] : null,
+            'biceps_cm' => isset($data['biceps_cm']) && $data['biceps_cm'] !== '' ? (float) $data['biceps_cm'] : null,
+            'thighs_cm' => isset($data['thighs_cm']) && $data['thighs_cm'] !== '' ? (float) $data['thighs_cm'] : null,
+            'calves_cm' => isset($data['calves_cm']) && $data['calves_cm'] !== '' ? (float) $data['calves_cm'] : null,
+            'notes' => isset($data['notes']) ? (string) $data['notes'] : null,
+        ];
+
+        if ($existing) {
+            $existing->update($attributes);
+            $measurement = $existing;
+        } else {
+            /** @var BodyMeasurement $measurement */
+            $measurement = BodyMeasurement::create(array_merge([
+                'user_id' => $user->id,
+                'date' => $dateFormatted,
+            ], $attributes));
+        }
+
+        DiaryUpdated::dispatch($user->id, $dateFormatted, 'measurements_updated', [
+            'measurement_id' => $measurement->id,
+            'waist_cm' => $measurement->waist_cm,
+            'hips_cm' => $measurement->hips_cm,
+        ]);
+
+        return $measurement;
+    }
+
+    /**
+     * Delete body measurements for a specific date.
+     */
+    public function deleteMeasurements(User $user, string $date): bool
+    {
+        $dateFormatted = substr($date, 0, 10);
+
+        $deleted = (bool) BodyMeasurement::where('user_id', $user->id)
+            ->whereDate('date', $dateFormatted)
+            ->delete();
+
+        if ($deleted) {
+            DiaryUpdated::dispatch($user->id, $dateFormatted, 'measurements_deleted', []);
+        }
+
+        return $deleted;
+    }
+
+    /**
+     * Log a new exercise session.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function logExercise(User $user, string $date, array $data): ExerciseLog
+    {
+        $dateFormatted = substr($date, 0, 10);
+
+        /** @var ExerciseLog $log */
+        $log = ExerciseLog::create([
+            'user_id' => $user->id,
+            'date' => $dateFormatted,
+            'name' => (string) $data['name'],
+            'exercise_type' => (string) ($data['exercise_type'] ?? 'cardio'),
+            'duration_minutes' => (int) $data['duration_minutes'],
+            'calories_burned' => (float) $data['calories_burned'],
+            'notes' => isset($data['notes']) ? (string) $data['notes'] : null,
+        ]);
+
+        DiaryUpdated::dispatch($user->id, $dateFormatted, 'exercise_logged', [
+            'exercise_id' => $log->id,
+            'calories_burned' => $log->calories_burned,
+            'duration_minutes' => $log->duration_minutes,
+        ]);
+
+        return $log;
+    }
+
+    /**
+     * Delete an exercise session.
+     */
+    public function deleteExercise(User $user, ExerciseLog $exerciseLog): bool
+    {
+        if ($exerciseLog->user_id !== $user->id) {
+            abort(403, 'Unauthorized action on exercise log.');
+        }
+
+        $dateFormatted = $exerciseLog->date->format('Y-m-d');
+        $deleted = (bool) $exerciseLog->delete();
+
+        if ($deleted) {
+            DiaryUpdated::dispatch($user->id, $dateFormatted, 'exercise_deleted', [
+                'exercise_id' => $exerciseLog->id,
+            ]);
         }
 
         return $deleted;

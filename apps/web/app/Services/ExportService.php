@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Events\ExportReady;
 use App\Jobs\ProcessReportExportJob;
+use App\Models\BodyMeasurement;
 use App\Models\DiaryEntry;
+use App\Models\ExerciseLog;
 use App\Models\ReportExport;
 use App\Models\TargetProfile;
 use App\Models\User;
@@ -141,6 +143,24 @@ class ExportService
             ->orderBy('date')
             ->get();
 
+        /** @var Collection<int, BodyMeasurement> $measurements */
+        $measurements = BodyMeasurement::where('user_id', $user->id)
+            ->where(function ($q) use ($dateFrom, $dateTo, $startDate, $endDate) {
+                $q->whereBetween('date', [$startDate, $endDate])
+                    ->orWhereBetween('date', [$dateFrom, $dateTo]);
+            })
+            ->orderBy('date')
+            ->get();
+
+        /** @var Collection<int, ExerciseLog> $exerciseLogs */
+        $exerciseLogs = ExerciseLog::where('user_id', $user->id)
+            ->where(function ($q) use ($dateFrom, $dateTo, $startDate, $endDate) {
+                $q->whereBetween('date', [$startDate, $endDate])
+                    ->orWhereBetween('date', [$dateFrom, $dateTo]);
+            })
+            ->orderBy('date')
+            ->get();
+
         /** @var TargetProfile|null $target */
         $target = TargetProfile::where('user_id', $user->id)
             ->where('is_active', true)
@@ -170,6 +190,8 @@ class ExportService
 
             $dayWater = (int) $waterLogs->filter(fn (WaterLog $w) => $w->date->format('Y-m-d') === $dateStr)->sum('amount_ml');
             $dayWeight = $weightLogs->first(fn (WeightLog $w) => $w->date->format('Y-m-d') === $dateStr);
+            $dayMeasurement = $measurements->first(fn (BodyMeasurement $m) => $m->date->format('Y-m-d') === $dateStr);
+            $dayExercises = $exerciseLogs->filter(fn (ExerciseLog $x) => $x->date->format('Y-m-d') === $dateStr);
 
             if ($dayEntries->isNotEmpty()) {
                 $totalDaysWithEntries++;
@@ -190,6 +212,10 @@ class ExportService
                 'fiber' => $dayFiber,
                 'water_ml' => $dayWater,
                 'weight_kg' => $dayWeight ? (float) $dayWeight->weight_kg : null,
+                'waist_cm' => $dayMeasurement && $dayMeasurement->waist_cm !== null ? (float) $dayMeasurement->waist_cm : null,
+                'hips_cm' => $dayMeasurement && $dayMeasurement->hips_cm !== null ? (float) $dayMeasurement->hips_cm : null,
+                'exercise_calories_burned' => (float) $dayExercises->sum('calories_burned'),
+                'exercise_duration_minutes' => (int) $dayExercises->sum('duration_minutes'),
             ];
         }
 
@@ -252,6 +278,8 @@ class ExportService
             'entries' => $entries,
             'waterLogs' => $waterLogs,
             'weightLogs' => $weightLogs,
+            'bodyMeasurements' => $measurements,
+            'exerciseLogs' => $exerciseLogs,
             'recentItems' => $recentItems,
         ];
     }
@@ -348,6 +376,39 @@ class ExportService
                 $entry->fiber !== null ? (float) $entry->fiber : '',
             ], ',', '"', '\\');
         }
+        fputcsv($handle, [], ',', '"', '\\');
+
+        // Section 4: Body Measurements
+        fputcsv($handle, ['# BODY MEASUREMENTS'], ',', '"', '\\');
+        fputcsv($handle, ['Date', 'Waist (cm)', 'Hips (cm)', 'Neck (cm)', 'Chest (cm)', 'Biceps (cm)', 'Thighs (cm)', 'Calves (cm)', 'Notes'], ',', '"', '\\');
+        foreach ($data['bodyMeasurements'] as $m) {
+            fputcsv($handle, [
+                $m->date->format('Y-m-d'),
+                $m->waist_cm !== null ? (float) $m->waist_cm : '',
+                $m->hips_cm !== null ? (float) $m->hips_cm : '',
+                $m->neck_cm !== null ? (float) $m->neck_cm : '',
+                $m->chest_cm !== null ? (float) $m->chest_cm : '',
+                $m->biceps_cm !== null ? (float) $m->biceps_cm : '',
+                $m->thighs_cm !== null ? (float) $m->thighs_cm : '',
+                $m->calves_cm !== null ? (float) $m->calves_cm : '',
+                $m->notes ?? '',
+            ], ',', '"', '\\');
+        }
+        fputcsv($handle, [], ',', '"', '\\');
+
+        // Section 5: Exercise Logs
+        fputcsv($handle, ['# EXERCISE LOGS'], ',', '"', '\\');
+        fputcsv($handle, ['Date', 'Exercise Name', 'Type', 'Duration (min)', 'Calories Burned', 'Notes'], ',', '"', '\\');
+        foreach ($data['exerciseLogs'] as $x) {
+            fputcsv($handle, [
+                $x->date->format('Y-m-d'),
+                $x->name,
+                $x->exercise_type,
+                (int) $x->duration_minutes,
+                (float) $x->calories_burned,
+                $x->notes ?? '',
+            ], ',', '"', '\\');
+        }
 
         rewind($handle);
         $content = stream_get_contents($handle);
@@ -418,6 +479,25 @@ class ExportService
             'weight_logs' => $data['weightLogs']->map(fn (WeightLog $log) => [
                 'date' => $log->date->format('Y-m-d'),
                 'weight_kg' => (float) $log->weight_kg,
+            ])->values(),
+            'body_measurements' => $data['bodyMeasurements']->map(fn (BodyMeasurement $m) => [
+                'date' => $m->date->format('Y-m-d'),
+                'waist_cm' => $m->waist_cm !== null ? (float) $m->waist_cm : null,
+                'hips_cm' => $m->hips_cm !== null ? (float) $m->hips_cm : null,
+                'neck_cm' => $m->neck_cm !== null ? (float) $m->neck_cm : null,
+                'chest_cm' => $m->chest_cm !== null ? (float) $m->chest_cm : null,
+                'biceps_cm' => $m->biceps_cm !== null ? (float) $m->biceps_cm : null,
+                'thighs_cm' => $m->thighs_cm !== null ? (float) $m->thighs_cm : null,
+                'calves_cm' => $m->calves_cm !== null ? (float) $m->calves_cm : null,
+                'notes' => $m->notes,
+            ])->values(),
+            'exercise_logs' => $data['exerciseLogs']->map(fn (ExerciseLog $x) => [
+                'date' => $x->date->format('Y-m-d'),
+                'name' => $x->name,
+                'exercise_type' => $x->exercise_type,
+                'duration_minutes' => (int) $x->duration_minutes,
+                'calories_burned' => (float) $x->calories_burned,
+                'notes' => $x->notes,
             ])->values(),
         ];
     }

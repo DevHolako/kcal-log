@@ -64,6 +64,10 @@ Route::prefix('v1')->group(function () {
         Route::delete('diary/water/{waterLog}', [DiaryController::class, 'destroyWater'])->name('api.v1.diary.water.destroy');
         Route::post('diary/weight', [DiaryController::class, 'storeWeight'])->name('api.v1.diary.weight.store');
         Route::delete('diary/weight', [DiaryController::class, 'destroyWeight'])->name('api.v1.diary.weight.destroy');
+        Route::post('diary/measurements', [DiaryController::class, 'storeMeasurements'])->name('api.v1.diary.measurements.store');
+        Route::delete('diary/measurements', [DiaryController::class, 'destroyMeasurements'])->name('api.v1.diary.measurements.destroy');
+        Route::post('diary/exercises', [DiaryController::class, 'storeExercise'])->name('api.v1.diary.exercises.store');
+        Route::delete('diary/exercises/{exerciseLog}', [DiaryController::class, 'destroyExercise'])->name('api.v1.diary.exercises.destroy');
         Route::put('diary/{entry}', [DiaryController::class, 'update'])->name('api.v1.diary.update');
         Route::delete('diary/{entry}', [DiaryController::class, 'destroy'])->name('api.v1.diary.destroy');
 
