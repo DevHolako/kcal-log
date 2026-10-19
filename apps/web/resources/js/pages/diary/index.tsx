@@ -12,15 +12,16 @@ import {
     Minus,
     Moon,
     Plus,
-    Search,
+    Pencil,
     Scale,
+    Search,
     Sparkles,
     Sun,
     Trash2,
     Utensils,
     Zap,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import BarcodeScannerModal from '@/components/barcode-scanner-modal';
 import ConcentricMacroRings from '@/components/concentric-macro-rings';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -422,6 +423,104 @@ export default function DiaryIndex({
     const handleDeleteEntry = (id: number) => {
         setDeleteEntryId(id);
     };
+
+    // Edit entry state
+    const [editingEntry, setEditingEntry] = useState<DiaryEntryData | null>(
+        null,
+    );
+    const [isEditEntryOpen, setIsEditEntryOpen] = useState(false);
+    const [editMealSlot, setEditMealSlot] = useState<
+        'breakfast' | 'lunch' | 'dinner' | 'snack'
+    >('breakfast');
+    const [editPortionMode, setEditPortionMode] = useState<
+        'weight' | 'serving'
+    >('weight');
+    const [editQuantity, setEditQuantity] = useState<number>(1);
+    const [editCustomGrams, setEditCustomGrams] = useState<number>(100);
+    const [editSelectedServingId, setEditSelectedServingId] = useState<
+        number | null
+    >(null);
+    const [isUpdatingEntry, setIsUpdatingEntry] = useState(false);
+
+    const handleOpenEditEntry = (entry: DiaryEntryData) => {
+        setEditingEntry(entry);
+        setEditMealSlot(entry.meal_slot);
+        setEditQuantity(Number(entry.quantity) || 1);
+        setEditCustomGrams(Number(entry.grams) || 100);
+        setEditSelectedServingId(
+            entry.food_serving_id || entry.food?.servings?.[0]?.id || null,
+        );
+        setEditPortionMode(entry.food_serving_id ? 'serving' : 'weight');
+        setIsEditEntryOpen(true);
+    };
+
+    const handleUpdateEntry = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingEntry) return;
+
+        setIsUpdatingEntry(true);
+        router.put(
+            `/diary/${editingEntry.id}`,
+            {
+                meal_slot: editMealSlot,
+                food_serving_id:
+                    editPortionMode === 'serving'
+                        ? editSelectedServingId
+                        : null,
+                quantity:
+                    editPortionMode === 'serving' ? editQuantity : undefined,
+                custom_grams:
+                    editPortionMode === 'weight' ? editCustomGrams : undefined,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsEditEntryOpen(false);
+                    setEditingEntry(null);
+                },
+                onFinish: () => setIsUpdatingEntry(false),
+            },
+        );
+    };
+
+    const calculatedEditNutrition = useMemo(() => {
+        if (!editingEntry?.food)
+            return { calories: 0, protein: 0, carbs: 0, fat: 0, grams: 0 };
+
+        const food = editingEntry.food;
+        const baseSize =
+            Number(food.serving_size) > 0 ? Number(food.serving_size) : 100;
+
+        let grams = editCustomGrams;
+        if (editPortionMode === 'serving' && editSelectedServingId) {
+            const serving = food.servings?.find(
+                (s: any) => s.id === editSelectedServingId,
+            );
+            if (serving) {
+                grams = Number(serving.gram_equivalent) * editQuantity;
+            } else {
+                grams = baseSize * editQuantity;
+            }
+        } else if (editPortionMode === 'serving') {
+            grams = baseSize * editQuantity;
+        }
+
+        const factor = grams / baseSize;
+
+        return {
+            grams: Math.round(grams),
+            calories: Math.round(Number(food.calories) * factor),
+            protein: Math.round(Number(food.protein) * factor * 10) / 10,
+            carbs: Math.round(Number(food.carbs) * factor * 10) / 10,
+            fat: Math.round(Number(food.fat) * factor * 10) / 10,
+        };
+    }, [
+        editingEntry,
+        editPortionMode,
+        editSelectedServingId,
+        editQuantity,
+        editCustomGrams,
+    ]);
 
     const handleLogWater = (ml: number) => {
         router.post(
@@ -849,6 +948,18 @@ export default function DiaryIndex({
                                                             )}{' '}
                                                             kcal
                                                         </span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                handleOpenEditEntry(
+                                                                    entry,
+                                                                )
+                                                            }
+                                                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                                        >
+                                                            <Pencil className="h-3.5 w-3.5" />
+                                                        </Button>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
@@ -2139,6 +2250,375 @@ export default function DiaryIndex({
                             </div>
                         </DialogFooter>
                     </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit Food Entry Dialog */}
+            <Dialog open={isEditEntryOpen} onOpenChange={setIsEditEntryOpen}>
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Pencil className="h-5 w-5 text-primary" />
+                            Edit Food Entry
+                        </DialogTitle>
+                        <DialogDescription>
+                            Adjust meal slot, portion weight, or serving
+                            multiplier.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {editingEntry && (
+                        <form
+                            onSubmit={handleUpdateEntry}
+                            className="space-y-4 py-1"
+                        >
+                            {/* Food Product Header */}
+                            <div className="flex items-center gap-3 rounded-lg border border-border/70 bg-muted/30 p-3">
+                                {editingEntry.food?.image_url ? (
+                                    <img
+                                        src={editingEntry.food.image_url}
+                                        alt={editingEntry.food.name}
+                                        className="h-12 w-12 shrink-0 rounded-lg border border-border/80 object-cover shadow-xs"
+                                    />
+                                ) : (
+                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-dashed border-border bg-muted text-muted-foreground">
+                                        <Utensils className="h-6 w-6 opacity-40" />
+                                    </div>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                    <div className="line-clamp-1 text-sm font-bold text-foreground">
+                                        {editingEntry.food?.name}
+                                    </div>
+                                    <div className="line-clamp-1 text-xs text-muted-foreground">
+                                        {editingEntry.food?.brand ||
+                                            'Generic / Homemade'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Meal Slot Selector */}
+                            <div className="space-y-1.5">
+                                <Label className="text-xs font-medium">
+                                    Meal Slot
+                                </Label>
+                                <div className="grid grid-cols-4 gap-1.5">
+                                    {(
+                                        [
+                                            'breakfast',
+                                            'lunch',
+                                            'dinner',
+                                            'snack',
+                                        ] as const
+                                    ).map((slot) => (
+                                        <button
+                                            key={slot}
+                                            type="button"
+                                            onClick={() =>
+                                                setEditMealSlot(slot)
+                                            }
+                                            className={`rounded-md border py-1.5 text-xs font-semibold capitalize transition-all ${
+                                                editMealSlot === slot
+                                                    ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                                                    : 'border-border/80 bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
+                                            }`}
+                                        >
+                                            {slotNames[slot]}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Flexible Serving Mode Selector */}
+                            <div className="grid grid-cols-2 gap-1 rounded-lg border border-input bg-muted/40 p-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditPortionMode('weight')}
+                                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-all ${
+                                        editPortionMode === 'weight'
+                                            ? 'bg-background text-foreground shadow-xs'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    <Scale className="h-3.5 w-3.5" />
+                                    {t('foods.unit_mode_weight')} (g/ml)
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={
+                                        !editingEntry.food?.servings?.length
+                                    }
+                                    onClick={() => {
+                                        if (
+                                            editingEntry.food?.servings?.length
+                                        ) {
+                                            setEditPortionMode('serving');
+                                            if (!editSelectedServingId) {
+                                                setEditSelectedServingId(
+                                                    editingEntry.food
+                                                        .servings[0].id,
+                                                );
+                                            }
+                                        }
+                                    }}
+                                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-all ${
+                                        editPortionMode === 'serving'
+                                            ? 'bg-background text-foreground shadow-xs'
+                                            : !editingEntry.food?.servings
+                                                    ?.length
+                                              ? 'cursor-not-allowed text-muted-foreground opacity-40'
+                                              : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    <Utensils className="h-3.5 w-3.5" />
+                                    {t('foods.unit_mode_serving')}
+                                </button>
+                            </div>
+
+                            {editPortionMode === 'weight' ? (
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-xs font-medium text-foreground">
+                                            {t('foods.enter_grams_ml')}
+                                        </Label>
+                                        <span className="text-[11px] text-muted-foreground">
+                                            Base:{' '}
+                                            {Number(
+                                                editingEntry.food?.serving_size,
+                                            ) || 100}
+                                            {editingEntry.food?.serving_unit ||
+                                                'g'}
+                                        </span>
+                                    </div>
+                                    <div className="relative">
+                                        <Input
+                                            type="number"
+                                            min="1"
+                                            max="5000"
+                                            step="1"
+                                            value={editCustomGrams}
+                                            onChange={(e) =>
+                                                setEditCustomGrams(
+                                                    Math.max(
+                                                        1,
+                                                        Number(
+                                                            e.target.value,
+                                                        ) || 0,
+                                                    ),
+                                                )
+                                            }
+                                            className="pr-12 text-base font-semibold"
+                                        />
+                                        <span className="absolute inset-y-0 right-3 flex items-center text-xs font-semibold text-muted-foreground">
+                                            {editingEntry.food?.serving_unit ||
+                                                'g'}
+                                        </span>
+                                    </div>
+
+                                    {/* Quick Amount Pills */}
+                                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                        {[50, 100, 150, 200, 250].map((amt) => (
+                                            <button
+                                                key={amt}
+                                                type="button"
+                                                onClick={() =>
+                                                    setEditCustomGrams(amt)
+                                                }
+                                                className={`rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${
+                                                    editCustomGrams === amt
+                                                        ? 'border-primary bg-primary text-primary-foreground'
+                                                        : 'border-border/80 bg-muted/30 text-muted-foreground hover:bg-accent hover:text-foreground'
+                                                }`}
+                                            >
+                                                {amt}
+                                                {editingEntry.food
+                                                    ?.serving_unit || 'g'}
+                                            </button>
+                                        ))}
+                                        <div className="ml-auto flex items-center gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setEditCustomGrams((prev) =>
+                                                        Math.max(1, prev - 25),
+                                                    )
+                                                }
+                                                className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
+                                            >
+                                                -25g
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setEditCustomGrams(
+                                                        (prev) => prev + 25,
+                                                    )
+                                                }
+                                                className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
+                                            >
+                                                +25g
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs">
+                                            Serving Unit
+                                        </Label>
+                                        <select
+                                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:outline-hidden"
+                                            value={editSelectedServingId || ''}
+                                            onChange={(e) =>
+                                                setEditSelectedServingId(
+                                                    Number(e.target.value),
+                                                )
+                                            }
+                                        >
+                                            {editingEntry.food?.servings?.map(
+                                                (serving: any) => (
+                                                    <option
+                                                        key={serving.id}
+                                                        value={serving.id}
+                                                    >
+                                                        {serving.serving_name} (
+                                                        {Number(
+                                                            serving.gram_equivalent,
+                                                        )}
+                                                        g)
+                                                    </option>
+                                                ),
+                                            )}
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs">
+                                            {t('foods.portion_multiplier')}
+                                        </Label>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-9 w-9 shrink-0"
+                                                onClick={() =>
+                                                    setEditQuantity((q) =>
+                                                        Math.max(
+                                                            0.1,
+                                                            Math.round(
+                                                                (q - 0.5) * 10,
+                                                            ) / 10,
+                                                        ),
+                                                    )
+                                                }
+                                            >
+                                                <Minus className="h-3 w-3" />
+                                            </Button>
+                                            <Input
+                                                type="number"
+                                                step="0.1"
+                                                min="0.1"
+                                                max="50"
+                                                value={editQuantity}
+                                                onChange={(e) =>
+                                                    setEditQuantity(
+                                                        Math.max(
+                                                            0.1,
+                                                            Number(
+                                                                e.target.value,
+                                                            ) || 1,
+                                                        ),
+                                                    )
+                                                }
+                                                className="text-center font-semibold"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-9 w-9 shrink-0"
+                                                onClick={() =>
+                                                    setEditQuantity(
+                                                        (q) =>
+                                                            Math.round(
+                                                                (q + 0.5) * 10,
+                                                            ) / 10,
+                                                    )
+                                                }
+                                            >
+                                                <Plus className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Dynamic Scaled Nutrition Summary */}
+                            <div className="space-y-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-center">
+                                <div className="flex items-center justify-between border-b border-primary/10 pb-1.5 text-xs text-muted-foreground">
+                                    <span>Calculated Portion:</span>
+                                    <span className="font-bold text-foreground">
+                                        {calculatedEditNutrition.grams}
+                                        {editingEntry.food?.serving_unit || 'g'}
+                                    </span>
+                                </div>
+
+                                <div className="my-1 text-2xl font-black text-primary">
+                                    {calculatedEditNutrition.calories} kcal
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-2 border-t border-primary/10 pt-2 text-xs">
+                                    <div>
+                                        <span className="text-muted-foreground">
+                                            Protein:{' '}
+                                        </span>
+                                        <span className="font-bold text-blue-600 dark:text-blue-400">
+                                            {calculatedEditNutrition.protein}g
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground">
+                                            Carbs:{' '}
+                                        </span>
+                                        <span className="font-bold text-amber-600 dark:text-amber-400">
+                                            {calculatedEditNutrition.carbs}g
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground">
+                                            Fat:{' '}
+                                        </span>
+                                        <span className="font-bold text-rose-600 dark:text-rose-400">
+                                            {calculatedEditNutrition.fat}g
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <DialogFooter>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setIsEditEntryOpen(false);
+                                        setEditingEntry(null);
+                                    }}
+                                >
+                                    {t('action.cancel')}
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={isUpdatingEntry}
+                                >
+                                    {isUpdatingEntry ? (
+                                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                    ) : null}
+                                    {t('action.save')}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    )}
                 </DialogContent>
             </Dialog>
 
