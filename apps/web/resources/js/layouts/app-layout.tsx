@@ -17,27 +17,32 @@ export default function AppLayout({
     const { layout } = useNavigationLayout();
     const { isOpen, setIsOpen, initialFood } = useFoodChecker();
 
+    const resolvedBreadcrumbs =
+        breadcrumbs.length > 0
+            ? breadcrumbs
+            : ((children as any)?.type?.layout?.breadcrumbs ?? []);
+
     let content = (
-        <AppSidebarLayout breadcrumbs={breadcrumbs} side="left">
+        <AppSidebarLayout breadcrumbs={resolvedBreadcrumbs} side="left">
             {children}
         </AppSidebarLayout>
     );
 
     if (layout === 'top-nav') {
         content = (
-            <AppHeaderLayout breadcrumbs={breadcrumbs}>
+            <AppHeaderLayout breadcrumbs={resolvedBreadcrumbs}>
                 {children}
             </AppHeaderLayout>
         );
     } else if (layout === 'bottom-nav') {
         content = (
-            <AppBottomNavLayout breadcrumbs={breadcrumbs}>
+            <AppBottomNavLayout breadcrumbs={resolvedBreadcrumbs}>
                 {children}
             </AppBottomNavLayout>
         );
     } else if (layout === 'sidebar-right') {
         content = (
-            <AppSidebarLayout breadcrumbs={breadcrumbs} side="right">
+            <AppSidebarLayout breadcrumbs={resolvedBreadcrumbs} side="right">
                 {children}
             </AppSidebarLayout>
         );

@@ -20,7 +20,6 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import AppLayout from '@/layouts/app-layout';
 
 interface Message {
     id?: number;
@@ -221,12 +220,7 @@ export default function AssistantPage({
     };
 
     return (
-        <AppLayout
-            breadcrumbs={[
-                { title: 'Dashboard', href: '/dashboard' },
-                { title: 'AI Assistant', href: '/assistant' },
-            ]}
-        >
+        <>
             <Head title="Nutrition Assistant" />
 
             <div className="flex h-[calc(100vh-8rem)] flex-col gap-4 p-4 lg:flex-row">
@@ -242,9 +236,10 @@ export default function AssistantPage({
                                     AI Nutrition Assistant
                                 </CardTitle>
                                 <CardDescription className="text-sm">
-                                    Connect your OpenAI or Anthropic API key to
-                                    activate your personalized, privacy-first
-                                    nutrition assistant.
+                                    Connect your OpenAI, Anthropic, Gemini, or
+                                    DeepSeek API key to activate your
+                                    personalized, privacy-first nutrition
+                                    assistant.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -516,6 +511,19 @@ export default function AssistantPage({
                     </>
                 )}
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+AssistantPage.layout = {
+    breadcrumbs: [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+        },
+        {
+            title: 'AI Assistant',
+            href: '/assistant',
+        },
+    ],
+};

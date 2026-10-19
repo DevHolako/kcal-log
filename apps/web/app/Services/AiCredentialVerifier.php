@@ -16,6 +16,8 @@ class AiCredentialVerifier
             return match ($provider) {
                 'openai' => $this->verifyOpenAi($apiKey),
                 'anthropic' => $this->verifyAnthropic($apiKey),
+                'gemini' => $this->verifyGemini($apiKey),
+                'deepseek' => $this->verifyDeepSeek($apiKey),
                 default => false,
             };
         } catch (Throwable) {
@@ -40,6 +42,26 @@ class AiCredentialVerifier
         ])
             ->timeout(6)
             ->get('https://api.anthropic.com/v1/models');
+
+        return $response->successful();
+    }
+
+    protected function verifyGemini(string $apiKey): bool
+    {
+        $response = Http::withHeaders([
+            'x-goog-api-key' => $apiKey,
+        ])
+            ->timeout(6)
+            ->get('https://generativelanguage.googleapis.com/v1beta/models');
+
+        return $response->successful();
+    }
+
+    protected function verifyDeepSeek(string $apiKey): bool
+    {
+        $response = Http::withToken($apiKey)
+            ->timeout(6)
+            ->get('https://api.deepseek.com/models');
 
         return $response->successful();
     }

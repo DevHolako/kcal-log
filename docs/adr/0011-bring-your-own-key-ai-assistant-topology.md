@@ -10,6 +10,6 @@ Users want an AI assistant (`NutritionAssistant`) capable of querying their nutr
 4. **Read-Only Scoped Tooling**: Assistant tools (`DailySummary`, `DiaryEntries`, `FoodSearch`, `TargetProfile`, `WeightHistory`) are strictly read-only, capped to a maximum 30-day query window, and hard-scoped to `auth()->id()`.
 
 ## Consequences
-- Zero platform API billing liabilities; users pay directly via their own OpenAI or Anthropic accounts.
+- Zero platform API billing liabilities; users pay directly via their own OpenAI, Anthropic, Gemini, or DeepSeek accounts.
 - Prevents inter-request credential contamination in persistent worker environments.
 - Feature gracefully degrades: users without a configured `UserAiConnection` are prompted to add their key in settings before chat access is enabled.

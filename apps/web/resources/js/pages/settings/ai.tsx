@@ -23,17 +23,19 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+type ProviderType = 'openai' | 'anthropic' | 'gemini' | 'deepseek';
+
 interface Props {
     connection: {
         connected: boolean;
-        provider: 'openai' | 'anthropic';
+        provider: ProviderType;
         model: string;
         last_verified_at: string | null;
     };
     status?: string;
 }
 
-const PROVIDER_MODELS = {
+const PROVIDER_MODELS: Record<ProviderType, { id: string; label: string }[]> = {
     openai: [
         {
             id: 'gpt-4o-mini',
@@ -51,12 +53,40 @@ const PROVIDER_MODELS = {
             label: 'Claude 3.5 Sonnet (High Reasoning)',
         },
     ],
+    gemini: [
+        {
+            id: 'gemini-2.5-flash',
+            label: 'Gemini 2.5 Flash (Fast & Economical - Recommended)',
+        },
+        {
+            id: 'gemini-2.5-pro',
+            label: 'Gemini 2.5 Pro (High Reasoning)',
+        },
+        {
+            id: 'gemini-1.5-flash',
+            label: 'Gemini 1.5 Flash (Economical)',
+        },
+    ],
+    deepseek: [
+        {
+            id: 'deepseek-chat',
+            label: 'DeepSeek-V3 Chat (Fast & Economical - Recommended)',
+        },
+        {
+            id: 'deepseek-reasoner',
+            label: 'DeepSeek-R1 Reasoner (Deep Reasoning)',
+        },
+    ],
 };
 
 export default function AiSettings({ connection, status }: Props) {
     const [showKey, setShowKey] = useState(false);
 
-    const connectForm = useForm({
+    const connectForm = useForm<{
+        provider: ProviderType;
+        model: string;
+        api_key: string;
+    }>({
         provider: connection.provider || 'openai',
         model: connection.model || 'gpt-4o-mini',
         api_key: '',
@@ -64,7 +94,7 @@ export default function AiSettings({ connection, status }: Props) {
 
     const disconnectForm = useForm({});
 
-    const handleProviderChange = (newProvider: 'openai' | 'anthropic') => {
+    const handleProviderChange = (newProvider: ProviderType) => {
         const defaultModel = PROVIDER_MODELS[newProvider][0].id;
         connectForm.setData({
             ...connectForm.data,
@@ -96,7 +126,7 @@ export default function AiSettings({ connection, status }: Props) {
                 <Heading
                     variant="small"
                     title="AI Assistant (Bring Your Own Key)"
-                    description="Connect your OpenAI or Anthropic API key to activate your personal nutrition assistant"
+                    description="Connect your OpenAI, Anthropic, Gemini, or DeepSeek API key to activate your personal nutrition assistant"
                 />
 
                 {status && (
@@ -222,7 +252,7 @@ export default function AiSettings({ connection, status }: Props) {
                             {/* Provider Selection */}
                             <div className="space-y-2">
                                 <Label htmlFor="provider">AI Provider</Label>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                                     <button
                                         type="button"
                                         onClick={() =>
@@ -259,7 +289,47 @@ export default function AiSettings({ connection, status }: Props) {
                                             Anthropic
                                         </span>
                                         <span className="text-xs text-muted-foreground">
-                                            Claude 3.5 Haiku, Claude 3.5 Sonnet
+                                            Claude 3.5 Haiku, Sonnet
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            handleProviderChange('gemini')
+                                        }
+                                        className={`flex flex-col items-start rounded-lg border p-3 text-left transition ${
+                                            connectForm.data.provider ===
+                                            'gemini'
+                                                ? 'border-primary bg-primary/5 text-primary ring-1 ring-primary'
+                                                : 'border-border/60 hover:bg-muted/50'
+                                        }`}
+                                    >
+                                        <span className="text-sm font-semibold">
+                                            Gemini
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                            Gemini 2.5 Flash, 2.5 Pro
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            handleProviderChange('deepseek')
+                                        }
+                                        className={`flex flex-col items-start rounded-lg border p-3 text-left transition ${
+                                            connectForm.data.provider ===
+                                            'deepseek'
+                                                ? 'border-primary bg-primary/5 text-primary ring-1 ring-primary'
+                                                : 'border-border/60 hover:bg-muted/50'
+                                        }`}
+                                    >
+                                        <span className="text-sm font-semibold">
+                                            DeepSeek
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                            DeepSeek-V3, R1
                                         </span>
                                     </button>
                                 </div>
@@ -283,9 +353,7 @@ export default function AiSettings({ connection, status }: Props) {
                                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
                                 >
                                     {PROVIDER_MODELS[
-                                        connectForm.data.provider as
-                                            | 'openai'
-                                            | 'anthropic'
+                                        connectForm.data.provider
                                     ].map((m) => (
                                         <option key={m.id} value={m.id}>
                                             {m.label}
@@ -302,7 +370,13 @@ export default function AiSettings({ connection, status }: Props) {
                                 <Label htmlFor="api_key">
                                     {connectForm.data.provider === 'openai'
                                         ? 'OpenAI API Key'
-                                        : 'Anthropic API Key'}
+                                        : connectForm.data.provider ===
+                                            'anthropic'
+                                          ? 'Anthropic API Key'
+                                          : connectForm.data.provider ===
+                                              'gemini'
+                                            ? 'Google Gemini API Key'
+                                            : 'DeepSeek API Key'}
                                 </Label>
                                 <div className="relative">
                                     <Input
@@ -319,7 +393,13 @@ export default function AiSettings({ connection, status }: Props) {
                                             connectForm.data.provider ===
                                             'openai'
                                                 ? 'sk-proj-...'
-                                                : 'sk-ant-api03-...'
+                                                : connectForm.data.provider ===
+                                                    'anthropic'
+                                                  ? 'sk-ant-api03-...'
+                                                  : connectForm.data
+                                                          .provider === 'gemini'
+                                                    ? 'AIzaSy...'
+                                                    : 'sk-...'
                                         }
                                         className="pr-10"
                                         autoComplete="off"

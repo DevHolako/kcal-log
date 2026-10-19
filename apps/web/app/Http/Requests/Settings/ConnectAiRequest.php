@@ -22,7 +22,7 @@ class ConnectAiRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'provider' => ['required', 'string', 'in:openai,anthropic'],
+            'provider' => ['required', 'string', 'in:openai,anthropic,gemini,deepseek'],
             'model' => ['required', 'string', 'max:100'],
             'api_key' => ['required', 'string', 'min:8', 'max:500'],
         ];

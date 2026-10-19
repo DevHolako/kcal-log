@@ -98,6 +98,54 @@ test('user can connect Anthropic credentials with valid API key', function () {
     ]);
 });
 
+test('user can connect Gemini credentials with valid API key', function () {
+    $user = User::factory()->create();
+
+    Http::fake([
+        'https://generativelanguage.googleapis.com/v1beta/models*' => Http::response(['models' => [['name' => 'models/gemini-2.5-flash']]], 200),
+    ]);
+
+    $response = $this->actingAs($user)
+        ->post(route('settings.ai.connect'), [
+            'provider' => 'gemini',
+            'model' => 'gemini-2.5-flash',
+            'api_key' => 'AIzaSy-valid-gemini-key',
+        ]);
+
+    $response->assertRedirect(route('settings.ai.edit'));
+
+    $this->assertDatabaseHas('user_ai_connections', [
+        'user_id' => $user->id,
+        'provider' => 'gemini',
+        'model' => 'gemini-2.5-flash',
+        'is_connected' => true,
+    ]);
+});
+
+test('user can connect DeepSeek credentials with valid API key', function () {
+    $user = User::factory()->create();
+
+    Http::fake([
+        'https://api.deepseek.com/models*' => Http::response(['data' => [['id' => 'deepseek-chat']]], 200),
+    ]);
+
+    $response = $this->actingAs($user)
+        ->post(route('settings.ai.connect'), [
+            'provider' => 'deepseek',
+            'model' => 'deepseek-chat',
+            'api_key' => 'sk-valid-deepseek-key',
+        ]);
+
+    $response->assertRedirect(route('settings.ai.edit'));
+
+    $this->assertDatabaseHas('user_ai_connections', [
+        'user_id' => $user->id,
+        'provider' => 'deepseek',
+        'model' => 'deepseek-chat',
+        'is_connected' => true,
+    ]);
+});
+
 test('ai settings page never leaks API key in inertia props', function () {
     $user = User::factory()->create();
 
