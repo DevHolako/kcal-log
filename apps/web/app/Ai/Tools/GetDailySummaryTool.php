@@ -5,6 +5,7 @@ namespace App\Ai\Tools;
 use App\Models\DiaryEntry;
 use App\Models\TargetProfile;
 use App\Models\User;
+use App\Models\WaterLog;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -21,7 +22,7 @@ class GetDailySummaryTool implements Tool
      */
     public function description(): Stringable|string
     {
-        return 'Retrieve daily consumed calories, protein, carbs, fat, and compare against active targets for a given date.';
+        return 'Retrieve daily consumed calories, protein, carbs, fat, water intake, and compare against active targets for a given date.';
     }
 
     /**
@@ -35,10 +36,16 @@ class GetDailySummaryTool implements Tool
             ->whereDate('date', $date)
             ->get();
 
+        $waterLogs = WaterLog::where('user_id', $this->user->id)
+            ->whereDate('date', $date)
+            ->get();
+
         /** @var TargetProfile|null $target */
-        $target = TargetProfile::where('user_id', $this->user->id)
-            ->where('is_active', true)
-            ->first();
+        $target = $this->user->activeTargetProfile
+            ?? TargetProfile::where('user_id', $this->user->id)
+                ->where('is_active', true)
+                ->latest('id')
+                ->first();
 
         $consumedCalories = (float) $entries->sum('calories');
         $consumedProtein = (float) $entries->sum('protein');
@@ -49,6 +56,9 @@ class GetDailySummaryTool implements Tool
         $targetProtein = $target ? (float) $target->protein_g : 0.0;
         $targetCarbs = $target ? (float) $target->carbs_g : 0.0;
         $targetFat = $target ? (float) $target->fat_g : 0.0;
+
+        $consumedWaterMl = (int) $waterLogs->sum('amount_ml');
+        $targetWaterMl = $target && $target->water_ml ? (int) $target->water_ml : null;
 
         return (string) json_encode([
             'date' => $date,
@@ -70,6 +80,11 @@ class GetDailySummaryTool implements Tool
                 'protein' => round(max(0.0, $targetProtein - $consumedProtein), 2),
                 'carbs' => round(max(0.0, $targetCarbs - $consumedCarbs), 2),
                 'fat' => round(max(0.0, $targetFat - $consumedFat), 2),
+            ],
+            'water' => [
+                'consumed_ml' => $consumedWaterMl,
+                'target_ml' => $targetWaterMl,
+                'remaining_ml' => $targetWaterMl !== null ? max(0, $targetWaterMl - $consumedWaterMl) : null,
             ],
         ]);
     }

@@ -33,7 +33,9 @@ class NutritionAssistant implements Agent, Conversational, HasTools
     public function instructions(): Stringable|string
     {
         $today = now()->format('Y-m-d, l');
-        $target = TargetProfile::where('user_id', $this->user->id)->first();
+        /** @var TargetProfile|null $target */
+        $target = $this->user->activeTargetProfile
+            ?? TargetProfile::where('user_id', $this->user->id)->where('is_active', true)->latest('id')->first();
 
         $targetContext = 'No baseline TargetProfile configured yet.';
         if ($target) {

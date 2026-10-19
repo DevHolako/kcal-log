@@ -29,9 +29,11 @@ class GetTargetProfileTool implements Tool
     public function handle(Request $request): Stringable|string
     {
         /** @var TargetProfile|null $target */
-        $target = TargetProfile::where('user_id', $this->user->id)
-            ->where('is_active', true)
-            ->first();
+        $target = $this->user->activeTargetProfile
+            ?? TargetProfile::where('user_id', $this->user->id)
+                ->where('is_active', true)
+                ->latest('id')
+                ->first();
 
         if (! $target) {
             return (string) json_encode([

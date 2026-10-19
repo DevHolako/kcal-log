@@ -1,5 +1,6 @@
 <?php
 
+use App\Ai\Agents\NutritionAssistant;
 use App\Ai\Tools\GetDailySummaryTool;
 use App\Ai\Tools\GetDiaryEntriesTool;
 use App\Ai\Tools\GetTargetProfileTool;
@@ -10,6 +11,7 @@ use App\Models\Food;
 use App\Models\Profile;
 use App\Models\TargetProfile;
 use App\Models\User;
+use App\Models\WaterLog;
 use App\Models\WeightLog;
 use Laravel\Ai\Tools\Request as ToolRequest;
 
@@ -204,4 +206,60 @@ test('get weight history tool returns timestamped weights and trajectory', funct
     expect($result['start_weight_kg'])->toEqual(80.5);
     expect($result['latest_weight_kg'])->toEqual(79.2);
     expect($result['weight_change_kg'])->toEqual(-1.3);
+});
+
+test('get daily summary tool includes water logs and hydration progress', function () {
+    $user = createToolTestUser();
+    $user->activeTargetProfile->update(['water_ml' => 2500]);
+
+    WaterLog::create([
+        'user_id' => $user->id,
+        'date' => '2026-10-16',
+        'amount_ml' => 750,
+    ]);
+
+    WaterLog::create([
+        'user_id' => $user->id,
+        'date' => '2026-10-16',
+        'amount_ml' => 500,
+    ]);
+
+    $tool = new GetDailySummaryTool($user);
+    $result = json_decode((string) $tool->handle(new ToolRequest(['date' => '2026-10-16'])), true);
+
+    expect($result['water']['consumed_ml'])->toBe(1250);
+    expect($result['water']['target_ml'])->toBe(2500);
+    expect($result['water']['remaining_ml'])->toBe(1250);
+});
+
+test('nutrition assistant and target profile tool prioritize active target profile over older inactive profiles', function () {
+    $user = createToolTestUser();
+
+    // Deactivate initial profile
+    $user->activeTargetProfile->update(['is_active' => false]);
+
+    // Create a new updated active profile
+    $newTarget = TargetProfile::create([
+        'user_id' => $user->id,
+        'calories' => 1850,
+        'protein_g' => 160,
+        'carbs_g' => 180,
+        'fat_g' => 55,
+        'bmr' => 1700,
+        'tdee' => 2300,
+        'goal_type' => 'lose',
+        'is_active' => true,
+    ]);
+
+    $tool = new GetTargetProfileTool($user->fresh());
+    $result = json_decode((string) $tool->handle(new ToolRequest([])), true);
+
+    expect($result['calorie_target'])->toEqual(1850);
+    expect($result['protein_target'])->toEqual(160);
+
+    $agent = new NutritionAssistant($user->fresh());
+    $instructions = (string) $agent->instructions();
+
+    expect($instructions)->toContain('1850 kcal');
+    expect($instructions)->toContain('Protein: 160.00g');
 });
