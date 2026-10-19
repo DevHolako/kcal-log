@@ -56,7 +56,7 @@ export function AppSidebar({ side = 'left' }: { side?: 'left' | 'right' }) {
             icon: FileText,
         },
         {
-            title: 'AI Assistant',
+            title: t('nav.assistant'),
             href: '/assistant',
             icon: Bot,
         },

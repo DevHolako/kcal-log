@@ -18,6 +18,9 @@ export const translations: Record<Locale, Record<string, string>> = {
         'nav.security': 'Security',
         'nav.repository': 'Repository',
         'nav.documentation': 'Documentation',
+        'nav.assistant': 'AI Assistant',
+        'nav.assistant_short': 'Assistant',
+        'nav.open_food_facts': 'Open Food Facts',
 
         // Auth & User menu
         'auth.logout': 'Log out',
@@ -342,6 +345,13 @@ export const translations: Record<Locale, Record<string, string>> = {
         'reports.generating': 'Generating Export...',
 
         // Settings & Appearance
+        'settings.title': 'Settings',
+        'settings.subtitle': 'Manage your profile and account settings',
+        'settings.nav_profile': 'Profile',
+        'settings.nav_security': 'Security',
+        'settings.nav_appearance': 'Appearance',
+        'settings.nav_off': 'Open Food Facts',
+        'settings.nav_ai': 'AI Assistant',
         'settings.appearance_title': 'Appearance',
         'settings.appearance_subtitle':
             'Customize layout, palette themes, and navigation styles.',
@@ -371,6 +381,9 @@ export const translations: Record<Locale, Record<string, string>> = {
         'nav.security': 'Sécurité',
         'nav.repository': 'Dépôt GitHub',
         'nav.documentation': 'Documentation',
+        'nav.assistant': 'Assistant IA',
+        'nav.assistant_short': 'Assistant',
+        'nav.open_food_facts': 'Open Food Facts',
 
         // Auth & User menu
         'auth.logout': 'Se déconnecter',
@@ -706,6 +719,14 @@ export const translations: Record<Locale, Record<string, string>> = {
         'reports.generating': 'Génération en cours...',
 
         // Settings & Appearance
+        'settings.title': 'Paramètres',
+        'settings.subtitle':
+            'Gérez votre profil et les paramètres de votre compte',
+        'settings.nav_profile': 'Profil',
+        'settings.nav_security': 'Sécurité',
+        'settings.nav_appearance': 'Apparence',
+        'settings.nav_off': 'Open Food Facts',
+        'settings.nav_ai': 'Assistant IA',
         'settings.appearance_title': 'Apparence',
         'settings.appearance_subtitle':
             'Personnalisez la disposition de l’interface, les palettes de couleurs et le mode de navigation.',

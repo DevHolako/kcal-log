@@ -92,7 +92,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
             icon: FileText,
         },
         {
-            title: 'AI Assistant',
+            title: t('nav.assistant'),
             href: '/assistant',
             icon: Bot,
         },

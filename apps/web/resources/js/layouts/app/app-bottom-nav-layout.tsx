@@ -72,8 +72,8 @@ export default function AppBottomNavLayout({
             icon: FileText,
         },
         {
-            title: 'AI Assistant',
-            shortTitle: 'Assistant',
+            title: t('nav.assistant'),
+            shortTitle: t('nav.assistant_short'),
             href: '/assistant',
             icon: Bot,
         },
