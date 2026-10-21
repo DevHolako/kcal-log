@@ -1,12 +1,16 @@
 <?php
 
 use App\Ai\Agents\NutritionAssistant;
+use App\Ai\Tools\GetBodyMeasurementsTool;
 use App\Ai\Tools\GetDailySummaryTool;
 use App\Ai\Tools\GetDiaryEntriesTool;
+use App\Ai\Tools\GetExerciseLogsTool;
 use App\Ai\Tools\GetTargetProfileTool;
 use App\Ai\Tools\GetWeightHistoryTool;
 use App\Ai\Tools\SearchFoodDatabaseTool;
+use App\Models\BodyMeasurement;
 use App\Models\DiaryEntry;
+use App\Models\ExerciseLog;
 use App\Models\Food;
 use App\Models\Profile;
 use App\Models\TargetProfile;
@@ -262,4 +266,126 @@ test('nutrition assistant and target profile tool prioritize active target profi
 
     expect($instructions)->toContain('1850 kcal');
     expect($instructions)->toContain('Protein: 160.00g');
+});
+
+test('get daily summary tool includes exercise logs and body measurements', function () {
+    $user = createToolTestUser();
+
+    ExerciseLog::factory()->create([
+        'user_id' => $user->id,
+        'date' => '2026-10-16',
+        'name' => 'Outdoor Cycling',
+        'exercise_type' => 'cardio',
+        'duration_minutes' => 45,
+        'calories_burned' => 350.50,
+    ]);
+
+    BodyMeasurement::factory()->create([
+        'user_id' => $user->id,
+        'date' => '2026-10-16',
+        'waist_cm' => 82.5,
+        'hips_cm' => 98.0,
+        'chest_cm' => 102.0,
+    ]);
+
+    $tool = new GetDailySummaryTool($user);
+    $result = json_decode((string) $tool->handle(new ToolRequest(['date' => '2026-10-16'])), true);
+
+    expect($result['exercise']['calories_burned'])->toEqual(350.5);
+    expect($result['exercise']['duration_minutes'])->toBe(45);
+    expect($result['exercise']['sessions_count'])->toBe(1);
+    expect($result['exercise']['sessions'][0]['name'])->toBe('Outdoor Cycling');
+    expect($result['body_measurement']['waist_cm'])->toEqual(82.5);
+    expect($result['body_measurement']['hips_cm'])->toEqual(98.0);
+    expect($result['body_measurement']['chest_cm'])->toEqual(102.0);
+});
+
+test('get exercise logs tool returns aggregated workouts over time window', function () {
+    $user1 = createToolTestUser();
+    $user2 = createToolTestUser();
+
+    ExerciseLog::factory()->create([
+        'user_id' => $user1->id,
+        'date' => now()->subDays(5)->format('Y-m-d'),
+        'name' => 'Bench Press & Chest',
+        'exercise_type' => 'strength',
+        'duration_minutes' => 60,
+        'calories_burned' => 300,
+    ]);
+
+    ExerciseLog::factory()->create([
+        'user_id' => $user1->id,
+        'date' => now()->subDays(2)->format('Y-m-d'),
+        'name' => 'HIIT Sprint Session',
+        'exercise_type' => 'cardio',
+        'duration_minutes' => 30,
+        'calories_burned' => 250,
+    ]);
+
+    // Exercise log for user2 that should not appear
+    ExerciseLog::factory()->create([
+        'user_id' => $user2->id,
+        'date' => now()->subDays(2)->format('Y-m-d'),
+        'name' => 'User 2 Secret Workout',
+        'calories_burned' => 500,
+    ]);
+
+    $tool = new GetExerciseLogsTool($user1);
+    $result = json_decode((string) $tool->handle(new ToolRequest(['days' => 14])), true);
+
+    expect($result['window_days'])->toBe(14);
+    expect($result['total_sessions'])->toBe(2);
+    expect($result['total_calories_burned'])->toEqual(550.0);
+    expect($result['total_duration_minutes'])->toBe(90);
+    expect($result['logs'][0]['name'])->toBe('HIIT Sprint Session');
+});
+
+test('get body measurements tool returns trajectory and delta changes', function () {
+    $user1 = createToolTestUser();
+    $user2 = createToolTestUser();
+
+    BodyMeasurement::factory()->create([
+        'user_id' => $user1->id,
+        'date' => now()->subDays(15)->format('Y-m-d'),
+        'waist_cm' => 86.0,
+        'hips_cm' => 100.0,
+    ]);
+
+    BodyMeasurement::factory()->create([
+        'user_id' => $user1->id,
+        'date' => now()->format('Y-m-d'),
+        'waist_cm' => 83.5,
+        'hips_cm' => 99.0,
+    ]);
+
+    // User2 measurement should not bleed
+    BodyMeasurement::factory()->create([
+        'user_id' => $user2->id,
+        'date' => now()->format('Y-m-d'),
+        'waist_cm' => 95.0,
+    ]);
+
+    $tool = new GetBodyMeasurementsTool($user1);
+    $result = json_decode((string) $tool->handle(new ToolRequest(['days' => 30])), true);
+
+    expect($result['total_records'])->toBe(2);
+    expect($result['oldest']['waist_cm'])->toEqual(86.0);
+    expect($result['latest']['waist_cm'])->toEqual(83.5);
+    expect($result['deltas']['waist_cm_change'])->toEqual(-2.5);
+    expect($result['deltas']['hips_cm_change'])->toEqual(-1.0);
+});
+
+test('nutrition assistant registers exercise and body measurement tools and instructions', function () {
+    $user = createToolTestUser();
+    $assistant = new NutritionAssistant($user);
+
+    $tools = iterator_to_array($assistant->tools());
+    $toolClasses = array_map(fn ($t) => get_class($t), $tools);
+
+    expect($toolClasses)->toContain(GetExerciseLogsTool::class);
+    expect($toolClasses)->toContain(GetBodyMeasurementsTool::class);
+
+    $instructions = (string) $assistant->instructions();
+    expect($instructions)->toContain('physical activities');
+    expect($instructions)->toContain('circumference measurements');
 });

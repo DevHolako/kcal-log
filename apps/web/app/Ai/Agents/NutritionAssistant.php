@@ -2,8 +2,10 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Tools\GetBodyMeasurementsTool;
 use App\Ai\Tools\GetDailySummaryTool;
 use App\Ai\Tools\GetDiaryEntriesTool;
+use App\Ai\Tools\GetExerciseLogsTool;
 use App\Ai\Tools\GetTargetProfileTool;
 use App\Ai\Tools\GetWeightHistoryTool;
 use App\Ai\Tools\SearchFoodDatabaseTool;
@@ -59,6 +61,7 @@ Core Principles:
 2. Ground all answers in the user's active targets and recorded food intake.
 3. Be concise and format macros, calories, and food breakdowns cleanly using markdown lists or tables when helpful.
 4. When asked about today or specific dates, reference the user's logged foods and daily summaries.
+5. Factor in the user's physical activities (exercise sessions, duration, calories burned) and body circumference measurements (waist, hips, chest, etc.) when assessing daily balance, energy expenditure, and anthropometric trends.
 INSTRUCTIONS;
     }
 
@@ -100,6 +103,8 @@ INSTRUCTIONS;
             new GetTargetProfileTool($this->user),
             new SearchFoodDatabaseTool($this->user),
             new GetWeightHistoryTool($this->user),
+            new GetExerciseLogsTool($this->user),
+            new GetBodyMeasurementsTool($this->user),
         ];
     }
 }
