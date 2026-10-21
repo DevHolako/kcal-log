@@ -6,6 +6,7 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { selfUpdater } from './src/services/updater';
 import { offlineQueue } from './src/services/offlineQueue';
 import { UpdateModal } from './src/components/UpdateModal';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import type { UpdateCheckResult } from './src/types';
 
 export default function App() {
@@ -43,7 +44,9 @@ export default function App() {
     <AuthProvider>
       <DiaryProvider>
         <StatusBar style="light" backgroundColor="#09090b" />
-        <RootNavigator />
+        <ErrorBoundary>
+          <RootNavigator />
+        </ErrorBoundary>
 
         {/* Automatic launch update prompt if newer release detected */}
         <UpdateModal

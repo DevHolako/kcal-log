@@ -2,7 +2,7 @@
   "expo": {
     "name": "kcal-log",
     "slug": "kcal-log",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#09090b",
@@ -10,9 +10,14 @@
       "backgroundColor": "#09090b",
       "resizeMode": "contain"
     },
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#09090b",
+      "translucent": false
+    },
     "android": {
       "package": "com.kcallog.app",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "backgroundColor": "#09090b"
       },
@@ -33,7 +38,7 @@
     ],
     "extra": {
       "repositoryFullName": "DevHolako/kcal-log",
-      "appVersion": "0.1.2"
+      "appVersion": "0.1.3"
     }
   }
 }

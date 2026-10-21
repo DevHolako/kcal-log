@@ -17,7 +17,7 @@ import { COLORS } from '../components/ui/Theme';
 import type { MealSlot } from '@kcal-log/types';
 
 interface DiaryScreenProps {
-  onNavigateToSearch: (slot?: MealSlot) => void;
+  onNavigateToSearch: (slot?: MealSlot, date?: string) => void;
 }
 
 export const DiaryScreen: React.FC<DiaryScreenProps> = ({ onNavigateToSearch }) => {
@@ -46,8 +46,8 @@ export const DiaryScreen: React.FC<DiaryScreenProps> = ({ onNavigateToSearch }) 
   };
 
   const filterEntriesBySlot = (slot: MealSlot) => {
-    if (!diaryDay) return [];
-    return diaryDay.entries.filter(e => e.mealSlot === slot);
+    if (!diaryDay || !Array.isArray(diaryDay.entries)) return [];
+    return diaryDay.entries.filter(e => e && e.mealSlot === slot);
   };
 
   return (
@@ -83,22 +83,22 @@ export const DiaryScreen: React.FC<DiaryScreenProps> = ({ onNavigateToSearch }) 
           />
         ) : diaryDay ? (
           <>
-            {/* Calorie Equation Card: Goal - Food + Exercise = Remaining */}
+            {/* Calorie Equation Dashboard Card */}
             <CalorieBudgetCard
-              targetCalories={diaryDay.target.calories}
-              consumedCalories={diaryDay.totals.calories}
-              exerciseCalories={diaryDay.exerciseCaloriesBurned}
-              remainingCalories={diaryDay.remaining.calories}
+              targetCalories={diaryDay.target?.calories ?? 2000}
+              consumedCalories={diaryDay.totals?.calories ?? 0}
+              exerciseCalories={diaryDay.exerciseCaloriesBurned ?? 0}
+              remainingCalories={diaryDay.remaining?.calories ?? 2000}
             />
 
             {/* Macro Breakdown */}
             <MacroProgressSection
-              consumedProtein={diaryDay.totals.protein}
-              targetProtein={diaryDay.target.protein}
-              consumedCarbs={diaryDay.totals.carbs}
-              targetCarbs={diaryDay.target.carbs}
-              consumedFat={diaryDay.totals.fat}
-              targetFat={diaryDay.target.fat}
+              consumedProtein={diaryDay.totals?.protein ?? 0}
+              targetProtein={diaryDay.target?.protein ?? 150}
+              consumedCarbs={diaryDay.totals?.carbs ?? 0}
+              targetCarbs={diaryDay.target?.carbs ?? 200}
+              consumedFat={diaryDay.totals?.fat ?? 0}
+              targetFat={diaryDay.target?.fat ?? 65}
             />
 
             {/* Meal Slots */}
@@ -106,7 +106,7 @@ export const DiaryScreen: React.FC<DiaryScreenProps> = ({ onNavigateToSearch }) 
               slot="breakfast"
               title="Breakfast"
               entries={filterEntriesBySlot('breakfast')}
-              onAddFoodPress={slot => onNavigateToSearch(slot)}
+              onAddFoodPress={slot => onNavigateToSearch(slot, currentDate)}
               onQuickAdd={async (slot, cals, name) => {
                 await quickAddCalories({
                   date: currentDate,
@@ -122,7 +122,7 @@ export const DiaryScreen: React.FC<DiaryScreenProps> = ({ onNavigateToSearch }) 
               slot="lunch"
               title="Lunch"
               entries={filterEntriesBySlot('lunch')}
-              onAddFoodPress={slot => onNavigateToSearch(slot)}
+              onAddFoodPress={slot => onNavigateToSearch(slot, currentDate)}
               onQuickAdd={async (slot, cals, name) => {
                 await quickAddCalories({
                   date: currentDate,
@@ -138,7 +138,7 @@ export const DiaryScreen: React.FC<DiaryScreenProps> = ({ onNavigateToSearch }) 
               slot="dinner"
               title="Dinner"
               entries={filterEntriesBySlot('dinner')}
-              onAddFoodPress={slot => onNavigateToSearch(slot)}
+              onAddFoodPress={slot => onNavigateToSearch(slot, currentDate)}
               onQuickAdd={async (slot, cals, name) => {
                 await quickAddCalories({
                   date: currentDate,
@@ -154,7 +154,7 @@ export const DiaryScreen: React.FC<DiaryScreenProps> = ({ onNavigateToSearch }) 
               slot="snack"
               title="Snacks"
               entries={filterEntriesBySlot('snack')}
-              onAddFoodPress={slot => onNavigateToSearch(slot)}
+              onAddFoodPress={slot => onNavigateToSearch(slot, currentDate)}
               onQuickAdd={async (slot, cals, name) => {
                 await quickAddCalories({
                   date: currentDate,
@@ -168,7 +168,7 @@ export const DiaryScreen: React.FC<DiaryScreenProps> = ({ onNavigateToSearch }) 
 
             {/* Water Tracker */}
             <WaterTrackerCard
-              totalWaterMl={diaryDay.waterTotalMl}
+              totalWaterMl={diaryDay.waterTotalMl ?? 0}
               targetWaterMl={diaryDay.waterTargetMl ?? 2000}
               onAddWater={logWater}
             />

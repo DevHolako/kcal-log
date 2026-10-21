@@ -17,6 +17,7 @@ interface ServingCalculatorModalProps {
   visible: boolean;
   food: Food | null;
   initialMealSlot?: MealSlot;
+  targetDate?: string;
   onClose: () => void;
   onConfirm: (data: {
     date: string;
@@ -39,6 +40,7 @@ export const ServingCalculatorModal: React.FC<ServingCalculatorModalProps> = ({
   visible,
   food,
   initialMealSlot = 'breakfast',
+  targetDate,
   onClose,
   onConfirm,
 }) => {
@@ -48,6 +50,12 @@ export const ServingCalculatorModal: React.FC<ServingCalculatorModalProps> = ({
   const [quantity, setQuantity] = useState('1');
   const [customGrams, setCustomGrams] = useState('100');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (initialMealSlot) {
+      setSelectedSlot(initialMealSlot);
+    }
+  }, [initialMealSlot]);
 
   useEffect(() => {
     if (food) {
@@ -91,7 +99,7 @@ export const ServingCalculatorModal: React.FC<ServingCalculatorModalProps> = ({
     setIsSubmitting(true);
     try {
       await onConfirm({
-        date: getTodayDateString(),
+        date: targetDate || getTodayDateString(),
         mealSlot: selectedSlot,
         foodId: food.id,
         foodServingId: servingId,

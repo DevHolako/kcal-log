@@ -19,12 +19,14 @@ import { ServingCalculatorModal } from '../components/ServingCalculatorModal';
 
 interface FoodSearchScreenProps {
   initialSlot?: MealSlot;
+  targetDate?: string;
   onOpenBarcodeScanner: () => void;
   onLogComplete?: () => void;
 }
 
 export const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   initialSlot = 'breakfast',
+  targetDate,
   onOpenBarcodeScanner,
   onLogComplete,
 }) => {
@@ -39,7 +41,7 @@ export const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     // Load cached/recent foods on mount
     const loadInitial = async () => {
       try {
-        const cached = await api.searchFoods('');
+        const cached = await api.getCachedRecentFoods('');
         setResults(cached);
       } catch {
         // Ignored
@@ -81,7 +83,7 @@ export const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
           />
           <Button
             title="Search"
-            size="sm"
+            size="md"
             onPress={handleSearch}
             loading={isLoading}
             style={styles.searchButton}
@@ -89,12 +91,12 @@ export const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
         </View>
 
         <Button
-          title="Scan Barcode"
+          title="📷 Scan Barcode"
           variant="secondary"
           size="md"
           onPress={onOpenBarcodeScanner}
           style={styles.barcodeButton}
-          textStyle={{ color: COLORS.accentGreen }}
+          textStyle={{ color: COLORS.accentGreen, fontWeight: '700' }}
         />
       </View>
 
@@ -104,34 +106,60 @@ export const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       ) : results.length > 0 ? (
         <FlatList
           data={results}
-          keyExtractor={item => String(item.id)}
+          keyExtractor={(item, idx) => String(item.id || `${item.name}-${idx}`)}
           contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => handleFoodSelect(item)} activeOpacity={0.7}>
-              <Card style={styles.foodCard}>
-                <View style={styles.foodInfo}>
-                  <Text style={styles.foodName}>{item.name}</Text>
-                  {item.brand ? <Text style={styles.foodBrand}>{item.brand}</Text> : null}
-                  <Text style={styles.macrosText}>
-                    {Math.round(item.caloriesPer100g)} kcal • P: {Math.round(item.proteinPer100g)}g • C:{' '}
-                    {Math.round(item.carbsPer100g)}g • F: {Math.round(item.fatPer100g)}g (per 100g)
-                  </Text>
-                </View>
+          renderItem={({ item }) => {
+            const calories = Math.round(Number(item.caloriesPer100g) || 0);
+            const protein = Math.round(Number(item.proteinPer100g) || 0);
+            const carbs = Math.round(Number(item.carbsPer100g) || 0);
+            const fat = Math.round(Number(item.fatPer100g) || 0);
 
-                {item.isCustom ? (
-                  <Badge label="Custom" variant="outline" />
-                ) : item.barcode ? (
-                  <Badge label="OFF" variant="success" />
-                ) : null}
-              </Card>
-            </TouchableOpacity>
-          )}
+            return (
+              <TouchableOpacity onPress={() => handleFoodSelect(item)} activeOpacity={0.7}>
+                <Card style={styles.foodCard}>
+                  <View style={styles.foodInfo}>
+                    <Text style={styles.foodName}>{item.name}</Text>
+                    {item.brand ? <Text style={styles.foodBrand}>{item.brand}</Text> : null}
+
+                    {/* Micro Macro Badges */}
+                    <View style={styles.macroPillsRow}>
+                      <View style={styles.caloriesPill}>
+                        <Text style={styles.caloriesText}>{calories} kcal / 100g</Text>
+                      </View>
+                      <View style={styles.macroPill}>
+                        <Text style={[styles.macroPillText, { color: COLORS.accentBlue }]}>
+                          P: {protein}g
+                        </Text>
+                      </View>
+                      <View style={styles.macroPill}>
+                        <Text style={[styles.macroPillText, { color: COLORS.accentAmber }]}>
+                          C: {carbs}g
+                        </Text>
+                      </View>
+                      <View style={styles.macroPill}>
+                        <Text style={[styles.macroPillText, { color: COLORS.accentPurple }]}>
+                          F: {fat}g
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {item.isCustom ? (
+                    <Badge label="Custom" variant="outline" size="sm" />
+                  ) : item.barcode ? (
+                    <Badge label="Verified" variant="success" size="sm" />
+                  ) : null}
+                </Card>
+              </TouchableOpacity>
+            );
+          }}
         />
       ) : (
         <View style={styles.emptyContainer}>
+          <Text style={styles.emptyIcon}>🔍</Text>
           <Text style={styles.emptyTitle}>No foods found</Text>
           <Text style={styles.emptySubtitle}>
-            Try searching for common foods or scan a package barcode.
+            Try searching for common foods, or scan a package barcode using the button above.
           </Text>
         </View>
       )}
@@ -141,6 +169,7 @@ export const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
         visible={calculatorVisible}
         food={selectedFood}
         initialMealSlot={initialSlot}
+        targetDate={targetDate}
         onClose={() => setCalculatorVisible(false)}
         onConfirm={async payload => {
           await addFoodEntry(payload);
@@ -169,10 +198,14 @@ const styles = StyleSheet.create({
   },
   searchButton: {
     marginLeft: 8,
-    height: 42,
+    height: 48,
+    paddingHorizontal: 18,
   },
   barcodeButton: {
     width: '100%',
+    backgroundColor: '#181820',
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
   },
   listContent: {
     padding: 16,
@@ -190,7 +223,7 @@ const styles = StyleSheet.create({
   },
   foodName: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textPrimary,
   },
   foodBrand: {
@@ -198,10 +231,32 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: 2,
   },
-  macrosText: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginTop: 4,
+  macroPillsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 6,
+    flexWrap: 'wrap',
+  },
+  caloriesPill: {
+    backgroundColor: '#1f242e',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  caloriesText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  macroPill: {
+    backgroundColor: '#1b1b22',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  macroPillText: {
+    fontSize: 10,
+    fontWeight: '700',
   },
   emptyContainer: {
     flex: 1,
@@ -209,9 +264,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 30,
   },
+  emptyIcon: {
+    fontSize: 36,
+    marginBottom: 12,
+  },
   emptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: COLORS.textPrimary,
     marginBottom: 6,
   },

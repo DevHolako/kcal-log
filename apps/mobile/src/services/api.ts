@@ -12,6 +12,261 @@ import { APP_CONFIG } from '../config';
 import { storage } from './storage';
 import type { UserSession } from '../types';
 
+export function normalizeFood(raw: any): Food {
+  if (!raw) {
+    return {
+      id: 0,
+      name: 'Unknown Food',
+      brand: null,
+      barcode: null,
+      caloriesPer100g: 0,
+      proteinPer100g: 0,
+      carbsPer100g: 0,
+      fatPer100g: 0,
+      fiberPer100g: 0,
+      isCustom: false,
+      servings: [],
+    };
+  }
+
+  return {
+    id: raw.id ?? 0,
+    name: raw.name ?? 'Food Item',
+    brand: raw.brand ?? null,
+    barcode: raw.barcode ?? null,
+    caloriesPer100g: Number(raw.calories_per_100g ?? raw.caloriesPer100g ?? 0),
+    proteinPer100g: Number(raw.protein_per_100g ?? raw.proteinPer100g ?? 0),
+    carbsPer100g: Number(raw.carbs_per_100g ?? raw.carbsPer100g ?? 0),
+    fatPer100g: Number(raw.fat_per_100g ?? raw.fatPer100g ?? 0),
+    fiberPer100g: Number(raw.fiber_per_100g ?? raw.fiberPer100g ?? 0),
+    isCustom: Boolean(raw.is_custom ?? raw.isCustom),
+    servings: Array.isArray(raw.servings)
+      ? raw.servings.map((s: any) => ({
+          id: s.id ?? 0,
+          foodId: s.food_id ?? s.foodId ?? raw.id ?? 0,
+          description: s.description ?? 'serving',
+          grams: Number(s.grams ?? 100),
+        }))
+      : [],
+  };
+}
+
+export function normalizeDiaryDay(raw: any, date: string): DiaryDayResponse {
+  if (!raw) {
+    return {
+      date,
+      totals: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
+      target: { calories: 2000, protein: 150, carbs: 200, fat: 65 },
+      remaining: { calories: 2000, protein: 150, carbs: 200, fat: 65 },
+      entries: [],
+      waterLogs: [],
+      waterTotalMl: 0,
+      waterTargetMl: 2000,
+      weightLog: null,
+      measurements: null,
+      exercises: [],
+      exerciseCaloriesBurned: 0,
+    };
+  }
+
+  // If already normalized with valid arrays and objects
+  if (
+    raw.totals &&
+    typeof raw.totals.calories === 'number' &&
+    raw.target &&
+    typeof raw.target.calories === 'number' &&
+    raw.remaining &&
+    typeof raw.remaining.calories === 'number' &&
+    Array.isArray(raw.entries)
+  ) {
+    return {
+      date: raw.date || date,
+      totals: raw.totals,
+      target: raw.target,
+      remaining: raw.remaining,
+      entries: raw.entries.map((entry: any) => ({
+        ...entry,
+        mealSlot: entry.meal_slot ?? entry.mealSlot ?? 'breakfast',
+        food: entry.food ? normalizeFood(entry.food) : undefined,
+      })),
+      waterLogs: Array.isArray(raw.waterLogs) ? raw.waterLogs : [],
+      waterTotalMl: Number(raw.waterTotalMl ?? 0),
+      waterTargetMl: Number(raw.waterTargetMl ?? 2000),
+      weightLog: raw.weightLog ?? null,
+      measurements: raw.measurements ?? null,
+      exercises: Array.isArray(raw.exercises) ? raw.exercises : [],
+      exerciseCaloriesBurned: Number(raw.exerciseCaloriesBurned ?? 0),
+    };
+  }
+
+  const summary = raw.summary || {};
+  const slots = raw.slots || {};
+
+  // Extract entries from slots: { breakfast: { entries: [...] }, ... }
+  const allEntries: DiaryEntry[] = [];
+  const slotKeys: Array<'breakfast' | 'lunch' | 'dinner' | 'snack'> = [
+    'breakfast',
+    'lunch',
+    'dinner',
+    'snack',
+  ];
+
+  for (const slotKey of slotKeys) {
+    const slotData = slots[slotKey];
+    const slotEntries = Array.isArray(slotData?.entries)
+      ? slotData.entries
+      : Array.isArray(slotData)
+        ? slotData
+        : [];
+
+    for (const entry of slotEntries) {
+      if (!entry) continue;
+      allEntries.push({
+        id: entry.id,
+        userId: entry.user_id ?? entry.userId ?? 0,
+        date: entry.date ?? raw.date ?? date,
+        mealSlot: (entry.meal_slot ?? entry.mealSlot ?? slotKey) as any,
+        foodId: entry.food_id ?? entry.foodId ?? 0,
+        foodServingId: entry.food_serving_id ?? entry.foodServingId ?? null,
+        quantity: Number(entry.quantity ?? 1),
+        consumedGrams: Number(entry.grams ?? entry.consumedGrams ?? 100),
+        calories: Number(entry.calories ?? 0),
+        protein: Number(entry.protein ?? 0),
+        carbs: Number(entry.carbs ?? 0),
+        fat: Number(entry.fat ?? 0),
+        fiber: Number(entry.fiber ?? 0),
+        servingDescription:
+          entry.serving_description ??
+          entry.servingDescription ??
+          entry.serving?.description ??
+          (entry.food?.name ? `${entry.food.name}` : undefined),
+        food: entry.food ? normalizeFood(entry.food) : undefined,
+        createdAt: entry.created_at ?? entry.createdAt,
+        updatedAt: entry.updated_at ?? entry.updatedAt,
+      });
+    }
+  }
+
+  // Also handle if raw had entries at root
+  if (Array.isArray(raw.entries) && allEntries.length === 0) {
+    for (const entry of raw.entries) {
+      if (!entry) continue;
+      allEntries.push({
+        id: entry.id,
+        userId: entry.user_id ?? entry.userId ?? 0,
+        date: entry.date ?? raw.date ?? date,
+        mealSlot: (entry.meal_slot ?? entry.mealSlot ?? 'breakfast') as any,
+        foodId: entry.food_id ?? entry.foodId ?? 0,
+        foodServingId: entry.food_serving_id ?? entry.foodServingId ?? null,
+        quantity: Number(entry.quantity ?? 1),
+        consumedGrams: Number(entry.grams ?? entry.consumedGrams ?? 100),
+        calories: Number(entry.calories ?? 0),
+        protein: Number(entry.protein ?? 0),
+        carbs: Number(entry.carbs ?? 0),
+        fat: Number(entry.fat ?? 0),
+        fiber: Number(entry.fiber ?? 0),
+        servingDescription:
+          entry.serving_description ??
+          entry.servingDescription ??
+          entry.serving?.description,
+        food: entry.food ? normalizeFood(entry.food) : undefined,
+        createdAt: entry.created_at ?? entry.createdAt,
+        updatedAt: entry.updated_at ?? entry.updatedAt,
+      });
+    }
+  }
+
+  const totals = {
+    calories: Number(
+      summary.total_calories ??
+        raw.totals?.calories ??
+        allEntries.reduce((s, e) => s + e.calories, 0)
+    ),
+    protein: Number(
+      summary.total_protein ??
+        raw.totals?.protein ??
+        allEntries.reduce((s, e) => s + e.protein, 0)
+    ),
+    carbs: Number(
+      summary.total_carbs ??
+        raw.totals?.carbs ??
+        allEntries.reduce((s, e) => s + e.carbs, 0)
+    ),
+    fat: Number(
+      summary.total_fat ??
+        raw.totals?.fat ??
+        allEntries.reduce((s, e) => s + e.fat, 0)
+    ),
+    fiber: Number(
+      summary.total_fiber ??
+        raw.totals?.fiber ??
+        allEntries.reduce((s, e) => s + e.fiber, 0)
+    ),
+  };
+
+  const target = {
+    calories: Number(summary.target_calories ?? raw.target?.calories ?? 2000),
+    protein: Number(summary.target_protein ?? raw.target?.protein ?? 150),
+    carbs: Number(summary.target_carbs ?? raw.target?.carbs ?? 200),
+    fat: Number(summary.target_fat ?? raw.target?.fat ?? 65),
+  };
+
+  const remaining = {
+    calories: Number(
+      summary.remaining_calories ??
+        raw.remaining?.calories ??
+        Math.max(0, target.calories - totals.calories)
+    ),
+    protein: Number(
+      summary.remaining_protein ??
+        raw.remaining?.protein ??
+        Math.max(0, target.protein - totals.protein)
+    ),
+    carbs: Number(
+      summary.remaining_carbs ??
+        raw.remaining?.carbs ??
+        Math.max(0, target.carbs - totals.carbs)
+    ),
+    fat: Number(
+      summary.remaining_fat ??
+        raw.remaining?.fat ??
+        Math.max(0, target.fat - totals.fat)
+    ),
+  };
+
+  return {
+    date: raw.date ?? date,
+    totals,
+    target,
+    remaining,
+    entries: allEntries,
+    waterLogs: Array.isArray(raw.waterLogs) ? raw.waterLogs : [],
+    waterTotalMl: Number(summary.water_ml ?? raw.waterTotalMl ?? 0),
+    waterTargetMl: Number(summary.target_water_ml ?? raw.waterTargetMl ?? 2000),
+    weightLog:
+      summary.weight_kg != null
+        ? {
+            id: 0,
+            userId: 0,
+            date: raw.date ?? date,
+            weightKg: Number(summary.weight_kg),
+            note: summary.weight_note ?? null,
+            trendWeightKg: null,
+            recordedAt: raw.date ?? date,
+          }
+        : raw.weightLog ?? null,
+    measurements: summary.body_measurement ?? raw.measurements ?? null,
+    exercises: Array.isArray(summary.exercise_logs)
+      ? summary.exercise_logs
+      : Array.isArray(raw.exercises)
+        ? raw.exercises
+        : [],
+    exerciseCaloriesBurned: Number(
+      summary.exercise_calories_burned ?? raw.exerciseCaloriesBurned ?? 0
+    ),
+  };
+}
+
 export class MobileApiService {
   private client: KcalApiClient;
   private currentBaseUrl: string;
@@ -108,43 +363,34 @@ export class MobileApiService {
     });
 
     this.setToken(response.token);
-    await storage.setJSON(APP_CONFIG.STORAGE_KEYS.USER_PROFILE, {
-      user: response.user,
-      activeTarget: response.active_target,
-    });
-
     return {
       token: response.token,
-      user: response.user,
-      profile: response.profile,
-      activeTarget: response.active_target,
+      user: {
+        id: response.user.id,
+        name: response.user.name,
+        email: response.user.email,
+      },
+      profile: response.profile ?? null,
+      activeTarget: response.active_target ?? null,
     };
   }
 
   public async logout(): Promise<void> {
     try {
-      if (this.token) {
-        await this.client.revokeAllTokens();
-      }
-    } catch {
-      // Best-effort remote revocation
-    } finally {
       this.setToken(null);
       await storage.removeItem(APP_CONFIG.STORAGE_KEYS.AUTH_TOKEN);
       await storage.removeItem(APP_CONFIG.STORAGE_KEYS.USER_PROFILE);
+    } catch {
+      // Ignored
     }
   }
 
-  public async getCurrentUser(): Promise<{
-    user: UserSession;
-    profile: Record<string, unknown> | null;
-    activeTarget: TargetProfile | null;
-  }> {
-    const res = await this.client.getUser();
+  public async getCurrentUser(): Promise<UserSession> {
+    const user = await this.client.getCurrentUser();
     return {
-      user: res.user as UserSession,
-      profile: res.profile ?? null,
-      activeTarget: res.target_profile ?? null,
+      id: user.id,
+      name: user.name,
+      email: user.email,
     };
   }
 
@@ -152,9 +398,10 @@ export class MobileApiService {
   public async getDiaryDay(date: string): Promise<DiaryDayResponse> {
     try {
       const response = await this.client.getDiaryDay(date);
+      const normalized = normalizeDiaryDay(response, date);
       // Cache response locally for offline reading
-      await storage.setJSON(`${APP_CONFIG.STORAGE_KEYS.DIARY_CACHE_PREFIX}${date}`, response);
-      return response;
+      await storage.setJSON(`${APP_CONFIG.STORAGE_KEYS.DIARY_CACHE_PREFIX}${date}`, normalized);
+      return normalized;
     } catch (err) {
       // Offline fallback: check local cache
       const cached = await storage.getJSON<DiaryDayResponse | null>(
@@ -162,7 +409,16 @@ export class MobileApiService {
         null
       );
       if (cached) {
-        return cached;
+        if (
+          cached.totals &&
+          typeof cached.totals.calories === 'number' &&
+          cached.target &&
+          cached.remaining &&
+          Array.isArray(cached.entries)
+        ) {
+          return cached;
+        }
+        return normalizeDiaryDay(cached, date);
       }
       throw err;
     }
@@ -247,23 +503,39 @@ export class MobileApiService {
   public async searchFoods(query: string): Promise<Food[]> {
     try {
       const res = await this.client.searchFoods(query);
-      return res.items || [];
-    } catch {
-      // Offline fallback: check cached foods matching query
-      const cachedFoods = await storage.getJSON<Food[]>(APP_CONFIG.STORAGE_KEYS.FOODS_CACHE, []);
-      const lower = query.toLowerCase().trim();
-      if (lower.length > 0) {
-        return cachedFoods.filter(f => f.name.toLowerCase().includes(lower));
+      const rawList = res?.items ?? (res as any)?.data ?? [];
+      const list = rawList.map(normalizeFood);
+      if (query.trim()) {
+        for (const item of list.slice(0, 10)) {
+          await this.cacheRecentFood(item);
+        }
       }
-      return cachedFoods;
+      return list;
+    } catch {
+      return this.getCachedRecentFoods(query);
     }
   }
 
   public async lookupBarcode(barcode: string): Promise<Food> {
-    const food = await this.client.getFoodByBarcode(barcode);
-    // Add discovered food to offline catalog cache
+    return this.getFoodByBarcode(barcode);
+  }
+
+  public async getFoodByBarcode(barcode: string): Promise<Food> {
+    const raw = await this.client.getFoodByBarcode(barcode);
+    const unwrapped = (raw as any)?.data ?? raw;
+    const food = normalizeFood(unwrapped);
     await this.cacheFoodItem(food);
     return food;
+  }
+
+  public async getCachedRecentFoods(query: string = ''): Promise<Food[]> {
+    const cached = await storage.getJSON<Food[]>(APP_CONFIG.STORAGE_KEYS.FOODS_CACHE, []);
+    const normalized = cached.map(normalizeFood);
+    if (!query.trim()) {
+      return normalized;
+    }
+    const lower = query.toLowerCase();
+    return normalized.filter(f => f.name.toLowerCase().includes(lower));
   }
 
   public async cacheFoodItem(food: Food): Promise<void> {
@@ -280,6 +552,10 @@ export class MobileApiService {
     } catch {
       // Cache error ignored
     }
+  }
+
+  private async cacheRecentFood(food: Food): Promise<void> {
+    await this.cacheFoodItem(food);
   }
 
   // --- Adaptive System ---

@@ -11,6 +11,7 @@ import {
   Modal,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { getTodayDateString } from '../context/DiaryContext';
 import { LoginScreen } from '../screens/LoginScreen';
 import { DiaryScreen } from '../screens/DiaryScreen';
 import { FoodSearchScreen } from '../screens/FoodSearchScreen';
@@ -18,6 +19,7 @@ import { BarcodeScanScreen } from '../screens/BarcodeScanScreen';
 import { WeightLogScreen } from '../screens/WeightLogScreen';
 import { AdaptiveReviewScreen } from '../screens/AdaptiveReviewScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { COLORS } from '../components/ui/Theme';
 import type { RootTab } from '../types';
 import type { MealSlot } from '@kcal-log/types';
@@ -35,11 +37,13 @@ export const RootNavigator: React.FC = () => {
   const [activeTab, setActiveTab] = useState<RootTab>('diary');
   const [barcodeModalVisible, setBarcodeModalVisible] = useState(false);
   const [targetSlot, setTargetSlot] = useState<MealSlot>('breakfast');
+  const [targetDate, setTargetDate] = useState<string>(getTodayDateString());
 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>kcal-log</Text>
+        <Text style={styles.loadingLogo}>kcal-log</Text>
+        <Text style={styles.loadingSub}>Loading your diary...</Text>
       </View>
     );
   }
@@ -57,8 +61,9 @@ export const RootNavigator: React.FC = () => {
       case 'diary':
         return (
           <DiaryScreen
-            onNavigateToSearch={slot => {
+            onNavigateToSearch={(slot, date) => {
               if (slot) setTargetSlot(slot);
+              if (date) setTargetDate(date);
               setActiveTab('search');
             }}
           />
@@ -67,6 +72,7 @@ export const RootNavigator: React.FC = () => {
         return (
           <FoodSearchScreen
             initialSlot={targetSlot}
+            targetDate={targetDate}
             onOpenBarcodeScanner={() => setBarcodeModalVisible(true)}
             onLogComplete={() => setActiveTab('diary')}
           />
@@ -83,8 +89,12 @@ export const RootNavigator: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Active Screen */}
-        <View style={styles.screenContainer}>{renderScreen()}</View>
+        {/* Active Screen wrapped in Error Boundary */}
+        <View style={styles.screenContainer}>
+          <ErrorBoundary>
+            {renderScreen()}
+          </ErrorBoundary>
+        </View>
 
         {/* Bottom Tab Bar with Icons8 Icons */}
         <View style={styles.tabBar}>
@@ -218,17 +228,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: Platform.OS === 'android' ? (RNStatusBar.currentHeight || 24) : 0,
   },
-  loadingText: {
-    fontSize: 28,
+  loadingLogo: {
+    fontSize: 32,
     fontWeight: '900',
     color: COLORS.accentGreen,
+    letterSpacing: -0.5,
+  },
+  loadingSub: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: 8,
   },
   screenContainer: {
     flex: 1,
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: COLORS.card,
+    backgroundColor: '#111114',
     borderTopWidth: 1,
     borderTopColor: COLORS.cardBorder,
     paddingVertical: 8,
@@ -248,11 +264,11 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
     color: COLORS.textMuted,
   },
   tabLabelActive: {
     color: COLORS.accentGreen,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

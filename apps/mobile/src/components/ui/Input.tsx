@@ -41,11 +41,11 @@ export const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
+    marginBottom: 14,
   },
   label: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
     color: COLORS.textSecondary,
     marginBottom: 6,
     textTransform: 'uppercase',
@@ -55,18 +55,19 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.inputBackground,
     borderWidth: 1,
     borderColor: COLORS.inputBorder,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
     color: COLORS.textPrimary,
   },
   inputError: {
     borderColor: COLORS.accentRed,
   },
   errorText: {
-    fontSize: 11,
+    fontSize: 12,
     color: COLORS.accentRed,
     marginTop: 4,
+    fontWeight: '500',
   },
 });

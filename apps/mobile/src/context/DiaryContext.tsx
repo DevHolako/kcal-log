@@ -3,10 +3,11 @@ import type {
   DiaryDayResponse,
   DiaryEntry,
 } from '@kcal-log/types';
-import { api } from '../services/api';
+import { api, normalizeDiaryDay } from '../services/api';
 import { offlineQueue } from '../services/offlineQueue';
 import { storage } from '../services/storage';
 import { APP_CONFIG } from '../config';
+import { useAuth } from './AuthContext';
 import type { AddFoodPayload, QuickAddPayload } from '../types';
 
 export function getTodayDateString(): string {
@@ -56,6 +57,7 @@ interface DiaryContextType {
 const DiaryContext = createContext<DiaryContextType | undefined>(undefined);
 
 export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [currentDate, setCurrentDate] = useState<string>(getTodayDateString());
   const [diaryDay, setDiaryDay] = useState<DiaryDayResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -74,7 +76,7 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsLoading(true);
     try {
       const data = await api.getDiaryDay(date);
-      setDiaryDay(data);
+      setDiaryDay(normalizeDiaryDay(data, date));
       setIsOffline(false);
     } catch {
       // Check cached copy
@@ -83,21 +85,27 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         null
       );
       if (cached) {
-        setDiaryDay(cached);
+        setDiaryDay(normalizeDiaryDay(cached, date));
         setIsOffline(true);
       } else {
         // Construct fallback empty day response
-        setDiaryDay({
-          date,
-          totals: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
-          target: { calories: 2000, protein: 150, carbs: 200, fat: 65 },
-          remaining: { calories: 2000, protein: 150, carbs: 200, fat: 65 },
-          entries: [],
-          waterLogs: [],
-          waterTotalMl: 0,
-          exercises: [],
-          exerciseCaloriesBurned: 0,
-        });
+        setDiaryDay(
+          normalizeDiaryDay(
+            {
+              date,
+              totals: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
+              target: { calories: 2000, protein: 150, carbs: 200, fat: 65 },
+              remaining: { calories: 2000, protein: 150, carbs: 200, fat: 65 },
+              entries: [],
+              waterLogs: [],
+              waterTotalMl: 0,
+              waterTargetMl: 2000,
+              exercises: [],
+              exerciseCaloriesBurned: 0,
+            },
+            date
+          )
+        );
         setIsOffline(true);
       }
     } finally {
@@ -106,8 +114,15 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   useEffect(() => {
-    loadDiaryDay(currentDate);
-  }, [currentDate, loadDiaryDay]);
+    if (!authLoading) {
+      if (isAuthenticated) {
+        loadDiaryDay(currentDate);
+      } else {
+        setDiaryDay(null);
+        setIsLoading(false);
+      }
+    }
+  }, [currentDate, isAuthenticated, authLoading, loadDiaryDay]);
 
   const goToPreviousDay = () => setCurrentDate(prev => shiftDateString(prev, -1));
   const goToNextDay = () => setCurrentDate(prev => shiftDateString(prev, 1));

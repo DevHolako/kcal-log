@@ -11,7 +11,7 @@ import { COLORS } from './Theme';
 export interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'destructive' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'destructive' | 'ghost' | 'softGreen';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   loading?: boolean;
@@ -34,7 +34,7 @@ export const Button: React.FC<ButtonProps> = ({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: 8,
+      borderRadius: 10,
     };
 
     // Size
@@ -52,8 +52,14 @@ export const Button: React.FC<ButtonProps> = ({
     // Variant
     if (variant === 'primary') {
       base.backgroundColor = COLORS.accentGreen;
+    } else if (variant === 'softGreen') {
+      base.backgroundColor = COLORS.accentGreenMuted;
+      base.borderWidth = 1;
+      base.borderColor = COLORS.accentGreenBorder;
     } else if (variant === 'secondary') {
-      base.backgroundColor = COLORS.cardBorder;
+      base.backgroundColor = '#202026';
+      base.borderWidth = 1;
+      base.borderColor = COLORS.cardBorder;
     } else if (variant === 'destructive') {
       base.backgroundColor = COLORS.accentRed;
     } else if (variant === 'outline') {
@@ -79,13 +85,16 @@ export const Button: React.FC<ButtonProps> = ({
     if (size === 'sm') {
       base.fontSize = 12;
     } else if (size === 'lg') {
-      base.fontSize = 16;
+      base.fontSize = 15;
+      base.fontWeight = '700';
     } else {
       base.fontSize = 14;
     }
 
     if (variant === 'primary') {
       base.color = '#000000';
+    } else if (variant === 'softGreen') {
+      base.color = COLORS.accentGreen;
     } else if (variant === 'outline' || variant === 'ghost' || variant === 'secondary') {
       base.color = COLORS.textPrimary;
     } else if (variant === 'destructive') {

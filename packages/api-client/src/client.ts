@@ -122,11 +122,15 @@ export class KcalApiClient {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
     if (barcode) params.set('barcode', barcode);
-    return this.request<{ items: Food[]; count: number }>(`/api/v1/foods/search?${params.toString()}`);
+    const res = await this.request<any>(`/api/v1/foods/search?${params.toString()}`);
+    const items = res?.items ?? res?.data ?? [];
+    const count = res?.count ?? res?.total ?? (Array.isArray(items) ? items.length : 0);
+    return { items, count };
   }
 
   public async getFoodByBarcode(barcode: string): Promise<Food> {
-    return this.request<Food>(`/api/v1/foods/barcode/${encodeURIComponent(barcode)}`);
+    const res = await this.request<any>(`/api/v1/foods/barcode/${encodeURIComponent(barcode)}`);
+    return res?.data ?? res;
   }
 
   public async getFood(id: string | number): Promise<Food> {
@@ -364,7 +368,9 @@ export class KcalApiClient {
 
   // --- Adaptive System ---
   public async getCurrentAdaptiveAdjustment(): Promise<{ adjustment: AdaptiveAdjustment | null }> {
-    return this.request('/api/v1/adaptive/current');
+    const res = await this.request<any>('/api/v1/adaptive/current');
+    const adjustment = res?.adjustment ?? res?.pending ?? res?.latest ?? null;
+    return { adjustment };
   }
 
   public async getAdaptiveHistory(): Promise<{ history: AdaptiveAdjustment[] }> {
