@@ -923,15 +923,18 @@ export function formatLocaleDate(
 export function t(
     key: string,
     locale: Locale = 'en',
-    params?: Record<string, string | number>,
+    params?: Record<string, string | number> | string,
 ): string {
     const dict = translations[locale] || translations.en;
-    let translation = dict[key] || translations.en[key] || key;
+    let translation =
+        dict[key] ||
+        translations.en[key] ||
+        (typeof params === 'string' ? params : key);
 
-    if (params) {
+    if (params && typeof params === 'object' && !Array.isArray(params)) {
         Object.entries(params).forEach(([paramKey, paramValue]) => {
-            translation = translation.replace(
-                new RegExp(`{${paramKey}}`, 'g'),
+            translation = translation.replaceAll(
+                `{${paramKey}}`,
                 String(paramValue),
             );
         });
@@ -975,7 +978,7 @@ export function useTranslation() {
     return {
         locale: currentLocale,
         setLocale: setGlobalLocale,
-        t: (key: string, params?: Record<string, string | number>) =>
+        t: (key: string, params?: Record<string, string | number> | string) =>
             t(key, currentLocale, params),
         formatNumber: (value: number, options?: Intl.NumberFormatOptions) =>
             formatNumber(value, currentLocale, options),

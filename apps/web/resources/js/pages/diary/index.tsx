@@ -3295,7 +3295,7 @@ export default function DiaryIndex({
                                             if (!editSelectedServingId) {
                                                 setEditSelectedServingId(
                                                     editingEntry.food
-                                                        .servings[0].id,
+                                                        .servings[0].id ?? null,
                                                 );
                                             }
                                         }

@@ -1947,13 +1947,10 @@ export default function FoodsIndex({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Pencil className="h-5 w-5 text-primary" />
-                            {t('foods.edit_custom_title', 'Edit Custom Food')}
+                            {t('foods.edit_custom_title')}
                         </DialogTitle>
                         <DialogDescription>
-                            {t(
-                                'foods.edit_custom_desc',
-                                'Update nutritional values and portion information for this item.',
-                            )}
+                            {t('foods.edit_custom_desc')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -2416,6 +2413,7 @@ export default function FoodsIndex({
             {/* Live Camera Barcode Scanner Modal */}
             <BarcodeScannerModal
                 open={scannerOpen}
+                onOpenChange={setScannerOpen}
                 onFoodFound={(food) => openCalculator(food)}
             />
 

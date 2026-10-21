@@ -4,6 +4,7 @@ import {
     calculateTDEE,
     calculateTargetCalories,
     calculateMacroGrams,
+    type MacroSplit,
     kgToLbs,
     lbsToKg,
 } from '@kcal-log/nutrition';

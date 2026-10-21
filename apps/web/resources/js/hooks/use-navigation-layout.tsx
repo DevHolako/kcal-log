@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { NavigationLayoutMode } from '@/types';
+export type { NavigationLayoutMode };
 
 export const NAVIGATION_LAYOUT_STORAGE_KEY = 'kcal_navigation_layout';
 export const DEFAULT_NAVIGATION_LAYOUT: NavigationLayoutMode = 'sidebar-left';

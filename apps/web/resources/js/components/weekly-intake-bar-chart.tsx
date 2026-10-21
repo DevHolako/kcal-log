@@ -120,7 +120,7 @@ export function WeeklyIntakeBarChart({
                     <BarChart
                         data={data}
                         margin={{ top: 12, right: 12, left: -16, bottom: 0 }}
-                        onClick={(state) => {
+                        onClick={(state: any) => {
                             if (
                                 state?.activePayload &&
                                 state.activePayload.length > 0
