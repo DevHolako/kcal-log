@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/dashboard'
 */
 const index42a740574ecbfbac32f8cc353fc32db9 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index42a740574ecbfbac32f8cc353fc32db9.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/dashboard'
 */
 index42a740574ecbfbac32f8cc353fc32db9.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index42a740574ecbfbac32f8cc353fc32db9.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/dashboard'
 */
 index42a740574ecbfbac32f8cc353fc32db9.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ index42a740574ecbfbac32f8cc353fc32db9.get = (options?: RouteQueryOptions): Route
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/dashboard'
 */
 index42a740574ecbfbac32f8cc353fc32db9.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ index42a740574ecbfbac32f8cc353fc32db9.head = (options?: RouteQueryOptions): Rout
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/dashboard'
 */
 const index42a740574ecbfbac32f8cc353fc32db9Form = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -55,7 +55,7 @@ const index42a740574ecbfbac32f8cc353fc32db9Form = (options?: RouteQueryOptions):
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/dashboard'
 */
 index42a740574ecbfbac32f8cc353fc32db9Form.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -65,7 +65,7 @@ index42a740574ecbfbac32f8cc353fc32db9Form.get = (options?: RouteQueryOptions): R
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/dashboard'
 */
 index42a740574ecbfbac32f8cc353fc32db9Form.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -81,7 +81,7 @@ index42a740574ecbfbac32f8cc353fc32db9Form.head = (options?: RouteQueryOptions): 
 index42a740574ecbfbac32f8cc353fc32db9.form = index42a740574ecbfbac32f8cc353fc32db9Form
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/diary'
 */
 const index8540ff38185d94c16e1581215dfd09bc = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -96,7 +96,7 @@ index8540ff38185d94c16e1581215dfd09bc.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/diary'
 */
 index8540ff38185d94c16e1581215dfd09bc.url = (options?: RouteQueryOptions) => {
@@ -105,7 +105,7 @@ index8540ff38185d94c16e1581215dfd09bc.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/diary'
 */
 index8540ff38185d94c16e1581215dfd09bc.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -115,7 +115,7 @@ index8540ff38185d94c16e1581215dfd09bc.get = (options?: RouteQueryOptions): Route
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/diary'
 */
 index8540ff38185d94c16e1581215dfd09bc.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -125,7 +125,7 @@ index8540ff38185d94c16e1581215dfd09bc.head = (options?: RouteQueryOptions): Rout
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/diary'
 */
 const index8540ff38185d94c16e1581215dfd09bcForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -135,7 +135,7 @@ const index8540ff38185d94c16e1581215dfd09bcForm = (options?: RouteQueryOptions):
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/diary'
 */
 index8540ff38185d94c16e1581215dfd09bcForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -145,7 +145,7 @@ index8540ff38185d94c16e1581215dfd09bcForm.get = (options?: RouteQueryOptions): R
 
 /**
 * @see \App\Http\Controllers\DiaryController::index
-* @see app/Http/Controllers/DiaryController.php:45
+* @see app/Http/Controllers/DiaryController.php:49
 * @route '/diary'
 */
 index8540ff38185d94c16e1581215dfd09bcForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -172,7 +172,7 @@ export const index = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::store
-* @see app/Http/Controllers/DiaryController.php:72
+* @see app/Http/Controllers/DiaryController.php:76
 * @route '/diary'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -187,7 +187,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::store
-* @see app/Http/Controllers/DiaryController.php:72
+* @see app/Http/Controllers/DiaryController.php:76
 * @route '/diary'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -196,7 +196,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DiaryController::store
-* @see app/Http/Controllers/DiaryController.php:72
+* @see app/Http/Controllers/DiaryController.php:76
 * @route '/diary'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -206,7 +206,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\DiaryController::store
-* @see app/Http/Controllers/DiaryController.php:72
+* @see app/Http/Controllers/DiaryController.php:76
 * @route '/diary'
 */
 const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -216,7 +216,7 @@ const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => 
 
 /**
 * @see \App\Http\Controllers\DiaryController::store
-* @see app/Http/Controllers/DiaryController.php:72
+* @see app/Http/Controllers/DiaryController.php:76
 * @route '/diary'
 */
 storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -228,7 +228,7 @@ store.form = storeForm
 
 /**
 * @see \App\Http\Controllers\DiaryController::quickAdd
-* @see app/Http/Controllers/DiaryController.php:113
+* @see app/Http/Controllers/DiaryController.php:117
 * @route '/diary/quick-add'
 */
 export const quickAdd = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -243,7 +243,7 @@ quickAdd.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::quickAdd
-* @see app/Http/Controllers/DiaryController.php:113
+* @see app/Http/Controllers/DiaryController.php:117
 * @route '/diary/quick-add'
 */
 quickAdd.url = (options?: RouteQueryOptions) => {
@@ -252,7 +252,7 @@ quickAdd.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DiaryController::quickAdd
-* @see app/Http/Controllers/DiaryController.php:113
+* @see app/Http/Controllers/DiaryController.php:117
 * @route '/diary/quick-add'
 */
 quickAdd.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -262,7 +262,7 @@ quickAdd.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\DiaryController::quickAdd
-* @see app/Http/Controllers/DiaryController.php:113
+* @see app/Http/Controllers/DiaryController.php:117
 * @route '/diary/quick-add'
 */
 const quickAddForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -272,7 +272,7 @@ const quickAddForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> 
 
 /**
 * @see \App\Http\Controllers\DiaryController::quickAdd
-* @see app/Http/Controllers/DiaryController.php:113
+* @see app/Http/Controllers/DiaryController.php:117
 * @route '/diary/quick-add'
 */
 quickAddForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -284,7 +284,7 @@ quickAdd.form = quickAddForm
 
 /**
 * @see \App\Http\Controllers\DiaryController::storeWater
-* @see app/Http/Controllers/DiaryController.php:127
+* @see app/Http/Controllers/DiaryController.php:131
 * @route '/diary/water'
 */
 export const storeWater = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -299,7 +299,7 @@ storeWater.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::storeWater
-* @see app/Http/Controllers/DiaryController.php:127
+* @see app/Http/Controllers/DiaryController.php:131
 * @route '/diary/water'
 */
 storeWater.url = (options?: RouteQueryOptions) => {
@@ -308,7 +308,7 @@ storeWater.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DiaryController::storeWater
-* @see app/Http/Controllers/DiaryController.php:127
+* @see app/Http/Controllers/DiaryController.php:131
 * @route '/diary/water'
 */
 storeWater.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -318,7 +318,7 @@ storeWater.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\DiaryController::storeWater
-* @see app/Http/Controllers/DiaryController.php:127
+* @see app/Http/Controllers/DiaryController.php:131
 * @route '/diary/water'
 */
 const storeWaterForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -328,7 +328,7 @@ const storeWaterForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'
 
 /**
 * @see \App\Http\Controllers\DiaryController::storeWater
-* @see app/Http/Controllers/DiaryController.php:127
+* @see app/Http/Controllers/DiaryController.php:131
 * @route '/diary/water'
 */
 storeWaterForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -340,7 +340,7 @@ storeWater.form = storeWaterForm
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroyWater
-* @see app/Http/Controllers/DiaryController.php:141
+* @see app/Http/Controllers/DiaryController.php:145
 * @route '/diary/water/{waterLog}'
 */
 export const destroyWater = (args: { waterLog: number | { id: number } } | [waterLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -355,7 +355,7 @@ destroyWater.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroyWater
-* @see app/Http/Controllers/DiaryController.php:141
+* @see app/Http/Controllers/DiaryController.php:145
 * @route '/diary/water/{waterLog}'
 */
 destroyWater.url = (args: { waterLog: number | { id: number } } | [waterLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -388,7 +388,7 @@ destroyWater.url = (args: { waterLog: number | { id: number } } | [waterLog: num
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroyWater
-* @see app/Http/Controllers/DiaryController.php:141
+* @see app/Http/Controllers/DiaryController.php:145
 * @route '/diary/water/{waterLog}'
 */
 destroyWater.delete = (args: { waterLog: number | { id: number } } | [waterLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -398,7 +398,7 @@ destroyWater.delete = (args: { waterLog: number | { id: number } } | [waterLog: 
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroyWater
-* @see app/Http/Controllers/DiaryController.php:141
+* @see app/Http/Controllers/DiaryController.php:145
 * @route '/diary/water/{waterLog}'
 */
 const destroyWaterForm = (args: { waterLog: number | { id: number } } | [waterLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -413,7 +413,7 @@ const destroyWaterForm = (args: { waterLog: number | { id: number } } | [waterLo
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroyWater
-* @see app/Http/Controllers/DiaryController.php:141
+* @see app/Http/Controllers/DiaryController.php:145
 * @route '/diary/water/{waterLog}'
 */
 destroyWaterForm.delete = (args: { waterLog: number | { id: number } } | [waterLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -430,7 +430,7 @@ destroyWater.form = destroyWaterForm
 
 /**
 * @see \App\Http\Controllers\DiaryController::storeWeight
-* @see app/Http/Controllers/DiaryController.php:154
+* @see app/Http/Controllers/DiaryController.php:158
 * @route '/diary/weight'
 */
 export const storeWeight = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -445,7 +445,7 @@ storeWeight.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::storeWeight
-* @see app/Http/Controllers/DiaryController.php:154
+* @see app/Http/Controllers/DiaryController.php:158
 * @route '/diary/weight'
 */
 storeWeight.url = (options?: RouteQueryOptions) => {
@@ -454,7 +454,7 @@ storeWeight.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DiaryController::storeWeight
-* @see app/Http/Controllers/DiaryController.php:154
+* @see app/Http/Controllers/DiaryController.php:158
 * @route '/diary/weight'
 */
 storeWeight.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -464,7 +464,7 @@ storeWeight.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\DiaryController::storeWeight
-* @see app/Http/Controllers/DiaryController.php:154
+* @see app/Http/Controllers/DiaryController.php:158
 * @route '/diary/weight'
 */
 const storeWeightForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -474,7 +474,7 @@ const storeWeightForm = (options?: RouteQueryOptions): RouteFormDefinition<'post
 
 /**
 * @see \App\Http\Controllers\DiaryController::storeWeight
-* @see app/Http/Controllers/DiaryController.php:154
+* @see app/Http/Controllers/DiaryController.php:158
 * @route '/diary/weight'
 */
 storeWeightForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -486,7 +486,7 @@ storeWeight.form = storeWeightForm
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroyWeight
-* @see app/Http/Controllers/DiaryController.php:172
+* @see app/Http/Controllers/DiaryController.php:176
 * @route '/diary/weight'
 */
 export const destroyWeight = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -501,7 +501,7 @@ destroyWeight.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroyWeight
-* @see app/Http/Controllers/DiaryController.php:172
+* @see app/Http/Controllers/DiaryController.php:176
 * @route '/diary/weight'
 */
 destroyWeight.url = (options?: RouteQueryOptions) => {
@@ -510,7 +510,7 @@ destroyWeight.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroyWeight
-* @see app/Http/Controllers/DiaryController.php:172
+* @see app/Http/Controllers/DiaryController.php:176
 * @route '/diary/weight'
 */
 destroyWeight.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -520,7 +520,7 @@ destroyWeight.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> 
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroyWeight
-* @see app/Http/Controllers/DiaryController.php:172
+* @see app/Http/Controllers/DiaryController.php:176
 * @route '/diary/weight'
 */
 const destroyWeightForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -535,7 +535,7 @@ const destroyWeightForm = (options?: RouteQueryOptions): RouteFormDefinition<'po
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroyWeight
-* @see app/Http/Controllers/DiaryController.php:172
+* @see app/Http/Controllers/DiaryController.php:176
 * @route '/diary/weight'
 */
 destroyWeightForm.delete = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -551,8 +551,276 @@ destroyWeightForm.delete = (options?: RouteQueryOptions): RouteFormDefinition<'p
 destroyWeight.form = destroyWeightForm
 
 /**
+* @see \App\Http\Controllers\DiaryController::storeMeasurements
+* @see app/Http/Controllers/DiaryController.php:190
+* @route '/diary/measurements'
+*/
+export const storeMeasurements = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: storeMeasurements.url(options),
+    method: 'post',
+})
+
+storeMeasurements.definition = {
+    methods: ["post"],
+    url: '/diary/measurements',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\DiaryController::storeMeasurements
+* @see app/Http/Controllers/DiaryController.php:190
+* @route '/diary/measurements'
+*/
+storeMeasurements.url = (options?: RouteQueryOptions) => {
+    return storeMeasurements.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\DiaryController::storeMeasurements
+* @see app/Http/Controllers/DiaryController.php:190
+* @route '/diary/measurements'
+*/
+storeMeasurements.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: storeMeasurements.url(options),
+    method: 'post',
+})
+
+/**
+* @see \App\Http\Controllers\DiaryController::storeMeasurements
+* @see app/Http/Controllers/DiaryController.php:190
+* @route '/diary/measurements'
+*/
+const storeMeasurementsForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: storeMeasurements.url(options),
+    method: 'post',
+})
+
+/**
+* @see \App\Http\Controllers\DiaryController::storeMeasurements
+* @see app/Http/Controllers/DiaryController.php:190
+* @route '/diary/measurements'
+*/
+storeMeasurementsForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: storeMeasurements.url(options),
+    method: 'post',
+})
+
+storeMeasurements.form = storeMeasurementsForm
+
+/**
+* @see \App\Http\Controllers\DiaryController::destroyMeasurements
+* @see app/Http/Controllers/DiaryController.php:207
+* @route '/diary/measurements'
+*/
+export const destroyMeasurements = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroyMeasurements.url(options),
+    method: 'delete',
+})
+
+destroyMeasurements.definition = {
+    methods: ["delete"],
+    url: '/diary/measurements',
+} satisfies RouteDefinition<["delete"]>
+
+/**
+* @see \App\Http\Controllers\DiaryController::destroyMeasurements
+* @see app/Http/Controllers/DiaryController.php:207
+* @route '/diary/measurements'
+*/
+destroyMeasurements.url = (options?: RouteQueryOptions) => {
+    return destroyMeasurements.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\DiaryController::destroyMeasurements
+* @see app/Http/Controllers/DiaryController.php:207
+* @route '/diary/measurements'
+*/
+destroyMeasurements.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroyMeasurements.url(options),
+    method: 'delete',
+})
+
+/**
+* @see \App\Http\Controllers\DiaryController::destroyMeasurements
+* @see app/Http/Controllers/DiaryController.php:207
+* @route '/diary/measurements'
+*/
+const destroyMeasurementsForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: destroyMeasurements.url({
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'DELETE',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        }
+    }),
+    method: 'post',
+})
+
+/**
+* @see \App\Http\Controllers\DiaryController::destroyMeasurements
+* @see app/Http/Controllers/DiaryController.php:207
+* @route '/diary/measurements'
+*/
+destroyMeasurementsForm.delete = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: destroyMeasurements.url({
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'DELETE',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        }
+    }),
+    method: 'post',
+})
+
+destroyMeasurements.form = destroyMeasurementsForm
+
+/**
+* @see \App\Http\Controllers\DiaryController::storeExercise
+* @see app/Http/Controllers/DiaryController.php:221
+* @route '/diary/exercises'
+*/
+export const storeExercise = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: storeExercise.url(options),
+    method: 'post',
+})
+
+storeExercise.definition = {
+    methods: ["post"],
+    url: '/diary/exercises',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\DiaryController::storeExercise
+* @see app/Http/Controllers/DiaryController.php:221
+* @route '/diary/exercises'
+*/
+storeExercise.url = (options?: RouteQueryOptions) => {
+    return storeExercise.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\DiaryController::storeExercise
+* @see app/Http/Controllers/DiaryController.php:221
+* @route '/diary/exercises'
+*/
+storeExercise.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: storeExercise.url(options),
+    method: 'post',
+})
+
+/**
+* @see \App\Http\Controllers\DiaryController::storeExercise
+* @see app/Http/Controllers/DiaryController.php:221
+* @route '/diary/exercises'
+*/
+const storeExerciseForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: storeExercise.url(options),
+    method: 'post',
+})
+
+/**
+* @see \App\Http\Controllers\DiaryController::storeExercise
+* @see app/Http/Controllers/DiaryController.php:221
+* @route '/diary/exercises'
+*/
+storeExerciseForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: storeExercise.url(options),
+    method: 'post',
+})
+
+storeExercise.form = storeExerciseForm
+
+/**
+* @see \App\Http\Controllers\DiaryController::destroyExercise
+* @see app/Http/Controllers/DiaryController.php:238
+* @route '/diary/exercises/{exerciseLog}'
+*/
+export const destroyExercise = (args: { exerciseLog: number | { id: number } } | [exerciseLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroyExercise.url(args, options),
+    method: 'delete',
+})
+
+destroyExercise.definition = {
+    methods: ["delete"],
+    url: '/diary/exercises/{exerciseLog}',
+} satisfies RouteDefinition<["delete"]>
+
+/**
+* @see \App\Http\Controllers\DiaryController::destroyExercise
+* @see app/Http/Controllers/DiaryController.php:238
+* @route '/diary/exercises/{exerciseLog}'
+*/
+destroyExercise.url = (args: { exerciseLog: number | { id: number } } | [exerciseLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { exerciseLog: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+        args = { exerciseLog: args.id }
+    }
+
+    if (Array.isArray(args)) {
+        args = {
+            exerciseLog: args[0],
+        }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+        exerciseLog: typeof args.exerciseLog === 'object'
+        ? args.exerciseLog.id
+        : args.exerciseLog,
+    }
+
+    return destroyExercise.definition.url
+            .replace('{exerciseLog}', parsedArgs.exerciseLog.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\DiaryController::destroyExercise
+* @see app/Http/Controllers/DiaryController.php:238
+* @route '/diary/exercises/{exerciseLog}'
+*/
+destroyExercise.delete = (args: { exerciseLog: number | { id: number } } | [exerciseLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+    url: destroyExercise.url(args, options),
+    method: 'delete',
+})
+
+/**
+* @see \App\Http\Controllers\DiaryController::destroyExercise
+* @see app/Http/Controllers/DiaryController.php:238
+* @route '/diary/exercises/{exerciseLog}'
+*/
+const destroyExerciseForm = (args: { exerciseLog: number | { id: number } } | [exerciseLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: destroyExercise.url(args, {
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'DELETE',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        }
+    }),
+    method: 'post',
+})
+
+/**
+* @see \App\Http\Controllers\DiaryController::destroyExercise
+* @see app/Http/Controllers/DiaryController.php:238
+* @route '/diary/exercises/{exerciseLog}'
+*/
+destroyExerciseForm.delete = (args: { exerciseLog: number | { id: number } } | [exerciseLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+    action: destroyExercise.url(args, {
+        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+            _method: 'DELETE',
+            ...(options?.query ?? options?.mergeQuery ?? {}),
+        }
+    }),
+    method: 'post',
+})
+
+destroyExercise.form = destroyExerciseForm
+
+/**
 * @see \App\Http\Controllers\DiaryController::update
-* @see app/Http/Controllers/DiaryController.php:86
+* @see app/Http/Controllers/DiaryController.php:90
 * @route '/diary/{entry}'
 */
 export const update = (args: { entry: number | { id: number } } | [entry: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -567,7 +835,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::update
-* @see app/Http/Controllers/DiaryController.php:86
+* @see app/Http/Controllers/DiaryController.php:90
 * @route '/diary/{entry}'
 */
 update.url = (args: { entry: number | { id: number } } | [entry: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -600,7 +868,7 @@ update.url = (args: { entry: number | { id: number } } | [entry: number | { id: 
 
 /**
 * @see \App\Http\Controllers\DiaryController::update
-* @see app/Http/Controllers/DiaryController.php:86
+* @see app/Http/Controllers/DiaryController.php:90
 * @route '/diary/{entry}'
 */
 update.put = (args: { entry: number | { id: number } } | [entry: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -610,7 +878,7 @@ update.put = (args: { entry: number | { id: number } } | [entry: number | { id: 
 
 /**
 * @see \App\Http\Controllers\DiaryController::update
-* @see app/Http/Controllers/DiaryController.php:86
+* @see app/Http/Controllers/DiaryController.php:90
 * @route '/diary/{entry}'
 */
 const updateForm = (args: { entry: number | { id: number } } | [entry: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -625,7 +893,7 @@ const updateForm = (args: { entry: number | { id: number } } | [entry: number | 
 
 /**
 * @see \App\Http\Controllers\DiaryController::update
-* @see app/Http/Controllers/DiaryController.php:86
+* @see app/Http/Controllers/DiaryController.php:90
 * @route '/diary/{entry}'
 */
 updateForm.put = (args: { entry: number | { id: number } } | [entry: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -642,7 +910,7 @@ update.form = updateForm
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroy
-* @see app/Http/Controllers/DiaryController.php:100
+* @see app/Http/Controllers/DiaryController.php:104
 * @route '/diary/{entry}'
 */
 export const destroy = (args: { entry: number | { id: number } } | [entry: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -657,7 +925,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroy
-* @see app/Http/Controllers/DiaryController.php:100
+* @see app/Http/Controllers/DiaryController.php:104
 * @route '/diary/{entry}'
 */
 destroy.url = (args: { entry: number | { id: number } } | [entry: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -690,7 +958,7 @@ destroy.url = (args: { entry: number | { id: number } } | [entry: number | { id:
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroy
-* @see app/Http/Controllers/DiaryController.php:100
+* @see app/Http/Controllers/DiaryController.php:104
 * @route '/diary/{entry}'
 */
 destroy.delete = (args: { entry: number | { id: number } } | [entry: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -700,7 +968,7 @@ destroy.delete = (args: { entry: number | { id: number } } | [entry: number | { 
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroy
-* @see app/Http/Controllers/DiaryController.php:100
+* @see app/Http/Controllers/DiaryController.php:104
 * @route '/diary/{entry}'
 */
 const destroyForm = (args: { entry: number | { id: number } } | [entry: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -715,7 +983,7 @@ const destroyForm = (args: { entry: number | { id: number } } | [entry: number |
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroy
-* @see app/Http/Controllers/DiaryController.php:100
+* @see app/Http/Controllers/DiaryController.php:104
 * @route '/diary/{entry}'
 */
 destroyForm.delete = (args: { entry: number | { id: number } } | [entry: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -730,6 +998,6 @@ destroyForm.delete = (args: { entry: number | { id: number } } | [entry: number 
 
 destroy.form = destroyForm
 
-const DiaryController = { index, store, quickAdd, storeWater, destroyWater, storeWeight, destroyWeight, update, destroy }
+const DiaryController = { index, store, quickAdd, storeWater, destroyWater, storeWeight, destroyWeight, storeMeasurements, destroyMeasurements, storeExercise, destroyExercise, update, destroy }
 
 export default DiaryController

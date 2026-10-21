@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\DiaryController::store
-* @see app/Http/Controllers/DiaryController.php:154
+* @see app/Http/Controllers/DiaryController.php:158
 * @route '/diary/weight'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::store
-* @see app/Http/Controllers/DiaryController.php:154
+* @see app/Http/Controllers/DiaryController.php:158
 * @route '/diary/weight'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DiaryController::store
-* @see app/Http/Controllers/DiaryController.php:154
+* @see app/Http/Controllers/DiaryController.php:158
 * @route '/diary/weight'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\DiaryController::store
-* @see app/Http/Controllers/DiaryController.php:154
+* @see app/Http/Controllers/DiaryController.php:158
 * @route '/diary/weight'
 */
 const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => 
 
 /**
 * @see \App\Http\Controllers\DiaryController::store
-* @see app/Http/Controllers/DiaryController.php:154
+* @see app/Http/Controllers/DiaryController.php:158
 * @route '/diary/weight'
 */
 storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -57,7 +57,7 @@ store.form = storeForm
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroy
-* @see app/Http/Controllers/DiaryController.php:172
+* @see app/Http/Controllers/DiaryController.php:176
 * @route '/diary/weight'
 */
 export const destroy = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -72,7 +72,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroy
-* @see app/Http/Controllers/DiaryController.php:172
+* @see app/Http/Controllers/DiaryController.php:176
 * @route '/diary/weight'
 */
 destroy.url = (options?: RouteQueryOptions) => {
@@ -81,7 +81,7 @@ destroy.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroy
-* @see app/Http/Controllers/DiaryController.php:172
+* @see app/Http/Controllers/DiaryController.php:176
 * @route '/diary/weight'
 */
 destroy.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -91,7 +91,7 @@ destroy.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroy
-* @see app/Http/Controllers/DiaryController.php:172
+* @see app/Http/Controllers/DiaryController.php:176
 * @route '/diary/weight'
 */
 const destroyForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -106,7 +106,7 @@ const destroyForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> =
 
 /**
 * @see \App\Http\Controllers\DiaryController::destroy
-* @see app/Http/Controllers/DiaryController.php:172
+* @see app/Http/Controllers/DiaryController.php:176
 * @route '/diary/weight'
 */
 destroyForm.delete = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

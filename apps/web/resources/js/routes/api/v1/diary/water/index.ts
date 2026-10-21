@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Api\V1\DiaryController::store
-* @see app/Http/Controllers/Api/V1/DiaryController.php:124
+* @see app/Http/Controllers/Api/V1/DiaryController.php:128
 * @route '/api/v1/diary/water'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\DiaryController::store
-* @see app/Http/Controllers/Api/V1/DiaryController.php:124
+* @see app/Http/Controllers/Api/V1/DiaryController.php:128
 * @route '/api/v1/diary/water'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Api\V1\DiaryController::store
-* @see app/Http/Controllers/Api/V1/DiaryController.php:124
+* @see app/Http/Controllers/Api/V1/DiaryController.php:128
 * @route '/api/v1/diary/water'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\Api\V1\DiaryController::store
-* @see app/Http/Controllers/Api/V1/DiaryController.php:124
+* @see app/Http/Controllers/Api/V1/DiaryController.php:128
 * @route '/api/v1/diary/water'
 */
 const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => 
 
 /**
 * @see \App\Http\Controllers\Api\V1\DiaryController::store
-* @see app/Http/Controllers/Api/V1/DiaryController.php:124
+* @see app/Http/Controllers/Api/V1/DiaryController.php:128
 * @route '/api/v1/diary/water'
 */
 storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -57,7 +57,7 @@ store.form = storeForm
 
 /**
 * @see \App\Http\Controllers\Api\V1\DiaryController::destroy
-* @see app/Http/Controllers/Api/V1/DiaryController.php:141
+* @see app/Http/Controllers/Api/V1/DiaryController.php:145
 * @route '/api/v1/diary/water/{waterLog}'
 */
 export const destroy = (args: { waterLog: number | { id: number } } | [waterLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -72,7 +72,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\DiaryController::destroy
-* @see app/Http/Controllers/Api/V1/DiaryController.php:141
+* @see app/Http/Controllers/Api/V1/DiaryController.php:145
 * @route '/api/v1/diary/water/{waterLog}'
 */
 destroy.url = (args: { waterLog: number | { id: number } } | [waterLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -105,7 +105,7 @@ destroy.url = (args: { waterLog: number | { id: number } } | [waterLog: number |
 
 /**
 * @see \App\Http\Controllers\Api\V1\DiaryController::destroy
-* @see app/Http/Controllers/Api/V1/DiaryController.php:141
+* @see app/Http/Controllers/Api/V1/DiaryController.php:145
 * @route '/api/v1/diary/water/{waterLog}'
 */
 destroy.delete = (args: { waterLog: number | { id: number } } | [waterLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -115,7 +115,7 @@ destroy.delete = (args: { waterLog: number | { id: number } } | [waterLog: numbe
 
 /**
 * @see \App\Http\Controllers\Api\V1\DiaryController::destroy
-* @see app/Http/Controllers/Api/V1/DiaryController.php:141
+* @see app/Http/Controllers/Api/V1/DiaryController.php:145
 * @route '/api/v1/diary/water/{waterLog}'
 */
 const destroyForm = (args: { waterLog: number | { id: number } } | [waterLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -130,7 +130,7 @@ const destroyForm = (args: { waterLog: number | { id: number } } | [waterLog: nu
 
 /**
 * @see \App\Http\Controllers\Api\V1\DiaryController::destroy
-* @see app/Http/Controllers/Api/V1/DiaryController.php:141
+* @see app/Http/Controllers/Api/V1/DiaryController.php:145
 * @route '/api/v1/diary/water/{waterLog}'
 */
 destroyForm.delete = (args: { waterLog: number | { id: number } } | [waterLog: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

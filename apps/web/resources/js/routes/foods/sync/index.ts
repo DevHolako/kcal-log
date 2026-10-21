@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\FoodController::status
-* @see app/Http/Controllers/FoodController.php:300
+* @see app/Http/Controllers/FoodController.php:304
 * @route '/foods/sync/status'
 */
 export const status = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ status.definition = {
 
 /**
 * @see \App\Http\Controllers\FoodController::status
-* @see app/Http/Controllers/FoodController.php:300
+* @see app/Http/Controllers/FoodController.php:304
 * @route '/foods/sync/status'
 */
 status.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ status.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\FoodController::status
-* @see app/Http/Controllers/FoodController.php:300
+* @see app/Http/Controllers/FoodController.php:304
 * @route '/foods/sync/status'
 */
 status.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ status.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::status
-* @see app/Http/Controllers/FoodController.php:300
+* @see app/Http/Controllers/FoodController.php:304
 * @route '/foods/sync/status'
 */
 status.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ status.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::status
-* @see app/Http/Controllers/FoodController.php:300
+* @see app/Http/Controllers/FoodController.php:304
 * @route '/foods/sync/status'
 */
 const statusForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -55,7 +55,7 @@ const statusForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => 
 
 /**
 * @see \App\Http\Controllers\FoodController::status
-* @see app/Http/Controllers/FoodController.php:300
+* @see app/Http/Controllers/FoodController.php:304
 * @route '/foods/sync/status'
 */
 statusForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -65,7 +65,7 @@ statusForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\FoodController::status
-* @see app/Http/Controllers/FoodController.php:300
+* @see app/Http/Controllers/FoodController.php:304
 * @route '/foods/sync/status'
 */
 statusForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
