@@ -2,7 +2,7 @@
   "expo": {
     "name": "kcal-log",
     "slug": "kcal-log",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#09090b",
@@ -17,7 +17,7 @@
     },
     "android": {
       "package": "com.kcallog.app",
-      "versionCode": 5,
+      "versionCode": 6,
       "adaptiveIcon": {
         "backgroundColor": "#09090b"
       },
@@ -38,7 +38,7 @@
     ],
     "extra": {
       "repositoryFullName": "DevHolako/kcal-log",
-      "appVersion": "0.1.4"
+      "appVersion": "0.1.5"
     }
   }
 }

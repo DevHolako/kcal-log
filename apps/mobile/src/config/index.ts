@@ -7,7 +7,7 @@ import {
 
 export const APP_CONFIG = {
   APP_NAME: 'kcal-log',
-  VERSION: '0.1.4',
+  VERSION: '0.1.5',
   DEFAULT_API_BASE_URL: 'https://kcal.holako.dev',
   REPOSITORY_OWNER,
   REPOSITORY_NAME,
