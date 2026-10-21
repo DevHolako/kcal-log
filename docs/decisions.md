@@ -63,8 +63,14 @@ This journal tracks all significant architectural, tooling, and design decisions
 ---
 
 ## 7. Mobile Platform & Self-Update (Phase 7)
-- **Framework**: React Native with Expo (prebuild compatible). Maximizes code sharing with TypeScript packages.
-- **Distribution & Self-Update**: Independent Android APK distribution via GitHub Releases. Checks latest releases against local semver, downloads and verifies SHA-256 hash before invoking Android `FileProvider` intent.
+- **Framework & Monorepo Integration**: React Native with Expo SDK 52 (prebuild compatible bare workflow) in `/apps/mobile`. Seamlessly consumes shared workspace packages (`@kcal-log/types`, `@kcal-log/api-client`, `@kcal-log/nutrition`) with Vite+ (`vp`) test runner.
+- **Authentication**: Laravel Sanctum Bearer token driver via `/api/v1/auth/tokens`, isolated from web SPA session cookies. Configurable API server host (defaulting to `http://10.0.2.2:9000` for Android emulator loopback) with persistent token storage and automatic 401 revocation handlers.
+- **MyFitnessPal Diary UX**: Intuitive date switcher, Calorie Budget card (`Goal - Food + Exercise = Remaining`), macro meters (Carbs, Protein, Fat) with gram allowances, 4 meal intake slots (`breakfast`, `lunch`, `dinner`, `snack`) with entry subtotals and quick-add dialogs, plus daily water tracker.
+- **Food Catalog & Barcode Scanner**: Multi-tier food search fallback, native camera barcode scanner using `expo-camera` with viewfinder reticle, manual barcode fallback, and real-time portion scaling calculator modal.
+- **Morning Weigh-in & EWMA Trend Smoothing**: Fast numeric input for body weight (kg/lbs switcher), body circumferences (waist, hips, chest), and Exponentially Weighted Moving Average (EWMA, $\alpha = 0.1$) trendline smoothing to filter water noise.
+- **Weekly Adaptive Strategy Checkpoint (ADR 0003)**: Mobile decision brief displaying proposed calorie and macronutrient deltas alongside 14-day smoothed weight changes, with one-click Accept (`/api/v1/adaptive/{id}/accept`) and Decline (`/api/v1/adaptive/{id}/reject`) buttons.
+- **Android APK Self-Update via GitHub Releases (ADR 0006)**: Automated check against `DevHolako/kcal-log` GitHub Releases API on app launch and in Settings. Parses semver tags, discovers `.apk` asset and `.sha256` checksum, cryptographically computes SHA-256 hash of the downloaded binary, verifies exact match, and triggers Android `FileProvider` package installer intent. Untrusted/mismatched binaries are strictly rejected.
+- **Offline Resilience & Mutation Queue**: Persistent local cache for diary records and discovered foods. When network connectivity drops, mutations (`ADD_FOOD`, `DELETE_ENTRY`, `QUICK_ADD`, `LOG_WATER`, `LOG_WEIGHT`) are enqueued into a FIFO retry queue with optimistic UI updates and status banners, auto-synchronizing once reconnected.
 
 ---
 

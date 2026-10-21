@@ -2,6 +2,7 @@ import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
     Barcode,
     Camera,
+    CheckCircle2,
     ChevronLeft,
     ChevronRight,
     Clock,
@@ -1842,108 +1843,156 @@ export default function DiaryIndex({
                                     </div>
                                 )}
 
-                                {/* Open Food Facts Remote Search Results */}
-                                {remoteResults.length > 0 && (
-                                    <div className="space-y-1.5 pt-1">
-                                        <div className="flex items-center gap-1.5 px-1 text-[11px] font-semibold tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
-                                            <Globe className="h-3 w-3" />
-                                            Open Food Facts Catalog (
-                                            {remoteResults.length})
-                                        </div>
-                                        <div className="space-y-1">
-                                            {remoteResults.map((food) => (
-                                                <button
-                                                    key={`off-${food.id}`}
-                                                    type="button"
-                                                    onClick={() =>
-                                                        handleSelectFood(food)
-                                                    }
-                                                    className="group flex w-full items-center justify-between rounded-lg border border-border/40 p-2 text-left transition-colors hover:border-emerald-500/50 hover:bg-muted/50"
-                                                >
-                                                    <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                                                        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border/60 bg-muted/40">
-                                                            {food.image_url ? (
-                                                                <img
-                                                                    src={
-                                                                        food.image_url
-                                                                    }
-                                                                    alt={
-                                                                        food.name
-                                                                    }
-                                                                    className="h-full w-full object-contain p-0.5"
-                                                                    loading="lazy"
-                                                                    onError={(
-                                                                        e,
-                                                                    ) => {
-                                                                        (
-                                                                            e.currentTarget as HTMLElement
-                                                                        ).style.display =
-                                                                            'none';
-                                                                    }}
-                                                                />
-                                                            ) : (
-                                                                <Utensils className="h-4 w-4 text-muted-foreground/50" />
-                                                            )}
-                                                        </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="flex items-center gap-1.5">
-                                                                <span className="line-clamp-1 text-sm font-medium transition-colors group-hover:text-primary">
-                                                                    {food.name}
-                                                                </span>
-                                                                {food.nutri_score && (
-                                                                    <span
-                                                                        className={`shrink-0 rounded px-1 text-[9px] font-bold uppercase ${
-                                                                            food.nutri_score.toLowerCase() ===
-                                                                            'a'
-                                                                                ? 'bg-emerald-600 text-white'
-                                                                                : food.nutri_score.toLowerCase() ===
-                                                                                    'b'
-                                                                                  ? 'bg-green-500 text-white'
-                                                                                  : food.nutri_score.toLowerCase() ===
-                                                                                      'c'
-                                                                                    ? 'bg-yellow-500 text-black'
-                                                                                    : food.nutri_score.toLowerCase() ===
-                                                                                        'd'
-                                                                                      ? 'bg-orange-500 text-white'
-                                                                                      : 'bg-red-600 text-white'
-                                                                        }`}
-                                                                    >
-                                                                        {
-                                                                            food.nutri_score
-                                                                        }
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <div className="line-clamp-1 text-xs text-muted-foreground">
-                                                                {food.brand ||
-                                                                    'Generic'}{' '}
-                                                                &bull;{' '}
-                                                                {Math.round(
-                                                                    Number(
-                                                                        food.calories,
-                                                                    ),
-                                                                )}{' '}
-                                                                kcal /{' '}
-                                                                {Number(
-                                                                    food.serving_size,
-                                                                )}
-                                                                {
-                                                                    food.serving_unit
-                                                                }
-                                                            </div>
-                                                        </div>
+                                {/* Remote Search Results: Verified Generic/Traditional vs OFF Packaged */}
+                                {remoteResults.length > 0 && (() => {
+                                    const verifiedCommonResults = remoteResults.filter(
+                                        (f) =>
+                                            f.search_origin === 'database' ||
+                                            f.brand === 'Generic' ||
+                                            f.brand === 'Traditionnel Marocain' ||
+                                            f.off_id?.startsWith('generic_') ||
+                                            f.off_id?.startsWith('tmca_') ||
+                                            (!f.barcode && f.search_origin !== 'openfoodfacts'),
+                                    );
+                                    const offCatalogResults = remoteResults.filter(
+                                        (f) => !verifiedCommonResults.includes(f),
+                                    );
+
+                                    return (
+                                        <div className="space-y-3 pt-1">
+                                            {/* Verified Common & Moroccan Whole Foods */}
+                                            {verifiedCommonResults.length > 0 && (
+                                                <div className="space-y-1.5">
+                                                    <div className="flex items-center justify-between px-1 text-[11px] font-semibold tracking-wider text-primary uppercase">
+                                                        <span className="flex items-center gap-1.5">
+                                                            <Sparkles className="h-3.5 w-3.5 text-primary" />
+                                                            Verified Common & Traditional Foods ({verifiedCommonResults.length})
+                                                        </span>
+                                                        <span className="text-[10px] font-normal lowercase text-muted-foreground">
+                                                            USDA & TMCA verified
+                                                        </span>
                                                     </div>
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="ml-2 shrink-0 border-emerald-500/30 text-xs text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
-                                                    >
-                                                        Select
-                                                    </Badge>
-                                                </button>
-                                            ))}
+                                                    <div className="space-y-1">
+                                                        {verifiedCommonResults.map((food) => (
+                                                            <button
+                                                                key={`common-${food.id}`}
+                                                                type="button"
+                                                                onClick={() => handleSelectFood(food)}
+                                                                className="group flex w-full items-center justify-between rounded-lg border border-primary/25 bg-primary/[0.04] p-2 text-left transition-colors hover:border-primary/60 hover:bg-primary/[0.08]"
+                                                            >
+                                                                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                                                                    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-primary/30 bg-background text-primary">
+                                                                        <Utensils className="h-4 w-4" />
+                                                                    </div>
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <span className="line-clamp-1 text-sm font-medium transition-colors group-hover:text-primary">
+                                                                                {food.name}
+                                                                            </span>
+                                                                            <Badge
+                                                                                variant="secondary"
+                                                                                className="gap-0.5 border-primary/30 bg-primary/15 text-[9px] font-semibold text-primary"
+                                                                            >
+                                                                                <CheckCircle2 className="h-2.5 w-2.5" />
+                                                                                Verified
+                                                                            </Badge>
+                                                                        </div>
+                                                                        <div className="line-clamp-1 text-xs text-muted-foreground">
+                                                                            {food.brand || 'Generic'} &bull;{' '}
+                                                                            {Math.round(Number(food.calories))} kcal /{' '}
+                                                                            {Number(food.serving_size)}
+                                                                            {food.serving_unit}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <Badge
+                                                                    variant="default"
+                                                                    className="ml-2 shrink-0 text-xs"
+                                                                >
+                                                                    Select
+                                                                </Badge>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Open Food Facts Remote Search Results */}
+                                            {offCatalogResults.length > 0 && (
+                                                <div className="space-y-1.5">
+                                                    <div className="flex items-center gap-1.5 px-1 text-[11px] font-semibold tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
+                                                        <Globe className="h-3 w-3" />
+                                                        Open Food Facts Catalog ({offCatalogResults.length})
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        {offCatalogResults.map((food) => (
+                                                            <button
+                                                                key={`off-${food.id}`}
+                                                                type="button"
+                                                                onClick={() => handleSelectFood(food)}
+                                                                className="group flex w-full items-center justify-between rounded-lg border border-border/40 p-2 text-left transition-colors hover:border-emerald-500/50 hover:bg-muted/50"
+                                                            >
+                                                                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                                                                    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border/60 bg-muted/40">
+                                                                        {food.image_url ? (
+                                                                            <img
+                                                                                src={food.image_url}
+                                                                                alt={food.name}
+                                                                                className="h-full w-full object-contain p-0.5"
+                                                                                loading="lazy"
+                                                                                onError={(e) => {
+                                                                                    (e.currentTarget as HTMLElement).style.display = 'none';
+                                                                                }}
+                                                                            />
+                                                                        ) : (
+                                                                            <Utensils className="h-4 w-4 text-muted-foreground/50" />
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <span className="line-clamp-1 text-sm font-medium transition-colors group-hover:text-primary">
+                                                                                {food.name}
+                                                                            </span>
+                                                                            {food.nutri_score && (
+                                                                                <span
+                                                                                    className={`shrink-0 rounded px-1 text-[9px] font-bold uppercase ${
+                                                                                        food.nutri_score.toLowerCase() === 'a'
+                                                                                            ? 'bg-emerald-600 text-white'
+                                                                                            : food.nutri_score.toLowerCase() === 'b'
+                                                                                              ? 'bg-green-500 text-white'
+                                                                                              : food.nutri_score.toLowerCase() === 'c'
+                                                                                                ? 'bg-yellow-500 text-black'
+                                                                                                : food.nutri_score.toLowerCase() === 'd'
+                                                                                                  ? 'bg-orange-500 text-white'
+                                                                                                  : 'bg-red-600 text-white'
+                                                                                    }`}
+                                                                                >
+                                                                                    {food.nutri_score}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="line-clamp-1 text-xs text-muted-foreground">
+                                                                            {food.brand || 'Generic'} &bull;{' '}
+                                                                            {Math.round(Number(food.calories))} kcal /{' '}
+                                                                            {Number(food.serving_size)}
+                                                                            {food.serving_unit}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    className="ml-2 shrink-0 border-emerald-500/30 text-xs text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
+                                                                >
+                                                                    Select
+                                                                </Badge>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
-                                )}
+                                    );
+                                })()}
 
                                 {recentFoods.filter(
                                     (f) =>

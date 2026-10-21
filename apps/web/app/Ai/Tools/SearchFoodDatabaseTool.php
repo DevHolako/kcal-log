@@ -50,6 +50,7 @@ class SearchFoodDatabaseTool implements Tool
                 $q->where('name', 'like', "%{$queryStr}%")
                     ->orWhere('brand', 'like', "%{$queryStr}%");
             })
+            ->with('servings')
             ->take(10)
             ->get()
             ->map(function (Food $f) {
@@ -62,6 +63,10 @@ class SearchFoodDatabaseTool implements Tool
                     'carbs_per_100g' => (float) $f->carbs,
                     'fat_per_100g' => (float) $f->fat,
                     'is_custom' => (bool) $f->is_custom,
+                    'servings' => $f->servings->map(fn ($s) => [
+                        'name' => $s->serving_name,
+                        'grams' => (float) $s->gram_equivalent,
+                    ])->values()->all(),
                 ];
             });
 

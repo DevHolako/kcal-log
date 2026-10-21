@@ -82,7 +82,7 @@ search.form = searchForm
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::barcode
-* @see app/Http/Controllers/Api/V1/FoodController.php:51
+* @see app/Http/Controllers/Api/V1/FoodController.php:52
 * @route '/api/v1/foods/barcode/{barcode}'
 */
 export const barcode = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -97,7 +97,7 @@ barcode.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::barcode
-* @see app/Http/Controllers/Api/V1/FoodController.php:51
+* @see app/Http/Controllers/Api/V1/FoodController.php:52
 * @route '/api/v1/foods/barcode/{barcode}'
 */
 barcode.url = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -124,7 +124,7 @@ barcode.url = (args: { barcode: string | number } | [barcode: string | number ] 
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::barcode
-* @see app/Http/Controllers/Api/V1/FoodController.php:51
+* @see app/Http/Controllers/Api/V1/FoodController.php:52
 * @route '/api/v1/foods/barcode/{barcode}'
 */
 barcode.get = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -134,7 +134,7 @@ barcode.get = (args: { barcode: string | number } | [barcode: string | number ] 
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::barcode
-* @see app/Http/Controllers/Api/V1/FoodController.php:51
+* @see app/Http/Controllers/Api/V1/FoodController.php:52
 * @route '/api/v1/foods/barcode/{barcode}'
 */
 barcode.head = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -144,7 +144,7 @@ barcode.head = (args: { barcode: string | number } | [barcode: string | number ]
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::barcode
-* @see app/Http/Controllers/Api/V1/FoodController.php:51
+* @see app/Http/Controllers/Api/V1/FoodController.php:52
 * @route '/api/v1/foods/barcode/{barcode}'
 */
 const barcodeForm = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -154,7 +154,7 @@ const barcodeForm = (args: { barcode: string | number } | [barcode: string | num
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::barcode
-* @see app/Http/Controllers/Api/V1/FoodController.php:51
+* @see app/Http/Controllers/Api/V1/FoodController.php:52
 * @route '/api/v1/foods/barcode/{barcode}'
 */
 barcodeForm.get = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -164,7 +164,7 @@ barcodeForm.get = (args: { barcode: string | number } | [barcode: string | numbe
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::barcode
-* @see app/Http/Controllers/Api/V1/FoodController.php:51
+* @see app/Http/Controllers/Api/V1/FoodController.php:52
 * @route '/api/v1/foods/barcode/{barcode}'
 */
 barcodeForm.head = (args: { barcode: string | number } | [barcode: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -181,7 +181,7 @@ barcode.form = barcodeForm
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::show
-* @see app/Http/Controllers/Api/V1/FoodController.php:75
+* @see app/Http/Controllers/Api/V1/FoodController.php:76
 * @route '/api/v1/foods/{food}'
 */
 export const show = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -196,7 +196,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::show
-* @see app/Http/Controllers/Api/V1/FoodController.php:75
+* @see app/Http/Controllers/Api/V1/FoodController.php:76
 * @route '/api/v1/foods/{food}'
 */
 show.url = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -229,7 +229,7 @@ show.url = (args: { food: number | { id: number } } | [food: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::show
-* @see app/Http/Controllers/Api/V1/FoodController.php:75
+* @see app/Http/Controllers/Api/V1/FoodController.php:76
 * @route '/api/v1/foods/{food}'
 */
 show.get = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -239,7 +239,7 @@ show.get = (args: { food: number | { id: number } } | [food: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::show
-* @see app/Http/Controllers/Api/V1/FoodController.php:75
+* @see app/Http/Controllers/Api/V1/FoodController.php:76
 * @route '/api/v1/foods/{food}'
 */
 show.head = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -249,7 +249,7 @@ show.head = (args: { food: number | { id: number } } | [food: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::show
-* @see app/Http/Controllers/Api/V1/FoodController.php:75
+* @see app/Http/Controllers/Api/V1/FoodController.php:76
 * @route '/api/v1/foods/{food}'
 */
 const showForm = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -259,7 +259,7 @@ const showForm = (args: { food: number | { id: number } } | [food: number | { id
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::show
-* @see app/Http/Controllers/Api/V1/FoodController.php:75
+* @see app/Http/Controllers/Api/V1/FoodController.php:76
 * @route '/api/v1/foods/{food}'
 */
 showForm.get = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -269,7 +269,7 @@ showForm.get = (args: { food: number | { id: number } } | [food: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::show
-* @see app/Http/Controllers/Api/V1/FoodController.php:75
+* @see app/Http/Controllers/Api/V1/FoodController.php:76
 * @route '/api/v1/foods/{food}'
 */
 showForm.head = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -286,7 +286,7 @@ show.form = showForm
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::calculate
-* @see app/Http/Controllers/Api/V1/FoodController.php:94
+* @see app/Http/Controllers/Api/V1/FoodController.php:95
 * @route '/api/v1/foods/{food}/calculate'
 */
 export const calculate = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -301,7 +301,7 @@ calculate.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::calculate
-* @see app/Http/Controllers/Api/V1/FoodController.php:94
+* @see app/Http/Controllers/Api/V1/FoodController.php:95
 * @route '/api/v1/foods/{food}/calculate'
 */
 calculate.url = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -334,7 +334,7 @@ calculate.url = (args: { food: number | { id: number } } | [food: number | { id:
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::calculate
-* @see app/Http/Controllers/Api/V1/FoodController.php:94
+* @see app/Http/Controllers/Api/V1/FoodController.php:95
 * @route '/api/v1/foods/{food}/calculate'
 */
 calculate.post = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -344,7 +344,7 @@ calculate.post = (args: { food: number | { id: number } } | [food: number | { id
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::calculate
-* @see app/Http/Controllers/Api/V1/FoodController.php:94
+* @see app/Http/Controllers/Api/V1/FoodController.php:95
 * @route '/api/v1/foods/{food}/calculate'
 */
 const calculateForm = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -354,7 +354,7 @@ const calculateForm = (args: { food: number | { id: number } } | [food: number |
 
 /**
 * @see \App\Http\Controllers\Api\V1\FoodController::calculate
-* @see app/Http/Controllers/Api/V1/FoodController.php:94
+* @see app/Http/Controllers/Api/V1/FoodController.php:95
 * @route '/api/v1/foods/{food}/calculate'
 */
 calculateForm.post = (args: { food: number | { id: number } } | [food: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

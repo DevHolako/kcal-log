@@ -16,14 +16,18 @@ class OpenFoodFactsService
 
     protected int $timeout;
 
+    protected ?string $country;
+
     public function __construct(
         ?string $baseUrl = null,
         ?string $userAgent = null,
-        ?int $timeout = null
+        ?int $timeout = null,
+        ?string $country = null
     ) {
         $this->baseUrl = $baseUrl ?? (function_exists('config') ? (string) config('services.open_food_facts.base_url', 'https://world.openfoodfacts.org') : 'https://world.openfoodfacts.org');
         $this->userAgent = $userAgent ?? (function_exists('config') ? (string) config('services.open_food_facts.user_agent', 'kcal-log/1.0 (https://github.com/DevHolako/kcal-log)') : 'kcal-log/1.0 (https://github.com/DevHolako/kcal-log)');
         $this->timeout = $timeout ?? (function_exists('config') ? (int) config('services.open_food_facts.timeout', 3) : 3);
+        $this->country = $country ?? (function_exists('config') ? config('services.open_food_facts.country') : null);
     }
 
     /**
@@ -81,8 +85,13 @@ class OpenFoodFactsService
      *
      * @throws RequestException
      */
-    public function search(string $query, int $page = 1, int $perPage = 20, ?UserOffConnection $connection = null): array
-    {
+    public function search(
+        string $query,
+        int $page = 1,
+        int $perPage = 20,
+        ?UserOffConnection $connection = null,
+        ?string $country = null
+    ): array {
         $client = $this->buildClient($connection);
         $source = ($connection && $connection->is_connected) ? 'off_authenticated' : 'off_anonymous';
 
@@ -102,6 +111,13 @@ class OpenFoodFactsService
             'page_size' => $perPage,
             'fields' => 'code,product_name,product_name_en,product_name_fr,brands,image_front_small_url,image_small_url,image_url,nutriments,nutriscore_grade,ecoscore_grade,nova_group,serving_size,serving_quantity',
         ];
+
+        $targetCountry = $country ?? $this->country;
+        if ($targetCountry) {
+            $params['tagtype_0'] = 'countries';
+            $params['tag_contains_0'] = 'contains';
+            $params['tag_0'] = $targetCountry;
+        }
 
         try {
             $response = $client->get($primaryUrl, $params);
@@ -126,6 +142,23 @@ class OpenFoodFactsService
         /** @var list<array<string, mixed>> $products */
         $products = $data['products'] ?? [];
         $total = (int) ($data['count'] ?? count($products));
+
+        // If a country filter was applied and returned 0 results, retry without the country tag to be resilient
+        if (empty($products) && $targetCountry) {
+            unset($params['tagtype_0'], $params['tag_contains_0'], $params['tag_0']);
+            try {
+                $fallbackResponse = $client->get($primaryUrl, $params);
+                if ($fallbackResponse->successful()) {
+                    $fallbackData = $fallbackResponse->json();
+                    if (! empty($fallbackData['products'])) {
+                        $products = $fallbackData['products'];
+                        $total = (int) ($fallbackData['count'] ?? count($products));
+                    }
+                }
+            } catch (\Throwable) {
+                // Ignore fallback error and retain empty products
+            }
+        }
 
         return [
             'products' => $products,

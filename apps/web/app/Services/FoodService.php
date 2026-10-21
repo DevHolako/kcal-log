@@ -99,7 +99,7 @@ class FoodService
     /**
      * Search foods by text query across OFF and local custom items.
      */
-    public function search(string $query, ?User $user = null, int $page = 1, int $perPage = 20): FoodSearchResult
+    public function search(string $query, ?User $user = null, int $page = 1, int $perPage = 20, ?string $country = null): FoodSearchResult
     {
         $connection = $this->getUserOffConnection($user);
 
@@ -136,7 +136,7 @@ class FoodService
 
         // Attempt OFF search (Tier 1 or Tier 2)
         try {
-            $offResult = $this->openFoodFactsService->search($query, $page, $perPage, $connection);
+            $offResult = $this->openFoodFactsService->search($query, $page, $perPage, $connection, $country);
 
             $offFoods = collect();
             $existingBarcodes = $cachedFoods->pluck('barcode')->filter()->all();

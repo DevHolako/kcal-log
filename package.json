@@ -15,9 +15,10 @@
     "dev:frontend": "pnpm --filter @kcal-log/web dev",
     "build": "pnpm --filter @kcal-log/web build",
     "test": "pnpm --filter @kcal-log/nutrition test",
+    "test:mobile": "pnpm --filter @kcal-log/mobile test",
     "test:lint-rules": "node packages/oxlint-rules/test/rules.test.js",
     "test:php": "cd apps/web && php artisan test",
-    "test:all": "pnpm test && pnpm test:lint-rules && pnpm test:php",
+    "test:all": "pnpm test && pnpm test:lint-rules && pnpm test:mobile && pnpm test:php",
     "lint": "pnpm --filter @kcal-log/web check",
     "check": "pnpm --filter @kcal-log/web check"
   },

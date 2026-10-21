@@ -102,7 +102,8 @@ class FoodController extends Controller
             }
         }
 
-        $result = $this->foodService->search($trimmedQuery, $user, 1, 25);
+        $country = (string) $request->query('country', '');
+        $result = $this->foodService->search($trimmedQuery, $user, 1, 25, $country ?: null);
 
         return response()->json([
             'items' => $result->items,

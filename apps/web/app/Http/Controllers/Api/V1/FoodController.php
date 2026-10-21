@@ -32,8 +32,9 @@ class FoodController extends Controller
 
         /** @var User|null $user */
         $user = $request->user();
+        $country = (string) ($request->query('country', ''));
 
-        $result = $this->foodService->search($query, $user, $page, $perPage);
+        $result = $this->foodService->search($query, $user, $page, $perPage, $country ?: null);
 
         return response()->json([
             'source' => $result->source,
