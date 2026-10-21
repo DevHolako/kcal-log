@@ -132,3 +132,111 @@ export interface AdaptiveAdjustment {
   smoothedWeightChangeKg: number;
   reason: string;
 }
+
+export interface WaterLog {
+  id: string | number;
+  userId: string | number;
+  date: string;
+  amountMl: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BodyMeasurement {
+  id: string | number;
+  userId: string | number;
+  date: string;
+  neckCm?: number | null;
+  waistCm?: number | null;
+  hipsCm?: number | null;
+  chestCm?: number | null;
+  bicepsCm?: number | null;
+  thighsCm?: number | null;
+  calvesCm?: number | null;
+  notes?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ExerciseLog {
+  id: string | number;
+  userId: string | number;
+  date: string;
+  name: string;
+  exerciseType: 'cardio' | 'strength' | 'other' | string;
+  durationMinutes: number;
+  caloriesBurned: number;
+  notes?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface RecipeItem {
+  id?: string | number;
+  foodId: string | number;
+  foodServingId?: string | number | null;
+  quantity: number;
+  grams: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number | null;
+  food?: Food;
+}
+
+export interface MealRecipe {
+  id: string | number;
+  userId: string | number;
+  name: string;
+  description?: string | null;
+  servings: number;
+  isRecipe: boolean;
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  totalFiber?: number | null;
+  items?: RecipeItem[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DiaryDayResponse {
+  date: string;
+  totals: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+  };
+  target: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+  remaining: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+  entries: DiaryEntry[];
+  waterLogs: WaterLog[];
+  waterTotalMl: number;
+  waterTargetMl?: number | null;
+  weightLog?: WeightLog | null;
+  measurements?: BodyMeasurement | null;
+  exercises: ExerciseLog[];
+  exerciseCaloriesBurned: number;
+}
+
+export interface AuthTokenResponse {
+  token: string;
+  tokenId: string | number;
+  deviceName: string;
+  createdAt: string;
+}
+
