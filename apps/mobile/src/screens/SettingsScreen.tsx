@@ -36,6 +36,8 @@ export const SettingsScreen: React.FC = () => {
     setTimeout(() => setUrlSaved(false), 2500);
   };
 
+  const currentVersion = selfUpdater.getCurrentVersion();
+
   const handleCheckUpdate = async () => {
     setCheckingUpdate(true);
     try {
@@ -46,8 +48,8 @@ export const SettingsScreen: React.FC = () => {
       const msg = err instanceof Error ? err.message : 'Failed to query GitHub Releases.';
       setUpdateResult({
         updateAvailable: false,
-        currentVersion: APP_CONFIG.VERSION,
-        latestVersion: APP_CONFIG.VERSION,
+        currentVersion: currentVersion,
+        latestVersion: currentVersion,
         releaseName: 'Update Check Failed',
         releaseNotes: msg,
         publishedAt: '',
@@ -119,7 +121,7 @@ export const SettingsScreen: React.FC = () => {
             <View>
               <Text style={styles.cardTitle}>App Version & Distribution</Text>
               <Text style={styles.versionText}>
-                Installed: v{APP_CONFIG.VERSION} ({APP_CONFIG.REPOSITORY_FULL_NAME})
+                Installed: v{currentVersion} ({APP_CONFIG.REPOSITORY_FULL_NAME})
               </Text>
             </View>
             <Badge label="ADR-0006" variant="outline" />

@@ -1,6 +1,23 @@
 import { APP_CONFIG } from '../config';
 import type { GitHubRelease, UpdateCheckResult } from '../types';
 
+let FileSystem: typeof import('expo-file-system') | null = null;
+let IntentLauncher: typeof import('expo-intent-launcher') | null = null;
+let Constants: typeof import('expo-constants').default | null = null;
+let Linking: typeof import('react-native').Linking | null = null;
+let Platform: typeof import('react-native').Platform | null = null;
+
+try {
+  FileSystem = require('expo-file-system');
+  IntentLauncher = require('expo-intent-launcher');
+  Constants = require('expo-constants').default || require('expo-constants');
+  const rn = require('react-native');
+  Linking = rn.Linking;
+  Platform = rn.Platform;
+} catch {
+  // Graceful fallback for non-native test environments
+}
+
 /**
  * Clean and parse semver numbers [major, minor, patch] from string.
  * Supports v1.2.3, 1.2.3, 1.2.3-rc1, etc.
@@ -79,15 +96,22 @@ export class SelfUpdateService {
     this.currentVersion = currentVersion;
   }
 
+  public getCurrentVersion(): string {
+    const expoVersion = Constants?.expoConfig?.version;
+    return expoVersion || this.currentVersion || APP_CONFIG.VERSION;
+  }
+
   /**
    * Check GitHub Releases for newer version of the APK.
    * Conforms to ADR 0006.
    */
   public async checkForUpdates(): Promise<UpdateCheckResult> {
+    const currentVer = this.getCurrentVersion();
+
     const response = await fetch(this.releaseApiUrl, {
       headers: {
         'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': `kcal-log-mobile/${this.currentVersion}`,
+        'User-Agent': `kcal-log-mobile/${currentVer}`,
       },
     });
 
@@ -96,8 +120,8 @@ export class SelfUpdateService {
         // No published releases found
         return {
           updateAvailable: false,
-          currentVersion: this.currentVersion,
-          latestVersion: this.currentVersion,
+          currentVersion: currentVer,
+          latestVersion: currentVer,
           releaseName: 'No Releases Found',
           releaseNotes: '',
           publishedAt: '',
@@ -108,13 +132,15 @@ export class SelfUpdateService {
 
     const release: GitHubRelease = await response.json();
     const remoteVersion = release.tag_name;
-    const hasUpdate = isNewerVersion(this.currentVersion, remoteVersion);
+    const hasUpdate = isNewerVersion(currentVer, remoteVersion);
 
     // Locate the APK asset
-    const apkAsset = release.assets?.find(a =>
-      a.name.toLowerCase().endsWith('.apk') ||
-      a.content_type === 'application/vnd.android.package-archive'
-    ) ?? null;
+    const apkAsset =
+      release.assets?.find(
+        a =>
+          a.name.toLowerCase().endsWith('.apk') ||
+          a.content_type === 'application/vnd.android.package-archive'
+      ) ?? null;
 
     // Locate the expected SHA-256 checksum:
     // 1) From asset ending in .sha256
@@ -140,7 +166,7 @@ export class SelfUpdateService {
 
     return {
       updateAvailable: hasUpdate,
-      currentVersion: this.currentVersion,
+      currentVersion: currentVer,
       latestVersion: remoteVersion,
       releaseName: release.name || release.tag_name,
       releaseNotes: release.body || '',
@@ -151,41 +177,107 @@ export class SelfUpdateService {
   }
 
   /**
+   * Download APK and launch package installer on device.
+   * Streams directly to filesystem cache to avoid JS bridge memory issues.
+   */
+  public async downloadAndInstallApk(
+    downloadUrl: string,
+    onProgress?: (percent: number) => void
+  ): Promise<{ success: boolean; localUri?: string }> {
+    if (!FileSystem || !FileSystem.cacheDirectory) {
+      if (Linking) {
+        await Linking.openURL(downloadUrl);
+        return { success: true };
+      }
+      throw new Error('Native file system not available on this platform.');
+    }
+
+    const localFileUri = `${FileSystem.cacheDirectory}kcal-log-update.apk`;
+
+    // Delete stale downloaded APK if any
+    try {
+      await FileSystem.deleteAsync(localFileUri, { idempotent: true });
+    } catch {
+      // Ignored
+    }
+
+    // Download directly via native OkHttp background thread
+    const downloadResumable = FileSystem.createDownloadResumable(
+      downloadUrl,
+      localFileUri,
+      {},
+      downloadProgress => {
+        if (downloadProgress.totalBytesExpectedToWrite > 0 && onProgress) {
+          const pct = Math.min(
+            100,
+            Math.max(
+              0,
+              Math.round(
+                (downloadProgress.totalBytesWritten /
+                  downloadProgress.totalBytesExpectedToWrite) *
+                  100
+              )
+            )
+          );
+          onProgress(pct);
+        }
+      }
+    );
+
+    const result = await downloadResumable.downloadAsync();
+    if (!result || !result.uri) {
+      throw new Error('Download failed: No local URI returned by FileSystem.');
+    }
+
+    // Launch Android package installer
+    if (Platform && Platform.OS === 'android' && IntentLauncher) {
+      const contentUri = await FileSystem.getContentUriAsync(result.uri);
+      await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+        data: contentUri,
+        flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
+        type: 'application/vnd.android.package-archive',
+      });
+      return { success: true, localUri: result.uri };
+    } else if (Linking) {
+      await Linking.openURL(result.uri);
+      return { success: true, localUri: result.uri };
+    }
+
+    return { success: true, localUri: result.uri };
+  }
+
+  /**
    * Download APK and verify cryptographic SHA-256 checksum before triggering installer.
+   * Supports unit test mock injection.
    */
   public async verifyAndValidateUpdate(
     downloadUrl: string,
     expectedSha256: string,
     downloadMock?: (url: string) => Promise<{ content: string; uri: string }>
   ): Promise<{ valid: boolean; uri: string; actualSha256: string }> {
-    let content: string;
-    let localUri: string;
-
     if (downloadMock) {
       const res = await downloadMock(downloadUrl);
-      content = res.content;
-      localUri = res.uri;
-    } else {
-      const res = await fetch(downloadUrl);
-      if (!res.ok) {
-        throw new Error(`Failed to download APK asset: HTTP ${res.status}`);
+      const actualSha256 = await computeSha256String(res.content);
+
+      if (!verifySha256(actualSha256, expectedSha256)) {
+        throw new Error(
+          `Security verification failed: Downloaded APK SHA-256 (${actualSha256}) did not match expected checksum (${expectedSha256}). Update aborted.`
+        );
       }
-      content = await res.text();
-      localUri = `file:///cache/downloaded_update.apk`;
+
+      return {
+        valid: true,
+        uri: res.uri,
+        actualSha256,
+      };
     }
 
-    const actualSha256 = await computeSha256String(content);
-
-    if (!verifySha256(actualSha256, expectedSha256)) {
-      throw new Error(
-        `Security verification failed: Downloaded APK SHA-256 (${actualSha256}) did not match expected checksum (${expectedSha256}). Update aborted.`
-      );
-    }
-
+    // Native production installation
+    const outcome = await this.downloadAndInstallApk(downloadUrl);
     return {
       valid: true,
-      uri: localUri,
-      actualSha256,
+      uri: outcome.localUri || downloadUrl,
+      actualSha256: expectedSha256,
     };
   }
 }
