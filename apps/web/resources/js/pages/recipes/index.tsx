@@ -9,6 +9,7 @@ import {
     Flame,
     Globe,
     Loader2,
+    Pencil,
     Plus,
     Search,
     ShoppingBag,
@@ -298,6 +299,44 @@ export default function RecipesIndex({
     const [isLogging, setIsLogging] = useState(false);
     const [isSavingRecipe, setIsSavingRecipe] = useState(false);
 
+    // Form for editing an existing recipe
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [editingRecipe, setEditingRecipe] = useState<MealRecipeData | null>(
+        null,
+    );
+    const [editRecipeName, setEditRecipeName] = useState('');
+    const [editRecipeDescription, setEditRecipeDescription] = useState('');
+    const [editRecipeServings, setEditRecipeServings] = useState(1);
+    const [editSelectedItems, setEditSelectedItems] = useState<
+        Array<{
+            food: FoodItem;
+            servingId: number | null;
+            quantity: number;
+            grams: number;
+            calories: number;
+            protein: number;
+            carbs: number;
+            fat: number;
+            fiber: number;
+            sugar: number;
+            saturated_fat: number;
+            sodium: number;
+        }>
+    >([]);
+    const [isUpdatingRecipe, setIsUpdatingRecipe] = useState(false);
+
+    // Ingredient picker state inside edit modal
+    const [editFoodSearchQuery, setEditFoodSearchQuery] = useState('');
+    const [editRemoteFoods, setEditRemoteFoods] = useState<FoodItem[]>([]);
+    const [isSearchingEditFood, setIsSearchingEditFood] = useState(false);
+    const [editActiveFoodToAdd, setEditActiveFoodToAdd] =
+        useState<FoodItem | null>(null);
+    const [editSelectedServingId, setEditSelectedServingId] = useState<
+        number | null
+    >(null);
+    const [editItemQuantity, setEditItemQuantity] = useState(1);
+    const [editItemCustomGrams, setEditItemCustomGrams] = useState<string>('');
+
     // Grocery List Generator state
     const [groceryModalOpen, setGroceryModalOpen] = useState(false);
     const [selectedKitsForGrocery, setSelectedKitsForGrocery] = useState<
@@ -485,6 +524,69 @@ export default function RecipesIndex({
         return () => clearTimeout(timer);
     }, [foodSearchQuery]);
 
+    // Remote search across Open Food Facts & database when editing recipe ingredients
+    useEffect(() => {
+        const query = editFoodSearchQuery.trim();
+        if (query.length < 2) {
+            setEditRemoteFoods([]);
+            setIsSearchingEditFood(false);
+            return;
+        }
+
+        setIsSearchingEditFood(true);
+        const timer = setTimeout(() => {
+            fetch(`/foods/search?q=${encodeURIComponent(query)}`, {
+                headers: { Accept: 'application/json' },
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (Array.isArray(data.items)) {
+                        setEditRemoteFoods(data.items);
+                    } else {
+                        setEditRemoteFoods([]);
+                    }
+                })
+                .catch(() => {
+                    setEditRemoteFoods([]);
+                })
+                .finally(() => {
+                    setIsSearchingEditFood(false);
+                });
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [editFoodSearchQuery]);
+
+    // Combine available foods and remote search results for editing
+    const editDisplayFoods = useMemo(() => {
+        const trimmed = editFoodSearchQuery.trim().toLowerCase();
+        if (!trimmed) {
+            return availableFoods.slice(0, 8);
+        }
+
+        const localMatches = availableFoods.filter(
+            (f) =>
+                f.name.toLowerCase().includes(trimmed) ||
+                (f.brand && f.brand.toLowerCase().includes(trimmed)),
+        );
+
+        const combined = [...localMatches];
+        const existingIds = new Set(localMatches.map((f) => f.id));
+        const existingBarcodes = new Set(
+            localMatches.map((f) => f.barcode).filter(Boolean),
+        );
+
+        for (const rf of editRemoteFoods) {
+            if (existingIds.has(rf.id)) continue;
+            if (rf.barcode && existingBarcodes.has(rf.barcode)) continue;
+            combined.push(rf);
+            existingIds.add(rf.id);
+            if (rf.barcode) existingBarcodes.add(rf.barcode);
+        }
+
+        return combined;
+    }, [availableFoods, editRemoteFoods, editFoodSearchQuery]);
+
     // Combine available foods (initial DB cache) and remote search results (Open Food Facts + DB)
     const displayFoods = useMemo(() => {
         const trimmed = foodSearchQuery.trim().toLowerCase();
@@ -650,6 +752,202 @@ export default function RecipesIndex({
                     setSelectedItems([]);
                 },
                 onFinish: () => setIsSavingRecipe(false),
+            },
+        );
+    };
+
+    // Handle adding selected food to ingredients list in edit modal
+    const handleAddEditIngredient = () => {
+        if (!editActiveFoodToAdd) return;
+
+        const baseSize =
+            Number(editActiveFoodToAdd.serving_size) > 0
+                ? Number(editActiveFoodToAdd.serving_size)
+                : 100;
+        let grams = 100;
+
+        if (editItemCustomGrams && Number(editItemCustomGrams) > 0) {
+            grams = Number(editItemCustomGrams);
+        } else if (editSelectedServingId && editActiveFoodToAdd.servings) {
+            const s = editActiveFoodToAdd.servings.find(
+                (serv) => serv.id === editSelectedServingId,
+            );
+            if (s) {
+                grams = Number(s.gram_equivalent) * editItemQuantity;
+            } else {
+                grams = baseSize * editItemQuantity;
+            }
+        } else {
+            grams = baseSize * editItemQuantity;
+        }
+
+        const factor = grams / baseSize;
+        const calories =
+            Math.round(Number(editActiveFoodToAdd.calories) * factor * 10) / 10;
+        const protein =
+            Math.round(Number(editActiveFoodToAdd.protein) * factor * 10) / 10;
+        const carbs =
+            Math.round(Number(editActiveFoodToAdd.carbs) * factor * 10) / 10;
+        const fat =
+            Math.round(Number(editActiveFoodToAdd.fat) * factor * 10) / 10;
+        const fiber = editActiveFoodToAdd.fiber
+            ? Math.round(Number(editActiveFoodToAdd.fiber) * factor * 10) / 10
+            : 0;
+        const sugar = editActiveFoodToAdd.sugar
+            ? Math.round(Number(editActiveFoodToAdd.sugar) * factor * 10) / 10
+            : 0;
+        const saturated_fat = editActiveFoodToAdd.saturated_fat
+            ? Math.round(
+                  Number(editActiveFoodToAdd.saturated_fat) * factor * 10,
+              ) / 10
+            : 0;
+        const sodium = editActiveFoodToAdd.sodium
+            ? Math.round(Number(editActiveFoodToAdd.sodium) * factor * 1000) /
+              1000
+            : 0;
+
+        setEditSelectedItems((prev) => [
+            ...prev,
+            {
+                food: editActiveFoodToAdd,
+                servingId: editSelectedServingId,
+                quantity: editItemQuantity,
+                grams,
+                calories,
+                protein,
+                carbs,
+                fat,
+                fiber,
+                sugar,
+                saturated_fat,
+                sodium,
+            },
+        ]);
+
+        // Reset ingredient selection
+        setEditActiveFoodToAdd(null);
+        setEditSelectedServingId(null);
+        setEditItemQuantity(1);
+        setEditItemCustomGrams('');
+    };
+
+    const handleRemoveEditIngredient = (index: number) => {
+        setEditSelectedItems((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    // Calculate recipe live totals for edit modal
+    const editRecipeTotals = useMemo(() => {
+        const cals = editSelectedItems.reduce((acc, i) => acc + i.calories, 0);
+        const pro = editSelectedItems.reduce((acc, i) => acc + i.protein, 0);
+        const carb = editSelectedItems.reduce((acc, i) => acc + i.carbs, 0);
+        const fat = editSelectedItems.reduce((acc, i) => acc + i.fat, 0);
+        const fib = editSelectedItems.reduce((acc, i) => acc + i.fiber, 0);
+        const sug = editSelectedItems.reduce((acc, i) => acc + i.sugar, 0);
+        const sat = editSelectedItems.reduce(
+            (acc, i) => acc + i.saturated_fat,
+            0,
+        );
+        const sod = editSelectedItems.reduce((acc, i) => acc + i.sodium, 0);
+
+        const s = editRecipeServings > 0 ? editRecipeServings : 1;
+        return {
+            totalCalories: Math.round(cals),
+            totalProtein: Math.round(pro * 10) / 10,
+            totalCarbs: Math.round(carb * 10) / 10,
+            totalFat: Math.round(fat * 10) / 10,
+            totalFiber: Math.round(fib * 10) / 10,
+            totalSugar: Math.round(sug * 10) / 10,
+            totalSatFat: Math.round(sat * 10) / 10,
+            totalSodium: Math.round(sod * 1000) / 1000,
+            perServingCalories: Math.round(cals / s),
+            perServingProtein: Math.round((pro / s) * 10) / 10,
+            perServingCarbs: Math.round((carb / s) * 10) / 10,
+            perServingFat: Math.round((fat / s) * 10) / 10,
+            perServingFiber: Math.round((fib / s) * 10) / 10,
+        };
+    }, [editSelectedItems, editRecipeServings]);
+
+    // Open editing dialog
+    const handleOpenEditModal = (recipe: MealRecipeData) => {
+        setEditingRecipe(recipe);
+        setEditRecipeName(recipe.name);
+        setEditRecipeDescription(recipe.description || '');
+        setEditRecipeServings(
+            Number(recipe.servings) > 0 ? Number(recipe.servings) : 1,
+        );
+
+        const items = (recipe.items || []).map((it) => ({
+            food:
+                it.food ||
+                ({
+                    id: it.food_id,
+                    name: 'Food item',
+                    is_custom: false,
+                    serving_size: 100,
+                    serving_unit: 'g',
+                    calories: it.calories,
+                    protein: it.protein,
+                    carbs: it.carbs,
+                    fat: it.fat,
+                    fiber: it.fiber,
+                    sugar: it.sugar ?? null,
+                    saturated_fat: it.saturated_fat ?? null,
+                    sodium: it.sodium ?? null,
+                    servings: it.serving ? [it.serving] : [],
+                } as FoodItem),
+            servingId: it.food_serving_id ?? null,
+            quantity: Number(it.quantity) || 1,
+            grams: Number(it.grams) || 100,
+            calories: Number(it.calories) || 0,
+            protein: Number(it.protein) || 0,
+            carbs: Number(it.carbs) || 0,
+            fat: Number(it.fat) || 0,
+            fiber: Number(it.fiber) || 0,
+            sugar: Number(it.sugar) || 0,
+            saturated_fat: Number(it.saturated_fat) || 0,
+            sodium: Number(it.sodium) || 0,
+        }));
+        setEditSelectedItems(items);
+        setEditFoodSearchQuery('');
+        setEditRemoteFoods([]);
+        setEditActiveFoodToAdd(null);
+        setEditSelectedServingId(null);
+        setEditItemQuantity(1);
+        setEditItemCustomGrams('');
+        setEditModalOpen(true);
+    };
+
+    // Submit recipe update
+    const handleUpdateRecipe = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (
+            !editingRecipe ||
+            !editRecipeName.trim() ||
+            editSelectedItems.length === 0
+        ) {
+            return;
+        }
+
+        setIsUpdatingRecipe(true);
+        router.put(
+            `/recipes/${editingRecipe.id}`,
+            {
+                name: editRecipeName,
+                description: editRecipeDescription,
+                servings: editRecipeServings,
+                items: editSelectedItems.map((item) => ({
+                    food_id: item.food.id,
+                    food_serving_id: item.servingId,
+                    quantity: item.quantity,
+                    grams: item.grams,
+                })),
+            },
+            {
+                onSuccess: () => {
+                    setEditModalOpen(false);
+                    setEditingRecipe(null);
+                },
+                onFinish: () => setIsUpdatingRecipe(false),
             },
         );
     };
@@ -993,16 +1291,36 @@ export default function RecipesIndex({
                                         </CardContent>
 
                                         <CardFooter className="flex items-center justify-between gap-2 border-t border-border pt-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() =>
-                                                    handleDeleteRecipe(recipe)
-                                                }
-                                                className="h-8 px-2 text-muted-foreground hover:text-destructive"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <div className="flex items-center gap-1">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        handleOpenEditModal(
+                                                            recipe,
+                                                        )
+                                                    }
+                                                    className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                                                    title={t(
+                                                        'recipes.edit_recipe',
+                                                    )}
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        handleDeleteRecipe(
+                                                            recipe,
+                                                        )
+                                                    }
+                                                    className="h-8 px-2 text-muted-foreground hover:text-destructive"
+                                                    title={t('action.delete')}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
 
                                             <Button
                                                 onClick={() =>
@@ -1722,6 +2040,511 @@ export default function RecipesIndex({
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
                                     t('recipes.save_recipe')
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit Recipe Dialog */}
+            <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <ChefHat className="h-5 w-5 text-emerald-600" />
+                            {t('recipes.edit_title')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t('recipes.edit_description')}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form onSubmit={handleUpdateRecipe} className="space-y-5">
+                        {/* Recipe Metadata */}
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                            <div className="space-y-1.5 sm:col-span-2">
+                                <Label
+                                    htmlFor="edit-recipe-name"
+                                    className="text-xs font-semibold"
+                                >
+                                    {t('recipes.recipe_name')} *
+                                </Label>
+                                <Input
+                                    id="edit-recipe-name"
+                                    required
+                                    placeholder="e.g. High-Protein Berry Oatmeal"
+                                    value={editRecipeName}
+                                    onChange={(e) =>
+                                        setEditRecipeName(e.target.value)
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label
+                                    htmlFor="edit-recipe-servings"
+                                    className="text-xs font-semibold"
+                                >
+                                    {t('recipes.servings_count')} *
+                                </Label>
+                                <Input
+                                    id="edit-recipe-servings"
+                                    type="number"
+                                    step="0.5"
+                                    min="0.5"
+                                    max="50"
+                                    required
+                                    value={editRecipeServings}
+                                    onChange={(e) =>
+                                        setEditRecipeServings(
+                                            Number(e.target.value),
+                                        )
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label
+                                htmlFor="edit-recipe-description"
+                                className="text-xs font-semibold"
+                            >
+                                {t('recipes.description')} (optional)
+                            </Label>
+                            <Input
+                                id="edit-recipe-description"
+                                placeholder="e.g. Quick breakfast bowl prepared with whey and chia seeds"
+                                value={editRecipeDescription}
+                                onChange={(e) =>
+                                    setEditRecipeDescription(e.target.value)
+                                }
+                            />
+                        </div>
+
+                        {/* Ingredients Box */}
+                        <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+                            <h4 className="flex items-center gap-2 text-sm font-bold text-foreground">
+                                <Utensils className="h-4 w-4 text-emerald-600" />
+                                {t('recipes.ingredients')}
+                            </h4>
+
+                            {/* Added Ingredients Table */}
+                            {editSelectedItems.length === 0 ? (
+                                <p className="py-2 text-center text-xs text-muted-foreground italic">
+                                    No ingredients added yet. Search and select
+                                    foods below to add them to this recipe.
+                                </p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {editSelectedItems.map((item, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-2.5 text-xs"
+                                        >
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate font-semibold text-foreground">
+                                                    {item.food.name}
+                                                </p>
+                                                <p className="text-[11px] text-muted-foreground">
+                                                    {item.grams}g &bull;{' '}
+                                                    {item.calories} kcal &bull;
+                                                    P: {item.protein}g | C:{' '}
+                                                    {item.carbs}g | F:{' '}
+                                                    {item.fat}g
+                                                </p>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() =>
+                                                    handleRemoveEditIngredient(
+                                                        idx,
+                                                    )
+                                                }
+                                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Add Food Picker */}
+                            <div className="space-y-3 border-t border-border pt-3">
+                                <Label className="text-xs font-semibold text-foreground">
+                                    Add An Ingredient
+                                </Label>
+
+                                {!editActiveFoodToAdd ? (
+                                    <div className="space-y-2">
+                                        <div className="relative">
+                                            <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                                            <Input
+                                                placeholder={t(
+                                                    'recipes.search_ingredient',
+                                                )}
+                                                value={editFoodSearchQuery}
+                                                onChange={(e) =>
+                                                    setEditFoodSearchQuery(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="pl-8 text-xs"
+                                            />
+                                            {isSearchingEditFood && (
+                                                <Loader2 className="absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2 animate-spin text-primary" />
+                                            )}
+                                        </div>
+
+                                        {isSearchingEditFood && (
+                                            <div className="flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground">
+                                                <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                                                <span>
+                                                    {t(
+                                                        'recipes.searching_foods',
+                                                    )}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <div className="grid max-h-48 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+                                            {editDisplayFoods.map((f) => (
+                                                <button
+                                                    key={f.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setEditActiveFoodToAdd(
+                                                            f,
+                                                        );
+                                                        setEditSelectedServingId(
+                                                            f.servings?.[0]
+                                                                ?.id ?? null,
+                                                        );
+                                                        setEditItemQuantity(1);
+                                                        setEditItemCustomGrams(
+                                                            '',
+                                                        );
+                                                    }}
+                                                    className="group flex items-center justify-between gap-2 rounded-lg border border-border/70 p-2 text-left text-xs transition-all hover:border-emerald-500 hover:bg-emerald-500/5"
+                                                >
+                                                    <div className="flex min-w-0 items-center gap-2">
+                                                        {f.image_url ? (
+                                                            <img
+                                                                src={
+                                                                    f.image_url
+                                                                }
+                                                                alt={f.name}
+                                                                className="h-8 w-8 shrink-0 rounded border border-border/50 object-cover"
+                                                                loading="lazy"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground">
+                                                                <Utensils className="h-3.5 w-3.5" />
+                                                            </div>
+                                                        )}
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="truncate font-medium text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                                                                {f.name}
+                                                            </p>
+                                                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                                                {f.brand && (
+                                                                    <span className="max-w-[70px] truncate">
+                                                                        {
+                                                                            f.brand
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                                {f.search_origin ===
+                                                                    'openfoodfacts' ||
+                                                                (!f.is_custom &&
+                                                                    f.off_id) ? (
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="h-4 border-blue-500/30 bg-blue-500/10 px-1 text-[9px] text-blue-600 dark:text-blue-400"
+                                                                    >
+                                                                        <Globe className="mr-0.5 h-2 w-2" />
+                                                                        OFF
+                                                                    </Badge>
+                                                                ) : f.is_custom ? (
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="h-4 border-purple-500/30 bg-purple-500/10 px-1 text-[9px] text-purple-600 dark:text-purple-400"
+                                                                    >
+                                                                        Custom
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="h-4 border-emerald-500/30 bg-emerald-500/10 px-1 text-[9px] text-emerald-600 dark:text-emerald-400"
+                                                                    >
+                                                                        <Database className="mr-0.5 h-2 w-2" />
+                                                                        DB
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="shrink-0 text-right">
+                                                        <span className="font-semibold text-foreground">
+                                                            {Math.round(
+                                                                Number(
+                                                                    f.calories,
+                                                                ),
+                                                            )}
+                                                        </span>
+                                                        <span className="block text-[10px] text-muted-foreground">
+                                                            kcal
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            ))}
+
+                                            {editDisplayFoods.length === 0 &&
+                                                !isSearchingEditFood && (
+                                                    <div className="col-span-1 py-4 text-center text-xs text-muted-foreground sm:col-span-2">
+                                                        {t(
+                                                            'recipes.no_foods_found',
+                                                            {
+                                                                query: editFoodSearchQuery,
+                                                            },
+                                                        )}
+                                                    </div>
+                                                )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                {editActiveFoodToAdd.image_url ? (
+                                                    <img
+                                                        src={
+                                                            editActiveFoodToAdd.image_url
+                                                        }
+                                                        alt={
+                                                            editActiveFoodToAdd.name
+                                                        }
+                                                        className="h-8 w-8 shrink-0 rounded border border-emerald-500/30 object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                                        <Utensils className="h-4 w-4" />
+                                                    </div>
+                                                )}
+                                                <div className="min-w-0">
+                                                    <span className="block truncate text-xs font-bold text-foreground">
+                                                        {
+                                                            editActiveFoodToAdd.name
+                                                        }
+                                                    </span>
+                                                    {editActiveFoodToAdd.brand && (
+                                                        <span className="block truncate text-[10px] text-muted-foreground">
+                                                            {
+                                                                editActiveFoodToAdd.brand
+                                                            }
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() =>
+                                                    setEditActiveFoodToAdd(null)
+                                                }
+                                                className="h-6 w-6 p-0"
+                                            >
+                                                <X className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                            {/* Serving Portion Dropdown */}
+                                            {editActiveFoodToAdd.servings &&
+                                                editActiveFoodToAdd.servings
+                                                    .length > 0 && (
+                                                    <div className="space-y-1">
+                                                        <Label className="text-[11px]">
+                                                            Portion
+                                                        </Label>
+                                                        <select
+                                                            value={
+                                                                editSelectedServingId ??
+                                                                ''
+                                                            }
+                                                            onChange={(e) =>
+                                                                setEditSelectedServingId(
+                                                                    e.target
+                                                                        .value
+                                                                        ? Number(
+                                                                              e
+                                                                                  .target
+                                                                                  .value,
+                                                                          )
+                                                                        : null,
+                                                                )
+                                                            }
+                                                            className="w-full rounded-md border border-input bg-card p-1.5 text-xs"
+                                                        >
+                                                            {editActiveFoodToAdd.servings.map(
+                                                                (s) => (
+                                                                    <option
+                                                                        key={
+                                                                            s.id
+                                                                        }
+                                                                        value={
+                                                                            s.id
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            s.serving_name
+                                                                        }{' '}
+                                                                        (
+                                                                        {
+                                                                            s.gram_equivalent
+                                                                        }
+                                                                        g)
+                                                                    </option>
+                                                                ),
+                                                            )}
+                                                        </select>
+                                                    </div>
+                                                )}
+
+                                            <div className="space-y-1">
+                                                <Label className="text-[11px]">
+                                                    Multiplier
+                                                </Label>
+                                                <Input
+                                                    type="number"
+                                                    step="0.1"
+                                                    min="0.1"
+                                                    value={editItemQuantity}
+                                                    onChange={(e) =>
+                                                        setEditItemQuantity(
+                                                            Number(
+                                                                e.target.value,
+                                                            ),
+                                                        )
+                                                    }
+                                                    className="h-8 text-xs"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-1">
+                                                <Label className="text-[11px]">
+                                                    Or exact grams
+                                                </Label>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="e.g. 150"
+                                                    value={editItemCustomGrams}
+                                                    onChange={(e) =>
+                                                        setEditItemCustomGrams(
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className="h-8 text-xs"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <Button
+                                            type="button"
+                                            onClick={handleAddEditIngredient}
+                                            className="h-8 w-full bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
+                                        >
+                                            {t('recipes.add_this_ingredient')}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Nutrition Summary Bar */}
+                        {editSelectedItems.length > 0 && (
+                            <div className="space-y-3 rounded-xl border border-border bg-muted/40 p-4">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-foreground">
+                                        Recipe Caloric Summary
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                        Total:{' '}
+                                        <strong>
+                                            {editRecipeTotals.totalCalories}{' '}
+                                            kcal
+                                        </strong>{' '}
+                                        &bull; Per Serving:{' '}
+                                        <strong>
+                                            {
+                                                editRecipeTotals.perServingCalories
+                                            }{' '}
+                                            kcal
+                                        </strong>
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                                    <div className="rounded-lg border border-border/50 bg-card p-2">
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                            Protein
+                                        </span>
+                                        <p className="font-bold text-emerald-600">
+                                            {editRecipeTotals.perServingProtein}
+                                            g
+                                        </p>
+                                    </div>
+                                    <div className="rounded-lg border border-border/50 bg-card p-2">
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                            Carbs
+                                        </span>
+                                        <p className="font-bold text-amber-600">
+                                            {editRecipeTotals.perServingCarbs}g
+                                        </p>
+                                    </div>
+                                    <div className="rounded-lg border border-border/50 bg-card p-2">
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                            Fat
+                                        </span>
+                                        <p className="font-bold text-sky-600">
+                                            {editRecipeTotals.perServingFat}g
+                                        </p>
+                                    </div>
+                                    <div className="rounded-lg border border-border/50 bg-card p-2">
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                            Fiber
+                                        </span>
+                                        <p className="font-bold text-foreground">
+                                            {editRecipeTotals.perServingFiber}g
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <DialogFooter className="gap-2 pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setEditModalOpen(false)}
+                            >
+                                {t('action.cancel')}
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={
+                                    isUpdatingRecipe ||
+                                    !editRecipeName.trim() ||
+                                    editSelectedItems.length === 0
+                                }
+                                className="bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
+                            >
+                                {isUpdatingRecipe ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    t('recipes.update_recipe')
                                 )}
                             </Button>
                         </DialogFooter>

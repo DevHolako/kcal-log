@@ -296,6 +296,11 @@ export const translations: Record<Locale, Record<string, string>> = {
         'recipes.ingredients': 'Ingredients',
         'recipes.create_title': 'Create New Recipe',
         'recipes.create_recipe': 'Create Recipe',
+        'recipes.edit_recipe': 'Edit Recipe',
+        'recipes.edit_title': 'Edit Recipe',
+        'recipes.edit_description':
+            'Update recipe ingredients, portion sizes, or servings yield.',
+        'recipes.update_recipe': 'Update Recipe',
         'recipes.recipe_name': 'Recipe Name',
         'recipes.servings_count': 'Servings Yield',
         'recipes.save_recipe': 'Save Recipe',
@@ -700,6 +705,11 @@ export const translations: Record<Locale, Record<string, string>> = {
         'recipes.ingredients': 'Ingrédients',
         'recipes.create_title': 'Créer une nouvelle recette',
         'recipes.create_recipe': 'Créer une recette',
+        'recipes.edit_recipe': 'Modifier la recette',
+        'recipes.edit_title': 'Modifier la recette',
+        'recipes.edit_description':
+            'Mettez à jour les ingrédients, portions ou le rendement de la recette.',
+        'recipes.update_recipe': 'Mettre à jour la recette',
         'recipes.recipe_name': 'Nom de la recette',
         'recipes.servings_count': 'Nombre de portions',
         'recipes.save_recipe': 'Enregistrer la recette',
