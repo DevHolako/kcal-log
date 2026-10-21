@@ -8,7 +8,8 @@
     "start:tunnel": "expo start --tunnel",
     "android": "expo run:android",
     "lint": "vp lint",
-    "test": "vp test run"
+    "test": "vp test run",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@babel/runtime": "^7.26.0",
@@ -23,6 +24,7 @@
     "expo-crypto": "~14.0.2",
     "expo-file-system": "~18.0.11",
     "expo-intent-launcher": "~12.0.1",
+    "expo-modules-autolinking": "~2.0.8",
     "expo-status-bar": "~2.0.1",
     "react": "18.3.1",
     "react-native": "~0.76.7"
