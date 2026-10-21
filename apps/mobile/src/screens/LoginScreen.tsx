@@ -6,15 +6,18 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { COLORS } from '../components/ui/Theme';
 import { useAuth } from '../context/AuthContext';
+import { APP_CONFIG } from '../config';
 
 export const LoginScreen: React.FC = () => {
   const { apiUrl, updateApiUrl, login } = useAuth();
+  const [showAdvancedServer, setShowAdvancedServer] = useState(false);
   const [serverUrl, setServerUrl] = useState(apiUrl);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,7 +34,7 @@ export const LoginScreen: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      if (serverUrl.trim() !== apiUrl) {
+      if (showAdvancedServer && serverUrl.trim() !== apiUrl) {
         await updateApiUrl(serverUrl.trim());
       }
       await login(email.trim(), password);
@@ -61,14 +64,16 @@ export const LoginScreen: React.FC = () => {
         <Card style={styles.card}>
           <Text style={styles.formTitle}>Mobile Sign In</Text>
 
-          <Input
-            label="API Server Address"
-            value={serverUrl}
-            onChangeText={setServerUrl}
-            placeholder="http://10.0.2.2:9000"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+          {showAdvancedServer && (
+            <Input
+              label="Custom API Server Address"
+              value={serverUrl}
+              onChangeText={setServerUrl}
+              placeholder={APP_CONFIG.DEFAULT_API_BASE_URL}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          )}
 
           <Input
             label="Email Address"
@@ -102,6 +107,16 @@ export const LoginScreen: React.FC = () => {
             loading={isLoading}
             style={styles.submitBtn}
           />
+
+          {/* Server endpoint status and toggle */}
+          <TouchableOpacity
+            onPress={() => setShowAdvancedServer(!showAdvancedServer)}
+            style={styles.serverInfoBtn}
+          >
+            <Text style={styles.serverInfoText}>
+              Server: {apiUrl} {!showAdvancedServer && '(tap to edit)'}
+            </Text>
+          </TouchableOpacity>
         </Card>
 
         {/* Help footer */}
@@ -161,6 +176,15 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     marginTop: 8,
+  },
+  serverInfoBtn: {
+    marginTop: 14,
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  serverInfoText: {
+    fontSize: 11,
+    color: COLORS.textMuted,
   },
   helpText: {
     fontSize: 11,

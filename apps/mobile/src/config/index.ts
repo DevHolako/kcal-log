@@ -7,8 +7,8 @@ import {
 
 export const APP_CONFIG = {
   APP_NAME: 'kcal-log',
-  VERSION: '0.1.0',
-  DEFAULT_API_BASE_URL: 'http://10.0.2.2:9000', // Default Android emulator host loopback
+  VERSION: '0.1.1',
+  DEFAULT_API_BASE_URL: 'https://kcal.holako.dev',
   REPOSITORY_OWNER,
   REPOSITORY_NAME,
   REPOSITORY_FULL_NAME,

@@ -92,13 +92,13 @@ export const SettingsScreen: React.FC = () => {
         <Card style={styles.card}>
           <Text style={styles.cardTitle}>API Server Endpoint</Text>
           <Text style={styles.cardDesc}>
-            Configure the backend Laravel REST API address. Use 10.0.2.2:9000 for local Android emulator development.
+            Configure the backend Laravel REST API address. Default: https://kcal.holako.dev
           </Text>
 
           <Input
             value={inputUrl}
             onChangeText={setInputUrl}
-            placeholder="http://10.0.2.2:9000"
+            placeholder="https://kcal.holako.dev"
             autoCapitalize="none"
             autoCorrect={false}
           />

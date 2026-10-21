@@ -40,8 +40,10 @@ export class MobileApiService {
 
   public async initialize(): Promise<string | null> {
     const savedUrl = await storage.getItem(APP_CONFIG.STORAGE_KEYS.API_BASE_URL);
-    if (savedUrl) {
+    if (savedUrl && !savedUrl.includes('10.0.2.2')) {
       this.setBaseUrl(savedUrl);
+    } else {
+      this.setBaseUrl(APP_CONFIG.DEFAULT_API_BASE_URL);
     }
     const savedToken = await storage.getItem(APP_CONFIG.STORAGE_KEYS.AUTH_TOKEN);
     if (savedToken) {
