@@ -89,7 +89,7 @@ export const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
         </View>
 
         <Button
-          title="📷 Scan Barcode"
+          title="Scan Barcode"
           variant="secondary"
           size="md"
           onPress={onOpenBarcodeScanner}

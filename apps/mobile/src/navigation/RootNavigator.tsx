@@ -5,6 +5,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  StatusBar as RNStatusBar,
+  Platform,
+  Image,
   Modal,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
@@ -18,6 +21,14 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 import { COLORS } from '../components/ui/Theme';
 import type { RootTab } from '../types';
 import type { MealSlot } from '@kcal-log/types';
+
+const ICONS = {
+  diary: require('../../assets/icons/diary.png'),
+  search: require('../../assets/icons/search.png'),
+  weight: require('../../assets/icons/weight.png'),
+  strategy: require('../../assets/icons/strategy.png'),
+  settings: require('../../assets/icons/settings.png'),
+};
 
 export const RootNavigator: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -75,16 +86,21 @@ export const RootNavigator: React.FC = () => {
         {/* Active Screen */}
         <View style={styles.screenContainer}>{renderScreen()}</View>
 
-        {/* Bottom Tab Bar */}
+        {/* Bottom Tab Bar with Icons8 Icons */}
         <View style={styles.tabBar}>
           <TouchableOpacity
             style={styles.tabItem}
             onPress={() => setActiveTab('diary')}
             activeOpacity={0.7}
           >
-            <Text style={[styles.tabIcon, activeTab === 'diary' && styles.tabIconActive]}>
-              📖
-            </Text>
+            <Image
+              source={ICONS.diary}
+              style={[
+                styles.tabIcon,
+                { tintColor: activeTab === 'diary' ? COLORS.accentGreen : COLORS.textMuted },
+              ]}
+              resizeMode="contain"
+            />
             <Text style={[styles.tabLabel, activeTab === 'diary' && styles.tabLabelActive]}>
               Diary
             </Text>
@@ -95,9 +111,14 @@ export const RootNavigator: React.FC = () => {
             onPress={() => setActiveTab('search')}
             activeOpacity={0.7}
           >
-            <Text style={[styles.tabIcon, activeTab === 'search' && styles.tabIconActive]}>
-              🔍
-            </Text>
+            <Image
+              source={ICONS.search}
+              style={[
+                styles.tabIcon,
+                { tintColor: activeTab === 'search' ? COLORS.accentGreen : COLORS.textMuted },
+              ]}
+              resizeMode="contain"
+            />
             <Text style={[styles.tabLabel, activeTab === 'search' && styles.tabLabelActive]}>
               Search
             </Text>
@@ -108,9 +129,14 @@ export const RootNavigator: React.FC = () => {
             onPress={() => setActiveTab('weigh_in')}
             activeOpacity={0.7}
           >
-            <Text style={[styles.tabIcon, activeTab === 'weigh_in' && styles.tabIconActive]}>
-              ⚖️
-            </Text>
+            <Image
+              source={ICONS.weight}
+              style={[
+                styles.tabIcon,
+                { tintColor: activeTab === 'weigh_in' ? COLORS.accentGreen : COLORS.textMuted },
+              ]}
+              resizeMode="contain"
+            />
             <Text style={[styles.tabLabel, activeTab === 'weigh_in' && styles.tabLabelActive]}>
               Weight
             </Text>
@@ -121,9 +147,14 @@ export const RootNavigator: React.FC = () => {
             onPress={() => setActiveTab('adaptive')}
             activeOpacity={0.7}
           >
-            <Text style={[styles.tabIcon, activeTab === 'adaptive' && styles.tabIconActive]}>
-              🎯
-            </Text>
+            <Image
+              source={ICONS.strategy}
+              style={[
+                styles.tabIcon,
+                { tintColor: activeTab === 'adaptive' ? COLORS.accentGreen : COLORS.textMuted },
+              ]}
+              resizeMode="contain"
+            />
             <Text style={[styles.tabLabel, activeTab === 'adaptive' && styles.tabLabelActive]}>
               Strategy
             </Text>
@@ -134,9 +165,14 @@ export const RootNavigator: React.FC = () => {
             onPress={() => setActiveTab('settings')}
             activeOpacity={0.7}
           >
-            <Text style={[styles.tabIcon, activeTab === 'settings' && styles.tabIconActive]}>
-              ⚙️
-            </Text>
+            <Image
+              source={ICONS.settings}
+              style={[
+                styles.tabIcon,
+                { tintColor: activeTab === 'settings' ? COLORS.accentGreen : COLORS.textMuted },
+              ]}
+              resizeMode="contain"
+            />
             <Text style={[styles.tabLabel, activeTab === 'settings' && styles.tabLabelActive]}>
               Settings
             </Text>
@@ -150,14 +186,16 @@ export const RootNavigator: React.FC = () => {
           presentationStyle="fullScreen"
           onRequestClose={() => setBarcodeModalVisible(false)}
         >
-          <BarcodeScanScreen
-            initialSlot={targetSlot}
-            onClose={() => setBarcodeModalVisible(false)}
-            onLogComplete={() => {
-              setBarcodeModalVisible(false);
-              setActiveTab('diary');
-            }}
-          />
+          <SafeAreaView style={styles.safeArea}>
+            <BarcodeScanScreen
+              initialSlot={targetSlot}
+              onClose={() => setBarcodeModalVisible(false)}
+              onLogComplete={() => {
+                setBarcodeModalVisible(false);
+                setActiveTab('diary');
+              }}
+            />
+          </SafeAreaView>
         </Modal>
       </View>
     </SafeAreaView>
@@ -168,6 +206,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,
+    paddingTop: Platform.OS === 'android' ? (RNStatusBar.currentHeight || 24) : 0,
   },
   container: {
     flex: 1,
@@ -177,6 +216,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: Platform.OS === 'android' ? (RNStatusBar.currentHeight || 24) : 0,
   },
   loadingText: {
     fontSize: 28,
@@ -193,19 +233,18 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.cardBorder,
     paddingVertical: 8,
     paddingHorizontal: 8,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 10,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 4,
   },
   tabIcon: {
-    fontSize: 18,
-    marginBottom: 2,
-    opacity: 0.6,
-  },
-  tabIconActive: {
-    opacity: 1,
+    width: 22,
+    height: 22,
+    marginBottom: 4,
   },
   tabLabel: {
     fontSize: 11,

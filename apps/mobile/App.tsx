@@ -42,7 +42,7 @@ export default function App() {
   return (
     <AuthProvider>
       <DiaryProvider>
-        <StatusBar style="light" />
+        <StatusBar style="light" backgroundColor="#09090b" />
         <RootNavigator />
 
         {/* Automatic launch update prompt if newer release detected */}
