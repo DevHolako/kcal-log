@@ -14,6 +14,8 @@
     "dev:backend": "cd apps/web && php artisan serve --port=9000",
     "dev:frontend": "pnpm --filter @kcal-log/web dev",
     "build": "pnpm --filter @kcal-log/web build",
+    "mobile:start": "pnpm --filter @kcal-log/mobile start",
+    "mobile:tunnel": "pnpm --filter @kcal-log/mobile start:tunnel",
     "test": "pnpm --filter @kcal-log/nutrition test",
     "test:mobile": "pnpm --filter @kcal-log/mobile test",
     "test:lint-rules": "node packages/oxlint-rules/test/rules.test.js",
