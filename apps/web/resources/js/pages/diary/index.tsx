@@ -201,6 +201,37 @@ export default function DiaryIndex({
         'donut',
     );
 
+    // Net vs Gross Calorie accounting mode
+    const [calorieMode, setCalorieMode] = useState<'gross' | 'net'>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('kcal_calorie_mode');
+            if (saved === 'net' || saved === 'gross') return saved;
+        }
+        return 'gross';
+    });
+
+    const handleToggleCalorieMode = (mode: 'gross' | 'net') => {
+        setCalorieMode(mode);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('kcal_calorie_mode', mode);
+        }
+    };
+
+    const burnedCalories = Math.round(
+        Number(summary.exercise_calories_burned || 0),
+    );
+    const activeConsumedCalories =
+        calorieMode === 'net'
+            ? Math.max(0, Math.round(summary.total_calories - burnedCalories))
+            : summary.total_calories;
+    const activeRemainingCalories =
+        calorieMode === 'net'
+            ? Math.max(
+                  0,
+                  Math.round(summary.target_calories - activeConsumedCalories),
+              )
+            : summary.remaining_calories;
+
     // Weight Logging state
     const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
     const [weightInput, setWeightInput] = useState<string>(
@@ -828,11 +859,48 @@ export default function DiaryIndex({
             <Card className="relative overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs">
                 <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-96 -translate-x-1/2 rounded-full bg-primary/[0.08] blur-3xl dark:bg-primary/[0.12]" />
                 <CardContent className="relative space-y-5 p-5">
-                    {/* Header View Switcher */}
-                    <div className="flex items-center justify-between border-b border-border/50 pb-3">
-                        <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                            Macronutrient Breakdown
-                        </span>
+                    {/* Header View Switchers: Accounting (Gross/Net) & Visualizer (Donut/Rings) */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 pb-3">
+                        <div className="flex flex-wrap items-center gap-2.5">
+                            <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                                Macronutrient Breakdown
+                            </span>
+
+                            {/* Gross vs Net Mode Toggle */}
+                            <div className="flex items-center rounded-lg border border-border/60 bg-muted/50 p-0.5 text-xs font-semibold">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handleToggleCalorieMode('gross')
+                                    }
+                                    className={cn(
+                                        'rounded-md px-2.5 py-1 transition-all',
+                                        calorieMode === 'gross'
+                                            ? 'bg-card font-bold text-foreground shadow-2xs'
+                                            : 'text-muted-foreground hover:text-foreground',
+                                    )}
+                                    title={t('diary.gross_mode_desc')}
+                                >
+                                    {t('diary.gross_calories')}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handleToggleCalorieMode('net')
+                                    }
+                                    className={cn(
+                                        'rounded-md px-2.5 py-1 transition-all',
+                                        calorieMode === 'net'
+                                            ? 'bg-card font-bold text-emerald-600 shadow-2xs dark:text-emerald-400'
+                                            : 'text-muted-foreground hover:text-foreground',
+                                    )}
+                                    title={t('diary.net_mode_desc')}
+                                >
+                                    {t('diary.net_calories')}
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="flex items-center rounded-lg border border-border/60 bg-muted/50 p-0.5 text-xs font-semibold">
                             <button
                                 type="button"
@@ -861,12 +929,47 @@ export default function DiaryIndex({
                         </div>
                     </div>
 
+                    {/* Net Mode Offset Visualization Banner */}
+                    {calorieMode === 'net' &&
+                        (burnedCalories > 0 ? (
+                            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3.5 py-2 text-xs text-emerald-900 dark:text-emerald-200">
+                                <div className="flex items-center gap-2">
+                                    <Flame className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                    <span>
+                                        {t('diary.burned_offset')}:{' '}
+                                        <span className="font-medium">
+                                            {summary.total_calories} kcal (food)
+                                            − {burnedCalories} kcal (exercise) ={' '}
+                                            <strong className="font-bold underline">
+                                                {activeConsumedCalories} kcal
+                                            </strong>{' '}
+                                            Net
+                                        </span>
+                                    </span>
+                                </div>
+                                <Badge
+                                    variant="outline"
+                                    className="border-emerald-500/30 bg-emerald-500/20 font-mono text-[11px] font-bold text-emerald-700 dark:text-emerald-300"
+                                >
+                                    +{burnedCalories} kcal budget
+                                </Badge>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2 text-xs text-muted-foreground">
+                                <Flame className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                <span>
+                                    {t('diary.net_calories')} mode active. No
+                                    workouts logged yet today (Net = Gross).
+                                </span>
+                            </div>
+                        ))}
+
                     {visualizerMode === 'donut' ? (
                         <MacroDonutChart
                             calories={{
-                                consumed: summary.total_calories,
+                                consumed: activeConsumedCalories,
                                 target: summary.target_calories,
-                                remaining: summary.remaining_calories,
+                                remaining: activeRemainingCalories,
                                 unit: 'kcal',
                             }}
                             protein={{
@@ -888,9 +991,9 @@ export default function DiaryIndex({
                     ) : (
                         <ConcentricMacroRings
                             calories={{
-                                consumed: summary.total_calories,
+                                consumed: activeConsumedCalories,
                                 target: summary.target_calories,
-                                remaining: summary.remaining_calories,
+                                remaining: activeRemainingCalories,
                                 unit: 'kcal',
                             }}
                             protein={{
